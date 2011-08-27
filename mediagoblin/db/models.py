@@ -340,6 +340,26 @@ class MediaComment(Document):
         return self.db.User.find_one({'_id': self['author']})
 
 
+class OpenID(Document):
+    __collection__ = 'openids'
+
+    structure = {
+        'openid_url': unicode,
+        'user_id': ObjectId,
+        'created': datetime.datetime,
+        }
+
+    required_fields = [
+        'openid_url', 'user_id']
+
+    default_values = {
+        'created': datetime.datetime.utcnow}
+
+    def user(self):
+        return self.db.User.find_one({
+                '_id': self['user_id']})
+
+
 REGISTER_MODELS = [
     MediaEntry,
     User,
