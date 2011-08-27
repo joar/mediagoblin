@@ -20,6 +20,7 @@ from webob import exc
 
 from mediagoblin import messages, mg_globals
 from mediagoblin.util import render_to_response, redirect
+from mediagoblin.util import pass_to_ugettext as _
 
 from openid.consumer import consumer
 from openid.store import memstore
@@ -27,30 +28,24 @@ from openid.extensions import sreg
 
 from openidmongodb import MongoDBStore
 
-openid_store = memstore.MemoryStore()
+
+openid_store = None
+
 
 def openid_verify(request):
+    request.session['foo'] = 'bar'
     import pdb
     output = ''
-    global openid_store
-
-    if not openid_store:
-        openid_store = memstore.MemoryStore()
 
     # pdb.set_trace()
     openid_url = request.POST.get('openid_url')
 
     print openid_url
 
-    immediate = True
+#    immediate = False
     use_sreg = True
 
-    openid_store = MongoDBStore(
-        host=mg_globals.app_config['db_host'],
-        port=mg_globals.app_config['db_port'],
-        db=mg_globals.app_config['db_name'])
-
-    _consumer = consumer.Consumer(request.session, openid_store)
+    _consumer = _get_consumer(request)
 
     try:
         req = _consumer.begin(openid_url)
@@ -64,7 +59,7 @@ def openid_verify(request):
         if req is None:
             msg = 'No OpenID services found for <code>%s</code>' % (
                 cgi.escape(openid_url),)
-            
+
         else:
             # Then, ask the library to begin the authorization.
             # Here we find out the identity server that will verify the
@@ -86,24 +81,61 @@ def openid_verify(request):
             else:
                 form_html = req.htmlMarkup(
                     trust_root, return_to,
-                    form_tag_attrs={'id':'openid_message'},
-                    immediate=immediate)
+                    form_tag_attrs={'id':'openid_message'})
 
                 output += form_html
 
     output += str(req)
 
+    request.session.save()
+
     return render_to_response(
         request,
         'mediagoblin/openid/foo.html',
         {'output': output})
+
 
 def openid_process(request):
     output = ''
 
-    output += str(request.template_env)
+    _consumer = _get_consumer(request)
+
+    url = u'http://' + '/'.join([
+            request.host,
+            request.urlgen(
+                'mediagoblin.openid.process')])
+
+    response = _consumer.complete(request.matchdict, url)
+    display_identifier = response.getDisplayIdentifier()
+
+    if response.status == consumer.FAILURE:
+        output += 'Verification of %s failed: %s' % (
+            cgi.escape(display_identifier) if display_identifier else '',
+            response.message)
+        
+    elif response.status == consumer.SUCCESS:
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            _('OpenID authentication successful'))
+
+    else:
+        output += 'No success<br />'
+
+    output += str(request.session)
 
     return render_to_response(
         request,
         'mediagoblin/openid/foo.html',
         {'output': output})
+
+def _get_consumer(request):
+    global openid_store
+
+    if not openid_store:
+        openid_store = MongoDBStore(
+            host=mg_globals.app_config['db_host'],
+            port=mg_globals.app_config['db_port'],
+            db=mg_globals.app_config['db_name'])
+
+    return consumer.Consumer(request.session, openid_store)
