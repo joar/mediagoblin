@@ -40,6 +40,11 @@ class RegistrationForm(wtforms.Form):
         [wtforms.validators.Required(),
          wtforms.validators.Email()])
 
+class OpenIDRegistrationForm(wtforms.Form):
+    openid_url = wtforms.TextField(
+        _('OpenID identifier'),
+        [wtforms.validators.Optional()])
+
 
 class LoginForm(wtforms.Form):
     username = wtforms.TextField(

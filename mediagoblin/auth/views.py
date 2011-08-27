@@ -41,10 +41,9 @@ def register(request):
         return redirect(request, "index")
 
     register_form = auth_forms.RegistrationForm(request.POST)
+    openid_form = auth_forms.OpenIDRegistrationForm(request.POST)
 
     if request.method == 'POST' and register_form.validate():
-        # TODO: Make sure the user doesn't exist already
-
         users_with_username = request.db.User.find(
             {'username': request.POST['username'].lower()}).count()
         users_with_email = request.db.User.find(
@@ -86,7 +85,8 @@ def register(request):
     return render_to_response(
         request,
         'mediagoblin/auth/register.html',
-        {'register_form': register_form})
+        {'register_form': register_form,
+         'openid_form': openid_form})
 
 
 def login(request):
