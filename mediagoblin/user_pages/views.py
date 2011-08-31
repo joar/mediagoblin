@@ -20,11 +20,12 @@ from mediagoblin import messages, mg_globals
 from mediagoblin.db.util import DESCENDING, ObjectId
 from mediagoblin.util import (
     Pagination, render_to_response, redirect, cleaned_markdown_conversion,
-    render_404)
+    render_404, delete_media_files)
+from mediagoblin.util import pass_to_ugettext as _
 from mediagoblin.user_pages import forms as user_forms
 
 from mediagoblin.decorators import (uses_pagination, get_user_media_entry,
-    require_active_login)
+    require_active_login, user_may_delete_media)
 
 from werkzeug.contrib.atom import AtomFeed
 
@@ -130,7 +131,7 @@ def media_post_comment(request):
     comment = request.db.MediaComment()
     comment['media_entry'] = ObjectId(request.matchdict['media'])
     comment['author'] = request.user['_id']
-    comment['content'] = request.POST['comment_content']
+    comment['content'] = unicode(request.POST['comment_content'])
 
     comment['content_html'] = cleaned_markdown_conversion(comment['content'])
 
@@ -143,6 +144,43 @@ def media_post_comment(request):
     return redirect(request, 'mediagoblin.user_pages.media_home',
         media = request.matchdict['media'],
         user = request.matchdict['user'])
+
+
+@get_user_media_entry
+@require_active_login
+@user_may_delete_media
+def media_confirm_delete(request, media):
+
+    form = user_forms.ConfirmDeleteForm(request.POST)
+
+    if request.method == 'POST' and form.validate():
+        if request.POST.get('confirm') == 'True':
+            username = media.uploader()['username']
+
+            # Delete all files on the public storage
+            delete_media_files(media)
+
+            media.delete()
+
+            return redirect(request, "mediagoblin.user_pages.user_home",
+                user=username)
+        else:
+            return redirect(request, "mediagoblin.user_pages.media_home",
+                            user=media.uploader()['username'],
+                            media=media['slug'])
+
+    if ((request.user[u'is_admin'] and
+         request.user[u'_id'] != media.uploader()[u'_id'])):
+        messages.add_message(
+            request, messages.WARNING,
+            _("You are about to delete another user's media. "
+              "Proceed with caution."))
+
+    return render_to_response(
+        request,
+        'mediagoblin/user_pages/media_confirm_delete.html',
+        {'media': media,
+         'form': form})
 
 
 ATOM_DEFAULT_NR_OF_UPDATED_ITEMS = 15
