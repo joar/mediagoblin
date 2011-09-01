@@ -44,10 +44,13 @@ def register(request):
     openid_form = auth_forms.OpenIDRegistrationForm(request.POST)
 
     if request.method == 'POST' and register_form.validate():
+        # TODO: Make sure the user doesn't exist already
+        username = unicode(request.POST['username'].lower())
+        email = unicode(request.POST['email'].lower())
         users_with_username = request.db.User.find(
-            {'username': request.POST['username'].lower()}).count()
+            {'username': username}).count()
         users_with_email = request.db.User.find(
-            {'email': request.POST['email'].lower()}).count()
+            {'email': email}).count()
 
         extra_validation_passes = True
 
@@ -63,8 +66,8 @@ def register(request):
         if extra_validation_passes:
             # Create the user
             user = request.db.User()
-            user['username'] = request.POST['username'].lower()
-            user['email'] = request.POST['email'].lower()
+            user['username'] = username
+            user['email'] = email
             user['pw_hash'] = auth_lib.bcrypt_gen_password_hash(
                 request.POST['password'])
             user.save(validate=True)
