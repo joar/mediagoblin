@@ -1,5 +1,5 @@
 # GNU MediaGoblin -- federated, autonomous media hosting
-# Copyright (C) 2011 Free Software Foundation, Inc
+# Copyright (C) 2011 MediaGoblin contributors.  See AUTHORS.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -274,7 +274,7 @@ class CloudFilesStorage(StorageInterface):
         except cloudfiles.errors.NoSuchObject:
             return False
 
-    def get_file(self, filepath, *args):
+    def get_file(self, filepath, *args, **kwargs):
         """
         - Doesn't care about the "mode" argument
         """
@@ -291,7 +291,7 @@ class CloudFilesStorage(StorageInterface):
             if mimetype:
                 obj.content_type = mimetype[0]
 
-        return self.StorageObjectWrapper(obj)
+        return StorageObjectWrapper(obj, *args, **kwargs)
 
     def delete_file(self, filepath):
         # TODO: Also delete unused directories if empty (safely, with
@@ -315,7 +315,7 @@ class StorageObjectWrapper():
     This wrapper currently meets mediagoblin's needs for a public_store
     file-like object.
     """
-    def __init__(self, storage_object):
+    def __init__(self, storage_object, *args, **kwargs):
         self.storage_object = storage_object
 
     def read(self, *args, **kwargs):

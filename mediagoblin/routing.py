@@ -1,5 +1,5 @@
 # GNU MediaGoblin -- federated, autonomous media hosting
-# Copyright (C) 2011 Free Software Foundation, Inc
+# Copyright (C) 2011 MediaGoblin contributors.  See AUTHORS.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ from mediagoblin.submit.routing import submit_routes
 from mediagoblin.user_pages.routing import user_routes
 from mediagoblin.edit.routing import edit_routes
 from mediagoblin.listings.routing import tag_routes
-from mediagoblin.confirm.routing import confirm_routes
 
 
 def get_mapper():

@@ -14,8 +14,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from routes.route import Route
-
-submit_routes = [
-    Route('mediagoblin.submit.start', '/',
-          controller='mediagoblin.submit.views:submit_start')]
+__version__ = "0.0.5"
