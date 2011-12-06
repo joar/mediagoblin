@@ -239,26 +239,9 @@ example: ::
 Visit the site you've set up in your browser by visiting
 <http://mediagobilin.example.org>. You should see MediaGoblin!
 
-Production MediaGoblin Deployments with Paste
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The instance configured with ``lazyserver`` is not ideal for a
-production MediaGoblin deployment. Ideally, you should be able to use
-a a control script (i.e. init script.) to launch and restart the
-MediaGoblin process.
-
-Use the following command as the basis for such a script: ::
-
-       CELERY_ALWAYS_EAGER=true \
-        /srv/mediagoblin.example.org/mediagoblin/bin/paster serve \
-        /srv/mediagoblin.example.org/mediagoblin/paste.ini \
-        --pid-file=/tmp/mediagoblin.pid \
-        --server-name=fcgi fcgi_host=127.0.0.1 fcgi_port=26543 \
-
 .. note::
 
-   The above configuration places MediaGoblin in "always eager" mode
-   with Celery. This is fine for development and smaller
-   deployments. However, if you're getting into the really large
-   deployment category, consider reading the section of this manual on
-   Celery.
+   The configuration described above is sufficient for development and
+   smaller deployments. However, for larger production deployments
+   with larger processing requirements, see the
+   ":doc:`production-deployments`" documentation.

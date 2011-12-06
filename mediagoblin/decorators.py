@@ -95,7 +95,6 @@ def get_user_media_entry(controller):
 
         if not user:
             return render_404(request)
-
         media = request.db.MediaEntry.find_one(
             {'slug': request.matchdict['media'],
              'state': 'processed',

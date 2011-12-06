@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2011-11-27 15:25-0600\n"
+"POT-Creation-Date: 2011-12-04 10:24-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,7 +94,7 @@ msgid "Tags"
 msgstr ""
 
 #: mediagoblin/edit/forms.py:30 mediagoblin/submit/forms.py:34
-msgid "Seperate tags by commas or spaces."
+msgid "Seperate tags by commas."
 msgstr ""
 
 #: mediagoblin/edit/forms.py:33
@@ -145,7 +145,7 @@ msgstr ""
 msgid "Profile edited!"
 msgstr ""
 
-#: mediagoblin/media_types/__init__.py:61
+#: mediagoblin/media_types/__init__.py:65
 msgid "Could not find any file extension in \"{filename}\""
 msgstr ""
 
@@ -224,7 +224,9 @@ msgid "Hi there, welcome to this MediaGoblin site!"
 msgstr ""
 
 #: mediagoblin/templates/mediagoblin/root.html:28
-msgid "Your finest source for all goblin-related media."
+msgid ""
+"This site is running <a href=\"http://mediagoblin.org\">MediaGoblin</a>, "
+"an extraordinarily great piece of media hosting software."
 msgstr ""
 
 #: mediagoblin/templates/mediagoblin/root.html:29
@@ -254,6 +256,11 @@ msgstr ""
 
 #: mediagoblin/templates/mediagoblin/auth/change_fp.html:29
 msgid "Enter your new password"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/auth/change_fp.html:33
+#: mediagoblin/templates/mediagoblin/submit/start.html:30
+msgid "Submit"
 msgstr ""
 
 #: mediagoblin/templates/mediagoblin/auth/forgot_password.html:27
@@ -355,10 +362,6 @@ msgstr ""
 msgid "Submit yer media"
 msgstr ""
 
-#: mediagoblin/templates/mediagoblin/submit/start.html:30
-msgid "Submit"
-msgstr ""
-
 #: mediagoblin/templates/mediagoblin/user_pages/gallery.html:30
 #, python-format
 msgid "%(username)s's media"
@@ -367,6 +370,31 @@ msgstr ""
 #: mediagoblin/templates/mediagoblin/user_pages/gallery.html:37
 #, python-format
 msgid "<a href=\"%(user_url)s\">%(username)s</a>'s media"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:57
+#, python-format
+msgid "By <a href=\"%(user_url)s\">%(username)s</a> on %(date)s"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:67
+msgid "Post a comment"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:85
+msgid "at"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:102
+msgid "Post comment!"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:124
+msgid "Edit"
+msgstr ""
+
+#: mediagoblin/templates/mediagoblin/user_pages/media.html:130
+msgid "Delete"
 msgstr ""
 
 #: mediagoblin/templates/mediagoblin/user_pages/media_confirm_delete.html:30
@@ -490,6 +518,10 @@ msgstr ""
 msgid "Older"
 msgstr ""
 
+#: mediagoblin/templates/mediagoblin/utils/pagination.html:50
+msgid "Go to page:"
+msgstr ""
+
 #: mediagoblin/templates/mediagoblin/utils/tags.html:20
 msgid "Tagged with"
 msgstr ""
@@ -507,11 +539,11 @@ msgid "I am sure I want to delete this"
 msgstr ""
 
 #: mediagoblin/user_pages/views.py:155
-msgid "Empty comments are not allowed."
+msgid "Oops, your comment was empty."
 msgstr ""
 
 #: mediagoblin/user_pages/views.py:161
-msgid "Comment posted!"
+msgid "Your comment has been posted!"
 msgstr ""
 
 #: mediagoblin/user_pages/views.py:183

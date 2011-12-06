@@ -14,27 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from nose.tools import assert_equal
 
-from mediagoblin import app
-import getpass
+from mediagoblin.tests.tools import setup_fresh_app
 
 
-def setup_app(args):
-    """
-    Setup the application after reading the mediagoblin config files
-    """
-    mgoblin_app = app.MediaGoblinApp(args.conf_file)
-
-    return mgoblin_app
-
-def prompt_if_not_set(variable, text, password=False):
-    """
-    Checks if the variable is None and prompt for a value if it is
-    """
-    if variable is None:
-        if not password:
-            variable=raw_input(text + u' ')
-        else:
-            variable=getpass.getpass(text + u' ')
-    
-    return variable
+@setup_fresh_app
+def test_404_for_non_existent(test_app):
+    assert_equal(test_app.get('/does-not-exist/',
+                              expect_errors=True).status_int,
+                 404)
