@@ -54,10 +54,6 @@ def process_ascii(entry):
 
         thumb = converter._create_image(
             queued_file.read())
-        '''
-        thumb, x, y, duration = asciitoimage.renderImage(
-            queued_file.read())
-        '''
 
         with file(tmp_thumb_filename, 'w') as thumb_file:
             thumb.thumbnail(THUMB_SIZE, Image.ANTIALIAS)
