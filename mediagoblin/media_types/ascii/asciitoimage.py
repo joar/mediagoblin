@@ -16,7 +16,7 @@
 
 """
 Python IRC ASCII to image script by e (e@tr0ll.in)
-
+ - Found at https://gist.github.com/791868
 """
 
 import Image, ImageFont, ImageDraw
