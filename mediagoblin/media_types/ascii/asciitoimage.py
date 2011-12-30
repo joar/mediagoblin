@@ -18,16 +18,24 @@ import Image
 import ImageFont
 import ImageDraw
 import logging
+import pkg_resources
+import os
 
 _log = logging.getLogger(__name__)
 
 class AsciiToImage(object):
     '''
     Converter of ASCII art into image files, preserving whitespace
+
+    kwargs:
+    - font: Path to font file
+      default: fonts/Inconsolata.otf
+    - font_size: Font size, ``int``
+      default: 11
     '''
 
-    # TODO: Be more portable. (include an OTF in the GMG dist?)
-    _font = '/usr/share/fonts/truetype/ttf-inconsolata/Inconsolata.otf'
+    # Font file path
+    _font = None
 
     _font_size = 11
 
@@ -43,11 +51,15 @@ class AsciiToImage(object):
     def __init__(self, **kw):
         if kw.get('font'):
             self._font = kw.get('font')
+        else:
+            self._font = pkg_resources.resource_filename(
+                'mediagoblin.media_types.ascii',
+                os.path.join('fonts', 'Inconsolata.otf'))
 
         if kw.get('font_size'):
             self._font_size = kw.get('font_size')
 
-        _log.debug('Setting font to {0}, size {1}'.format(
+        _log.info('Setting font to {0}, size {1}'.format(
                 self._font,
                 self._font_size))
 
@@ -55,8 +67,9 @@ class AsciiToImage(object):
             self._font,
             self._font_size)
 
-        #      (I am a wall socket!)Oo,  ___
-        #                               '   `
+        #      ,-,-^-'-^'^-^'^-'^-.
+        #     ( I am a wall socket )Oo,  ___
+        #      `-.,.-.,.-.-.,.-.--'     '   `
         # Get the size, in pixels of the '.' character
         self._if_dims = self._if.getsize('.')
         #                               `---'
@@ -67,7 +80,7 @@ class AsciiToImage(object):
 
         # PIL's Image.save will handle both file-likes and paths
         if im.save(destination):
-            _log.debug('Saved image in {0}'.format(
+            _log.info('Saved image in {0}'.format(
                     destination))
 
     def _create_image(self, text):
@@ -88,7 +101,7 @@ class AsciiToImage(object):
             max(line_lengths) * self._if_dims[0],
             len(line_lengths) * self._if_dims[1])
 
-        _log.debug('Destination image dimensions will be {0}'.format(
+        _log.info('Destination image dimensions will be {0}'.format(
                 im_dims))
 
         im = Image.new(
