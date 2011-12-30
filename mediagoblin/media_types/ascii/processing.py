@@ -50,8 +50,14 @@ def process_ascii(entry):
         tmp_thumb_filename = os.path.join(
             conversions_subdir, thumb_filepath[-1])
 
+        converter = asciitoimage.AsciiToImage()
+
+        thumb = converter._create_image(
+            queued_file.read())
+        '''
         thumb, x, y, duration = asciitoimage.renderImage(
             queued_file.read())
+        '''
 
         with file(tmp_thumb_filename, 'w') as thumb_file:
             thumb.thumbnail(THUMB_SIZE, Image.ANTIALIAS)
