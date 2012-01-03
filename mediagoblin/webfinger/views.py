@@ -20,30 +20,37 @@ For references, see docstring in mediagoblin/webfinger/__init__.py
 import re
 
 from urlparse import urlparse
+from webob import Response, exc
 
 from mediagoblin.tools.response import render_to_response, render_404
+
+from kuneco.xrd import LRDDDocument, HostMetaDocument
+
 
 def host_meta(request):
     '''
     Webfinger host-meta
     '''
 
+    # We need this to get around some URL encoding that 
+    # `Routes` does
     placeholder = 'MG_LRDD_PLACEHOLDER'
-
-    lrdd_title = 'GNU MediaGoblin - User lookup'
 
     lrdd_template = request.urlgen(
         'mediagoblin.webfinger.xrd',
         uri=placeholder,
         qualified=True)
 
-    return render_to_response(
-        request,
-        'mediagoblin/webfinger/host-meta.xml',
-        {'request': request,
-         'lrdd_template': lrdd_template,
-         'lrdd_title': lrdd_title,
-         'placeholder': placeholder})
+    # Replace the placeholder with ``{uri}``
+    lrdd_template = lrdd_template.replace(
+        placeholder,
+        '{uri}')
+
+
+    return Response(
+        str(HostMetaDocument(
+            request.host,
+            lrdd_template)))
 
 MATCH_SCHEME_PATTERN = re.compile(r'^acct:')
 
@@ -82,23 +89,28 @@ def xrd(request):
         user.username = parsed.username
 
         xrd_links = [
-            {'attrs': {
-                    'rel': 'http://microformats.org/profile/hcard',
-                    'href': request.urlgen(
-                        'mediagoblin.user_pages.user_home',
-                        user=user.username,
-                        qualified=True)}},
-            {'attrs': {
-                    'rel': 'http://schemas.google.com/g/2010#updates-from',
-                    'href': request.urlgen(
-                        'mediagoblin.user_pages.atom_feed',
-                        user=user.username,
-                        qualified=True)}}]
+            {'rel': 'http://microformats.org/profile/hcard',
+             'href': request.urlgen(
+                    'mediagoblin.user_pages.user_home',
+                    user=user.username,
+                    qualified=True)},
+            {'rel': 'http://schemas.google.com/g/2010#updates-from',
+             'href': request.urlgen(
+                    'mediagoblin.user_pages.atom_feed',
+                    user=user.username,
+                    qualified=True)}]
 
-        xrd_alias = request.urlgen(
+        xrd_aliases = [
+            request.urlgen(
             'mediagoblin.user_pages.user_home',
             user=user.username,
-            qualified=True)
+            qualified=True)]
+
+        return Response(
+            str(LRDDDocument(
+                xrd_subject,
+                xrd_aliases,
+                xrd_links)))
 
         return render_to_response(
             request,
