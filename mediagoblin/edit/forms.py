@@ -23,7 +23,11 @@ class EditForm(wtforms.Form):
     title = wtforms.TextField(
         _('Title'),
         [wtforms.validators.Length(min=0, max=500)])
-    description = wtforms.TextAreaField('Description of this work')
+    description = wtforms.TextAreaField(
+        _('Description of this work'),
+        description=_("""You can use
+                      <a href="http://daringfireball.net/projects/markdown/basics">
+                      Markdown</a> for formatting."""))
     tags = wtforms.TextField(
         _('Tags'),
         [tag_length_validator],
@@ -33,31 +37,35 @@ class EditForm(wtforms.Form):
         _('Slug'),
         [wtforms.validators.Required(message=_("The slug can't be empty"))],
         description=_(
-            "The title part of this media's URL. "
+            "The title part of this media's address. "
             "You usually don't need to change this."))
 
 
 class EditProfileForm(wtforms.Form):
     bio = wtforms.TextAreaField(
         _('Bio'),
-        [wtforms.validators.Length(min=0, max=500)])
+        [wtforms.validators.Length(min=0, max=500)],
+        description=_(
+            """You can use
+            <a href="http://daringfireball.net/projects/markdown/basics">
+            Markdown</a> for formatting."""))
     url = wtforms.TextField(
         _('Website'),
         [wtforms.validators.Optional(),
-         wtforms.validators.URL(message='Improperly formed URL')])
+         wtforms.validators.URL(message="""This address contains errors""")])
+
+
+class EditAccountForm(wtforms.Form):
     old_password = wtforms.PasswordField(
         _('Old password'),
-        [wtforms.validators.Optional()])
+        [wtforms.validators.Required()],
+        description=_(
+            "Enter your old password to prove you own this account."))
     new_password = wtforms.PasswordField(
-        _('New Password'),
-        [wtforms.validators.Optional(),
-         wtforms.validators.Length(min=6, max=30),
-         wtforms.validators.EqualTo(
-                'confirm_password',
-                'Passwords must match.')])
-    confirm_password = wtforms.PasswordField(
-        'Confirm password',
-        [wtforms.validators.Optional()])
+        _('New password'),
+        [wtforms.validators.Required(),
+         wtforms.validators.Length(min=6, max=30)],
+        id="password")
 
 
 class EditAttachmentsForm(wtforms.Form):

@@ -36,7 +36,7 @@
 {% endblock mediagoblin_head %}
 
 {% block mediagoblin_content %}
-  <div class="grid_11 alpha">
+  <div class="media_pane">
     <div class="media_image_container">
       {% block mediagoblin_media %}
         {% set display_media = request.app.public_store.file_url(
@@ -44,9 +44,9 @@
         {# if there's a medium file size, that means the medium size
          #  isn't the original... so link to the original!
          #}
-        {% if media['media_files'].has_key('medium') %}
+        {% if media.media_files.has_key('medium') %}
           <a href="{{ request.app.public_store.file_url(
-                        media['media_files']['original']) }}">
+                        media.media_files['original']) }}">
             <img class="media_image"
                  src="{{ display_media }}"
                  alt="Image for {{ media.title }}" />
@@ -68,8 +68,9 @@
       {% trans date=media.created.strftime("%Y-%m-%d") -%}
         Added on {{ date }}.
       {%- endtrans %}
-      {% if media['uploader'] == request.user._id or 
-                               request.user['is_admin'] %}
+      {% if request.user and
+            (media.uploader == request.user._id or 
+             request.user.is_admin) %}
         {% set edit_url = request.urlgen('mediagoblin.edit.edit_media',
                                    user= media.get_uploader.username,
                                    media= media._id) %}
@@ -119,7 +120,7 @@
                                          user= media.get_uploader.username,
                                          media=media._id) }}" method="POST" id="form_comment">
           <p>
-            {% trans %}Type your comment here. You can use <a href="http://daringfireball.net/projects/markdown/basics" target="_blank">Markdown</a> for formatting.{% endtrans %}
+            {% trans %}Type your comment here. You can use <a href="http://daringfireball.net/projects/markdown/basics">Markdown</a> for formatting.{% endtrans %}
           </p>
           {{ wtforms_util.render_divs(comment_form) }}
           <div class="form_submit_buttons">
@@ -159,7 +160,7 @@
                  media.url_for_self(request.urlgen)) }}
     {% endif %}
   </div>
-  <div class="grid_5 omega">
+  <div class="media_sidebar">
     {% trans user_url=request.urlgen(
                 'mediagoblin.user_pages.user_home',
                 user=media.get_uploader.username),

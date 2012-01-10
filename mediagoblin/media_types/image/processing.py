@@ -33,7 +33,7 @@ def process_image(entry):
         workbench.dir, 'conversions')
     os.mkdir(conversions_subdir)
 
-    queued_filepath = entry['queued_media_file']
+    queued_filepath = entry.queued_media_file
     queued_filename = workbench.localized_file(
         mgg.queue_store, queued_filepath,
         'source')
@@ -100,7 +100,7 @@ def process_image(entry):
 
     # Remove queued media file from storage and database
     mgg.queue_store.delete_file(queued_filepath)
-    entry['queued_media_file'] = []
+    entry.queued_media_file = []
 
     # Insert media file information into database
     media_files_dict = entry.setdefault('media_files', {})
