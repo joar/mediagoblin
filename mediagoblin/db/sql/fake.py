@@ -15,21 +15,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from sqlalchemy.types import TypeDecorator, Unicode
+"""
+This module contains some fake classes and functions to
+calm the rest of the code base. Or provide super minimal
+implementations.
+
+Currently:
+- ObjectId "class": It's a function mostly doing
+  int(init_arg) to convert string primary keys into
+  integer primary keys.
+- InvalidId exception
+- DESCENDING "constant"
+"""
 
 
-class PathTupleWithSlashes(TypeDecorator):
-    "Represents a Tuple of strings as a slash separated string."
+DESCENDING = object()  # a unique object for this "constant"
 
-    impl = Unicode
 
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            assert len(value), "Does not support empty lists"
-            value = '/'.join(value)
-        return value
+class InvalidId(Exception):
+    pass
 
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            value = tuple(value.split('/'))
-        return value
+
+def ObjectId(value=None):
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        raise InvalidId("%r is an invalid id" % value)
