@@ -17,12 +17,24 @@
 from webob import Response, exc
 from mediagoblin.tools.template import render_template
 
+import logging
 
-def render_to_response(request, template, context, status=200):
+_log = logging.getLogger(__name__)
+
+def render_to_response(request, template, context, status=200, response=None):
     """Much like Django's shortcut.render()"""
-    return Response(
-        render_template(request, template, context),
-        status=status)
+    if response:
+        _log.debug('Will continue to build on already constructed response '
+                   'with headers: {0}'\
+                       .format(response.headers))
+        response.body = render_template(request, template, context).encode(
+            'utf-8')
+        response.status_int = status
+        return response
+    else:
+        return Response(
+            render_template(request, template, context),
+            status=status)
 
 
 def render_404(request):

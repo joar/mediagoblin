@@ -14,11 +14,50 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 
-from webob import exc
+from webob import exc, Response
 
 from mediagoblin.tools.response import redirect, render_404
 from mediagoblin.db.util import ObjectId, InvalidId
+from mediagoblin import mg_globals as mgg
+
+_log = logging.getLogger(__name__)
+
+class CORSEnabled(object):
+    '''
+    Decorator to enable `CORS
+    '''
+    def __init__(self, function):
+        self._function = function
+
+    def __call__(self, request, *args, **kw):
+        _log.debug('CORS is enabled for {0}'.format(self._function))
+
+        if request.method == 'OPTIONS':
+            response = Response()
+            return self.decorate_response(response)
+        else:
+            response = Response()
+            # Prepare a response with CORS metadata
+            kw['cors_prep_response'] = self.decorate_response(response)
+
+            return self._function(request, *args, **kw)
+
+    @staticmethod
+    def decorate_response(response):
+        response.headers['Access-Control-Allow-Origin'] = \
+            mgg.global_config['cors']['allow_origin']
+        response.headers['Access-Control-Allow-Credentials'] = \
+            mgg.global_config['cors']['allow_credentials']
+        response.headers['Access-Control-Allow-Methods'] = \
+            mgg.global_config['cors']['allow_methods']
+        response.headers['Access-Control-Max-Age'] = \
+            mgg.global_config['cors']['max_age']
+        response.headers['Access-Control-Allow-Headers'] = \
+            mgg.global_config['cors']['allow_headers']
+
+        return response
 
 
 def _make_safe(decorator, original):

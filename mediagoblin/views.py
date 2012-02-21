@@ -18,12 +18,12 @@ from mediagoblin import mg_globals
 from mediagoblin.tools.pagination import Pagination
 from mediagoblin.tools.response import render_to_response
 from mediagoblin.db.util import DESCENDING
-from mediagoblin.decorators import uses_pagination
+from mediagoblin.decorators import uses_pagination, CORSEnabled
 
 
-
+@CORSEnabled
 @uses_pagination
-def root_view(request, page):
+def root_view(request, page, cors_prep_response=None):
     cursor = request.db.MediaEntry.find(
         {u'state': u'processed'}).sort('created', DESCENDING)
 
@@ -33,7 +33,8 @@ def root_view(request, page):
         request, 'mediagoblin/root.html',
         {'media_entries': media_entries,
          'allow_registration': mg_globals.app_config["allow_registration"],
-         'pagination': pagination})
+         'pagination': pagination},
+        response=cors_prep_response)
 
 
 def simple_template_render(request):
