@@ -9,7 +9,9 @@ Welcome to GNU MediaGoblin's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 100
+   :maxdepth: 2 
+
+    mediagoblin
 
 Indices and tables
 ==================

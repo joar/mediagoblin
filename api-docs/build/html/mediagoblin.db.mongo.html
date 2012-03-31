@@ -8,15 +8,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>mongo Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    <title>mongo Package &mdash; GNU MediaGoblin 0.3.0-dev documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/mg.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.0-dev',
+        VERSION:     '0.3.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+    <link rel="top" title="GNU MediaGoblin 0.3.0-dev documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+        <li><a href="index.html">GNU MediaGoblin 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -220,12 +220,12 @@ on the fly (and cache):
 </dl>
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.MediaComment.authorized_types">
-<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.authorized_types" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.code.Code'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'dict'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'bool'&gt;, &lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'list'&gt;, &lt;type 'NoneType'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;type 'int'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.authorized_types" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.MediaComment.default_values">
-<tt class="descname">default_values</tt><em class="property"> = {'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.default_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">default_values</tt><em class="property"> = {'created': &lt;built-in method utcnow of type object at 0x2aeb332a8f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.default_values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -358,12 +358,12 @@ viewing the work.  (currently unused.)</p>
 </dl>
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.MediaEntry.authorized_types">
-<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.authorized_types" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.code.Code'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'dict'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'bool'&gt;, &lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'list'&gt;, &lt;type 'NoneType'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;type 'int'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.authorized_types" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.MediaEntry.default_values">
-<tt class="descname">default_values</tt><em class="property"> = {'state': u'unprocessed', 'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.default_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">default_values</tt><em class="property"> = {'state': u'unprocessed', 'created': &lt;built-in method utcnow of type object at 0x2aeb332a8f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.default_values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -449,12 +449,12 @@ URL) in order to confirm their email as active.</li>
 </dl>
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.User.authorized_types">
-<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.authorized_types" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.code.Code'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'dict'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'bool'&gt;, &lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'list'&gt;, &lt;type 'NoneType'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;type 'int'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.authorized_types" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.db.mongo.models.User.default_values">
-<tt class="descname">default_values</tt><em class="property"> = {'status': u'needs_email_verification', 'email_verified': False, 'is_admin': False, 'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.default_values" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">default_values</tt><em class="property"> = {'status': u'needs_email_verification', 'email_verified': False, 'is_admin': False, 'created': &lt;built-in method utcnow of type object at 0x2aeb332a8f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.default_values" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -523,7 +523,7 @@ the migrations</li>
 </div></blockquote>
 <dl class="class">
 <dt id="mediagoblin.db.mongo.util.MigrationManager">
-<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">MigrationManager</tt><big>(</big><em>database</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x3e25500&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x3e25578&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x3e255f0&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x3e25668&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x3e256e0&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x3e25758&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x3e257d0&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x3e25848&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x3e258c0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x3e25938&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x3e259b0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x3e25a28&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">MigrationManager</tt><big>(</big><em>database</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x4948230&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x49482a8&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x4948320&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x4948398&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x4948410&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x4948488&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x4948500&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x4948578&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x49485f0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x4948668&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x49486e0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x4948758&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Migration handling tool.</p>
 <p>Takes information about a database, lets you update the database
@@ -603,7 +603,7 @@ latest version if it isn&#8217;t installed to anything yet!</p>
 
 <dl class="class">
 <dt id="mediagoblin.db.mongo.util.RegisterMigration">
-<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">RegisterMigration</tt><big>(</big><em>migration_number</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x3e25500&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x3e25578&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x3e255f0&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x3e25668&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x3e256e0&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x3e25758&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x3e257d0&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x3e25848&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x3e258c0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x3e25938&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x3e259b0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x3e25a28&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#RegisterMigration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.RegisterMigration" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">RegisterMigration</tt><big>(</big><em>migration_number</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x4948230&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x49482a8&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x4948320&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x4948398&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x4948410&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x4948488&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x4948500&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x4948578&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x49485f0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x4948668&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x49486e0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x4948758&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#RegisterMigration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.RegisterMigration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Tool for registering migrations</p>
 <p>Call like:</p>
@@ -701,6 +701,9 @@ around so we can remember what it was)</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo_docs.png" alt="Logo"/>
+            </a></p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">mongo Package</a><ul>
@@ -749,12 +752,16 @@ around so we can remember what it was)</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+        <li><a href="index.html">GNU MediaGoblin 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2012, See AUTHORS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    <div>
+
+MediaGoblin documentation released into the public domain via <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.
+
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
     </div>
   </body>
 </html>

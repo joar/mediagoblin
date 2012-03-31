@@ -8,15 +8,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>auth Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    <title>auth Package &mdash; GNU MediaGoblin 0.3.0-dev documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/mg.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.0-dev',
+        VERSION:     '0.3.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+    <link rel="top" title="GNU MediaGoblin 0.3.0-dev documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+        <li><a href="index.html">GNU MediaGoblin 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,17 +59,17 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.ChangePassForm.password">
-<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f8290&gt;, &lt;wtforms.validators.Length object at 0x39f8150&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.password" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x4ff8550&gt;, &lt;wtforms.validators.Length object at 0x4e8f4d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.password" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.ChangePassForm.token">
-<tt class="descname">token</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x39371d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.token" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">token</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x4e8ff50&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.token" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.ChangePassForm.userid">
-<tt class="descname">userid</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x3937050&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.userid" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">userid</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x4e8fb50&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.userid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -80,7 +80,7 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.ForgotPassForm.username">
-<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username or email', [&lt;wtforms.validators.Required object at 0x39f81d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ForgotPassForm.username" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username or email', [&lt;wtforms.validators.Required object at 0x4ff85d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ForgotPassForm.username" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -96,12 +96,12 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.LoginForm.password">
-<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f8d10&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.password" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x4ff8090&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.password" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.LoginForm.username">
-<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x39f8190&gt;, &lt;wtforms.validators.Regexp object at 0x39f80d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.username" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x4ff8790&gt;, &lt;wtforms.validators.Regexp object at 0x4ff83d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.username" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -112,17 +112,17 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.RegistrationForm.email">
-<tt class="descname">email</tt><em class="property"> = &lt;UnboundField(TextField, ('Email address', [&lt;wtforms.validators.Required object at 0x39f8250&gt;, &lt;wtforms.validators.Email object at 0x39f8050&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.email" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">email</tt><em class="property"> = &lt;UnboundField(TextField, ('Email address', [&lt;wtforms.validators.Required object at 0x4ff8410&gt;, &lt;wtforms.validators.Email object at 0x4ff8610&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.email" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.RegistrationForm.password">
-<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f88d0&gt;, &lt;wtforms.validators.Length object at 0x39f8690&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.password" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x4ff8810&gt;, &lt;wtforms.validators.Length object at 0x4ff8f50&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.password" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="mediagoblin.auth.forms.RegistrationForm.username">
-<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x39f8c90&gt;, &lt;wtforms.validators.Length object at 0x39f86d0&gt;, &lt;wtforms.validators.Regexp object at 0x39f8a90&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.username" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x4ff8750&gt;, &lt;wtforms.validators.Length object at 0x4ff86d0&gt;, &lt;wtforms.validators.Regexp object at 0x4ff8710&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.username" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -259,6 +259,9 @@ change their password because of it.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo_docs.png" alt="Logo"/>
+            </a></p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">auth Package</a><ul>
@@ -302,12 +305,16 @@ change their password because of it.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+        <li><a href="index.html">GNU MediaGoblin 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2012, See AUTHORS.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    <div>
+
+MediaGoblin documentation released into the public domain via <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.
+
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
     </div>
   </body>
 </html>
