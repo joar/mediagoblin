@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>submit Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="submit-package">
+<h1>submit Package<a class="headerlink" href="#submit-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">submit</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.submit"></span></div>
+<div class="section" id="module-mediagoblin.submit.forms">
+<span id="forms-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">forms</span></tt> Module<a class="headerlink" href="#module-mediagoblin.submit.forms" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.submit.forms.SubmitStartForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.submit.forms.</tt><tt class="descname">SubmitStartForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/submit/forms.html#SubmitStartForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.submit.forms.SubmitStartForm.description">
+<tt class="descname">description</tt><em class="property"> = &lt;UnboundField(TextAreaField, ('Description of this work',), {'description': 'You can use\n                      &lt;a href=&quot;http://daringfireball.net/projects/markdown/basics&quot;&gt;\n                      Markdown&lt;/a&gt; for formatting.'})&gt;</em><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.submit.forms.SubmitStartForm.file">
+<tt class="descname">file</tt><em class="property"> = &lt;UnboundField(FileField, ('File',), {})&gt;</em><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm.file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.submit.forms.SubmitStartForm.license">
+<tt class="descname">license</tt><em class="property"> = &lt;UnboundField(SelectField, ('License', [&lt;wtforms.validators.Optional object at 0x65ca250&gt;]), {'choices': [('', 'All rights reserved'), ('http://creativecommons.org/licenses/by/3.0/', 'CC BY 3.0'), ('http://creativecommons.org/licenses/by-sa/3.0/', 'CC BY-SA 3.0'), ('http://creativecommons.org/licenses/by-nd/3.0/', 'CC BY-ND 3.0'), ('http://creativecommons.org/licenses/by-nc/3.0/', 'CC BY-NC 3.0'), ('http://creativecommons.org/licenses/by-nc-sa/3.0/', 'CC BY-NC-SA 3.0'), ('http://creativecommons.org/licenses/by-nc-nd/3.0/', 'CC BY-NC-ND 3.0'), ('http://creativecommons.org/publicdomain/zero/1.0/', 'CC0 1.0'), ('http://creativecommons.org/publicdomain/mark/1.0/', 'Public Domain')]})&gt;</em><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm.license" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.submit.forms.SubmitStartForm.tags">
+<tt class="descname">tags</tt><em class="property"> = &lt;UnboundField(TextField, ('Tags', [&lt;function tag_length_validator at 0x354b1b8&gt;]), {'description': 'Separate tags by commas.'})&gt;</em><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm.tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.submit.forms.SubmitStartForm.title">
+<tt class="descname">title</tt><em class="property"> = &lt;UnboundField(TextField, ('Title', [&lt;wtforms.validators.Length object at 0x65cabd0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.submit.forms.SubmitStartForm.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.submit.routing">
+<span id="routing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">routing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.submit.routing" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.submit.views">
+<span id="views-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">views</span></tt> Module<a class="headerlink" href="#module-mediagoblin.submit.views" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">submit Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">submit</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.submit.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.submit.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.submit.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.submit.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

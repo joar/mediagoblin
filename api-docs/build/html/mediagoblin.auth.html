@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>auth Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="auth-package">
+<h1>auth Package<a class="headerlink" href="#auth-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">auth</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.auth"></span></div>
+<div class="section" id="module-mediagoblin.auth.forms">
+<span id="forms-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">forms</span></tt> Module<a class="headerlink" href="#module-mediagoblin.auth.forms" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.auth.forms.ChangePassForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.auth.forms.</tt><tt class="descname">ChangePassForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/forms.html#ChangePassForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.ChangePassForm.password">
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f8290&gt;, &lt;wtforms.validators.Length object at 0x39f8150&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.ChangePassForm.token">
+<tt class="descname">token</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x39371d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.token" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.ChangePassForm.userid">
+<tt class="descname">userid</tt><em class="property"> = &lt;UnboundField(HiddenField, ('', [&lt;wtforms.validators.Required object at 0x3937050&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ChangePassForm.userid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.auth.forms.ForgotPassForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.auth.forms.</tt><tt class="descname">ForgotPassForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/forms.html#ForgotPassForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.forms.ForgotPassForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.ForgotPassForm.username">
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username or email', [&lt;wtforms.validators.Required object at 0x39f81d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.ForgotPassForm.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.auth.forms.ForgotPassForm.validate_username">
+<tt class="descname">validate_username</tt><big>(</big><em>form</em>, <em>field</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/forms.html#ForgotPassForm.validate_username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.forms.ForgotPassForm.validate_username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.auth.forms.LoginForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.auth.forms.</tt><tt class="descname">LoginForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/forms.html#LoginForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.LoginForm.password">
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f8d10&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.LoginForm.username">
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x39f8190&gt;, &lt;wtforms.validators.Regexp object at 0x39f80d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.LoginForm.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.auth.forms.RegistrationForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.auth.forms.</tt><tt class="descname">RegistrationForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/forms.html#RegistrationForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.RegistrationForm.email">
+<tt class="descname">email</tt><em class="property"> = &lt;UnboundField(TextField, ('Email address', [&lt;wtforms.validators.Required object at 0x39f8250&gt;, &lt;wtforms.validators.Email object at 0x39f8050&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.email" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.RegistrationForm.password">
+<tt class="descname">password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Password', [&lt;wtforms.validators.Required object at 0x39f88d0&gt;, &lt;wtforms.validators.Length object at 0x39f8690&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.auth.forms.RegistrationForm.username">
+<tt class="descname">username</tt><em class="property"> = &lt;UnboundField(TextField, ('Username', [&lt;wtforms.validators.Required object at 0x39f8c90&gt;, &lt;wtforms.validators.Length object at 0x39f86d0&gt;, &lt;wtforms.validators.Regexp object at 0x39f8a90&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.auth.forms.RegistrationForm.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.auth.lib">
+<span id="lib-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lib</span></tt> Module<a class="headerlink" href="#module-mediagoblin.auth.lib" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.auth.lib.bcrypt_check_password">
+<tt class="descclassname">mediagoblin.auth.lib.</tt><tt class="descname">bcrypt_check_password</tt><big>(</big><em>raw_pass</em>, <em>stored_hash</em>, <em>extra_salt=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/lib.html#bcrypt_check_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.lib.bcrypt_check_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check to see if this password matches.</p>
+<p>Args:
+- raw_pass: user submitted password to check for authenticity.
+- stored_hash: The hash of the raw password (and possibly extra</p>
+<blockquote>
+<div>salt) to check against</div></blockquote>
+<ul class="simple">
+<li>extra_salt: (optional) If this password is with stored with a
+non-database extra salt (probably in the config file) for extra
+security, factor this into the check.</li>
+</ul>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>True or False depending on success.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.lib.bcrypt_gen_password_hash">
+<tt class="descclassname">mediagoblin.auth.lib.</tt><tt class="descname">bcrypt_gen_password_hash</tt><big>(</big><em>raw_pass</em>, <em>extra_salt=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/lib.html#bcrypt_gen_password_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.lib.bcrypt_gen_password_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a salt for this new password.</p>
+<p>Args:
+- raw_pass: user submitted password
+- extra_salt: (optional) If this password is with stored with a</p>
+<blockquote>
+<div>non-database extra salt</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.lib.fake_login_attempt">
+<tt class="descclassname">mediagoblin.auth.lib.</tt><tt class="descname">fake_login_attempt</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/lib.html#fake_login_attempt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.lib.fake_login_attempt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pretend we&#8217;re trying to login.</p>
+<p>Nothing actually happens here, we&#8217;re just trying to take up some
+time, approximately the same amount of time as
+bcrypt_check_password, so as to avoid figuring out what users are
+on the system by intentionally faking logins a bunch of times.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.lib.send_fp_verification_email">
+<tt class="descclassname">mediagoblin.auth.lib.</tt><tt class="descname">send_fp_verification_email</tt><big>(</big><em>user</em>, <em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/lib.html#send_fp_verification_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.lib.send_fp_verification_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the verification email to users to change their password.</p>
+<p>Args:
+- user: a user object
+- request: the request</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.lib.send_verification_email">
+<tt class="descclassname">mediagoblin.auth.lib.</tt><tt class="descname">send_verification_email</tt><big>(</big><em>user</em>, <em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/lib.html#send_verification_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.lib.send_verification_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the verification email to users to activate their accounts.</p>
+<p>Args:
+- user: a user object
+- request: the request</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.auth.routing">
+<span id="routing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">routing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.auth.routing" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.auth.views">
+<span id="views-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">views</span></tt> Module<a class="headerlink" href="#module-mediagoblin.auth.views" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.auth.views.email_debug_message">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">email_debug_message</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#email_debug_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.email_debug_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the server is running in email debug mode (which is
+the current default), give a debug message to the user
+so that they have an idea where to find their email.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.forgot_password">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">forgot_password</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#forgot_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.forgot_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forgot password view</p>
+<p>Sends an email with an url to renew forgotten password</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.login">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">login</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>MediaGoblin login view.</p>
+<p>If you provide the POST with &#8216;next&#8217;, it&#8217;ll redirect to that view.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.logout">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">logout</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.logout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.register">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">register</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Your classic registration view!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.resend_activation">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">resend_activation</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#resend_activation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.resend_activation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reactivation view</p>
+<p>Resend the activation email.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.verify_email">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">verify_email</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#verify_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.verify_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Email verification view</p>
+<p>validates GET parameters against database and unlocks the user account, if
+you are lucky :)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.auth.views.verify_forgot_password">
+<tt class="descclassname">mediagoblin.auth.views.</tt><tt class="descname">verify_forgot_password</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/auth/views.html#verify_forgot_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.auth.views.verify_forgot_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the forgot-password verification and possibly let the user
+change their password because of it.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">auth Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">auth</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.auth.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.auth.lib"><tt class="docutils literal"><span class="pre">lib</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.auth.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.auth.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.auth.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

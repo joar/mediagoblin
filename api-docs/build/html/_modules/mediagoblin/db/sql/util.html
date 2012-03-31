@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.db.sql.util &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.db.sql.util</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.base</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.models</span> <span class="kn">import</span> <span class="n">MediaEntry</span><span class="p">,</span> <span class="n">Tag</span><span class="p">,</span> <span class="n">MediaTag</span>
+
+
+<span class="k">def</span> <span class="nf">_simple_printer</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints a string, but without an auto \n at the end.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="MigrationManager"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager">[docs]</a><span class="k">class</span> <span class="nc">MigrationManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Migration handling tool.</span>
+
+<span class="sd">    Takes information about a database, lets you update the database</span>
+<span class="sd">    to the latest migrations, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">migration_registry</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span>
+                 <span class="n">printer</span><span class="o">=</span><span class="n">_simple_printer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">         - name: identifier of this section of the database</span>
+<span class="sd">         - session: session we&#39;re going to migrate</span>
+<span class="sd">         - migration_registry: where we should find all migrations to</span>
+<span class="sd">           run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span> <span class="o">=</span> <span class="n">migration_registry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">printer</span> <span class="o">=</span> <span class="n">printer</span>
+
+        <span class="c"># For convenience</span>
+        <span class="kn">from</span> <span class="nn">mediagoblin.db.sql.models</span> <span class="kn">import</span> <span class="n">MigrationData</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_model</span> <span class="o">=</span> <span class="n">MigrationData</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_table</span> <span class="o">=</span> <span class="n">MigrationData</span><span class="o">.</span><span class="n">__table__</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MigrationManager.sorted_migrations"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.sorted_migrations">[docs]</a>    <span class="k">def</span> <span class="nf">sorted_migrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort migrations if necessary and store in self._sorted_migrations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+                <span class="c"># sort on the key... the migration number</span>
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">migration_tuple</span><span class="p">:</span> <span class="n">migration_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MigrationManager.migration_data"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.migration_data">[docs]</a>    <span class="k">def</span> <span class="nf">migration_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the migration row associated with this object, if any.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">migration_model</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MigrationManager.latest_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.latest_migration">[docs]</a>    <span class="k">def</span> <span class="nf">latest_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a migration number for the latest migration, or 0 if</span>
+<span class="sd">        there are no migrations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If no migrations have been set, we start at 0.</span>
+            <span class="k">return</span> <span class="mi">0</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MigrationManager.database_current_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.database_current_migration">[docs]</a>    <span class="k">def</span> <span class="nf">database_current_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the current migration in the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># If the table doesn&#39;t even exist, return None.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_table</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bind</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c"># Also return None if self.migration_data is None.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_data</span><span class="o">.</span><span class="n">version</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.set_current_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.set_current_migration">[docs]</a>    <span class="k">def</span> <span class="nf">set_current_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration_number</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the migration in the database to migration_number</span>
+<span class="sd">        (or, the latest available)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_data</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">migration_number</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_migration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.migrations_to_run"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.migrations_to_run">[docs]</a>    <span class="k">def</span> <span class="nf">migrations_to_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of migrations to run still, if any.</span>
+<span class="sd">        </span>
+<span class="sd">        Note that this will fail if there&#39;s no migration record for</span>
+<span class="sd">        this class!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+        <span class="n">db_current_migration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span>
+        
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span>
+            <span class="k">if</span> <span class="n">migration_number</span> <span class="o">&gt;</span> <span class="n">db_current_migration</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="MigrationManager.init_tables"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.init_tables">[docs]</a>    <span class="k">def</span> <span class="nf">init_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create all tables relative to this package</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># sanity check before we proceed, none of these should be created</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+            <span class="c"># Maybe in the future just print out a &quot;Yikes!&quot; or something?</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_model</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bind</span><span class="p">,</span>
+            <span class="n">tables</span><span class="o">=</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">__table__</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.create_new_migration_record"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.create_new_migration_record">[docs]</a>    <span class="k">def</span> <span class="nf">create_new_migration_record</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new migration record for this migration set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">migration_record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_model</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">latest_migration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">migration_record</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.dry_run"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.dry_run">[docs]</a>    <span class="k">def</span> <span class="nf">dry_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print out a dry run of what we would have upgraded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span>
+                    <span class="s">u&#39;~&gt; Woulda initialized: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_for_printing</span><span class="p">())</span>
+            <span class="k">return</span> <span class="s">u&#39;inited&#39;</span>
+
+        <span class="n">migrations_to_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">migrations_to_run</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span>
+                <span class="s">u&#39;~&gt; Woulda updated </span><span class="si">%s</span><span class="s">:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_for_printing</span><span class="p">())</span>
+
+            <span class="k">for</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span> <span class="ow">in</span> <span class="n">migrations_to_run</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span>
+                    <span class="s">u&#39;   + Would update </span><span class="si">%s</span><span class="s">, &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="o">.</span><span class="n">func_name</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="s">u&#39;migrated&#39;</span>
+        </div>
+<div class="viewcode-block" id="MigrationManager.name_for_printing"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.name_for_printing">[docs]</a>    <span class="k">def</span> <span class="nf">name_for_printing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;__main__&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">u&quot;main mediagoblin tables&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># TODO: Use the friendlier media manager &quot;human readable&quot; name</span>
+            <span class="k">return</span> <span class="s">u&#39;media type &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.init_or_migrate"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.MigrationManager.init_or_migrate">[docs]</a>    <span class="k">def</span> <span class="nf">init_or_migrate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the database or migrate if appropriate.</span>
+
+<span class="sd">        Returns information about whether or not we initialized</span>
+<span class="sd">        (&#39;inited&#39;), migrated (&#39;migrated&#39;), or did nothing (None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">assure_migrations_table_setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+
+        <span class="c"># Find out what migration number, if any, this database data is at,</span>
+        <span class="c"># and what the latest is.</span>
+        <span class="n">migration_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span>
+
+        <span class="c"># Is this our first time?  Is there even a table entry for</span>
+        <span class="c"># this identifier?</span>
+        <span class="c"># If so:</span>
+        <span class="c">#  - create all tables</span>
+        <span class="c">#  - create record in migrations registry</span>
+        <span class="c">#  - print / inform the user</span>
+        <span class="c">#  - return &#39;inited&#39;</span>
+        <span class="k">if</span> <span class="n">migration_number</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span><span class="s">u&quot;-&gt; Initializing </span><span class="si">%s</span><span class="s">... &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_for_printing</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_tables</span><span class="p">()</span>
+            <span class="c"># auto-set at latest migration number</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_new_migration_record</span><span class="p">()</span>  
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span><span class="s">u&quot;done.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s">u&#39;inited&#39;</span>
+
+        <span class="c"># Run migrations, if appropriate.</span>
+        <span class="n">migrations_to_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">migrations_to_run</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span>
+                <span class="s">u&#39;-&gt; Updating </span><span class="si">%s</span><span class="s">:</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_for_printing</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span> <span class="ow">in</span> <span class="n">migrations_to_run</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span>
+                    <span class="s">u&#39;   + Running migration </span><span class="si">%s</span><span class="s">, &quot;</span><span class="si">%s</span><span class="s">&quot;... &#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="o">.</span><span class="n">func_name</span><span class="p">))</span>
+                <span class="n">migration_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">printer</span><span class="p">(</span><span class="s">&#39;done.</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">()</span>
+            <span class="k">return</span> <span class="s">u&#39;migrated&#39;</span>
+
+        <span class="c"># Otherwise return None.  Well it would do this anyway, but</span>
+        <span class="c"># for clarity... ;)</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+</div></div>
+<div class="viewcode-block" id="RegisterMigration"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.RegisterMigration">[docs]</a><span class="k">class</span> <span class="nc">RegisterMigration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tool for registering migrations</span>
+
+<span class="sd">    Call like:</span>
+
+<span class="sd">    @RegisterMigration(33)</span>
+<span class="sd">    def update_dwarves(database):</span>
+<span class="sd">        [...]</span>
+
+<span class="sd">    This will register your migration with the default migration</span>
+<span class="sd">    registry.  Alternately, to specify a very specific</span>
+<span class="sd">    migration_registry, you can pass in that as the second argument.</span>
+
+<span class="sd">    Note, the number of your migration should NEVER be 0 or less than</span>
+<span class="sd">    0.  0 is the default &quot;no migrations&quot; state!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_registry</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">migration_number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Migration number must be &gt; 0!&quot;</span>
+        <span class="k">assert</span> <span class="n">migration_number</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migration_registry</span><span class="p">,</span> \
+            <span class="s">&quot;Duplicate migration numbers detected!  That&#39;s not allowed!&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_number</span> <span class="o">=</span> <span class="n">migration_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span> <span class="o">=</span> <span class="n">migration_registry</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">migration_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">migration</span>
+        <span class="k">return</span> <span class="n">migration</span>
+
+</div>
+<div class="viewcode-block" id="assure_migrations_table_setup"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.assure_migrations_table_setup">[docs]</a><span class="k">def</span> <span class="nf">assure_migrations_table_setup</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make sure the migrations table is set up in the database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">mediagoblin.db.sql.models</span> <span class="kn">import</span> <span class="n">MigrationData</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">MigrationData</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">bind</span><span class="p">):</span>
+        <span class="n">MigrationData</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">bind</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="p">[</span><span class="n">MigrationData</span><span class="o">.</span><span class="n">__table__</span><span class="p">])</span>
+
+
+<span class="c">##########################</span>
+<span class="c"># Random utility functions</span>
+<span class="c">##########################</span>
+
+</div>
+<div class="viewcode-block" id="atomic_update"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.atomic_update">[docs]</a><span class="k">def</span> <span class="nf">atomic_update</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">,</span> <span class="n">update_values</span><span class="p">):</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">query_dict</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">update_values</span><span class="p">,</span>
+    	<span class="n">synchronize_session</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">Session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="check_media_slug_used"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.check_media_slug_used">[docs]</a><span class="k">def</span> <span class="nf">check_media_slug_used</span><span class="p">(</span><span class="n">dummy_db</span><span class="p">,</span> <span class="n">uploader_id</span><span class="p">,</span> <span class="n">slug</span><span class="p">,</span> <span class="n">ignore_m_id</span><span class="p">):</span>
+    <span class="n">filt</span> <span class="o">=</span> <span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">uploader</span> <span class="o">==</span> <span class="n">uploader_id</span><span class="p">)</span> \
+        <span class="o">&amp;</span> <span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">slug</span> <span class="o">==</span> <span class="n">slug</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ignore_m_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">filt</span> <span class="o">=</span> <span class="n">filt</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="n">ignore_m_id</span><span class="p">)</span>
+    <span class="n">does_exist</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">does_exist</span>
+
+</div>
+<div class="viewcode-block" id="media_entries_for_tag_slug"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.media_entries_for_tag_slug">[docs]</a><span class="k">def</span> <span class="nf">media_entries_for_tag_slug</span><span class="p">(</span><span class="n">dummy_db</span><span class="p">,</span> <span class="n">tag_slug</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">MediaEntry</span><span class="o">.</span><span class="n">query</span> \
+        <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">tags_helper</span><span class="p">)</span> \
+        <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">MediaTag</span><span class="o">.</span><span class="n">tag_helper</span><span class="p">)</span> \
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s">u&#39;processed&#39;</span><span class="p">)</span>
+            <span class="o">&amp;</span> <span class="p">(</span><span class="n">Tag</span><span class="o">.</span><span class="n">slug</span> <span class="o">==</span> <span class="n">tag_slug</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="clean_orphan_tags"><a class="viewcode-back" href="../../../../mediagoblin.db.sql.html#mediagoblin.db.sql.util.clean_orphan_tags">[docs]</a><span class="k">def</span> <span class="nf">clean_orphan_tags</span><span class="p">():</span>
+    <span class="n">q1</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Tag</span><span class="p">)</span><span class="o">.</span><span class="n">outerjoin</span><span class="p">(</span><span class="n">MediaTag</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">MediaTag</span><span class="o">.</span><span class="n">id</span><span class="o">==</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">q1</span><span class="p">:</span>
+        <span class="n">Session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="c"># The &quot;let the db do all the work&quot; version:</span>
+    <span class="c"># q1 = Session.query(Tag.id).outerjoin(MediaTag).filter(MediaTag.id==None)</span>
+    <span class="c"># q2 = Session.query(Tag).filter(Tag.id.in_(q1))</span>
+    <span class="c"># q2.delete(synchronize_session = False)</span>
+
+    <span class="n">Session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">mediagoblin.db.sql.open</span> <span class="kn">import</span> <span class="n">setup_connection_and_db_from_config</span>
+
+    <span class="n">conn</span><span class="p">,</span><span class="n">db</span> <span class="o">=</span> <span class="n">setup_connection_and_db_from_config</span><span class="p">({</span><span class="s">&#39;sql_engine&#39;</span><span class="p">:</span><span class="s">&#39;sqlite:///mediagoblin.db&#39;</span><span class="p">})</span>
+
+    <span class="n">clean_orphan_tags</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

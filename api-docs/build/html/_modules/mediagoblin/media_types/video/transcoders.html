@@ -1,0 +1,796 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.video.transcoders &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.video.transcoders</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">gobject</span>
+<span class="kn">import</span> <span class="nn">pygst</span>
+<span class="n">pygst</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s">&#39;0.10&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">gst</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">Image</span>
+
+<span class="kn">from</span> <span class="nn">gst.extend</span> <span class="kn">import</span> <span class="n">discoverer</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="n">gobject</span><span class="o">.</span><span class="n">threads_init</span><span class="p">()</span>
+
+<span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;multiprocessing.cpu_count not implemented&#39;</span><span class="p">)</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">putenv</span><span class="p">(</span><span class="s">&#39;GST_DEBUG_DUMP_DOT_DIR&#39;</span><span class="p">,</span> <span class="s">&#39;/tmp&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="pixbuf_to_pilbuf"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.pixbuf_to_pilbuf">[docs]</a><span class="k">def</span> <span class="nf">pixbuf_to_pilbuf</span><span class="p">(</span><span class="n">buf</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">buf</span><span class="p">),</span> <span class="mi">3</span><span class="p">):</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;BBB&#39;</span><span class="p">,</span> <span class="n">buf</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+
+</div>
+<div class="viewcode-block" id="VideoThumbnailer"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoThumbnailer">[docs]</a><span class="k">class</span> <span class="nc">VideoThumbnailer</span><span class="p">:</span>
+    <span class="c"># Declaration of thumbnailer states</span>
+    <span class="n">STATE_NULL</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">STATE_HALTING</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">STATE_PROCESSING</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c"># The current thumbnailer state</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">STATE_NULL</span>
+
+    <span class="c"># This will contain the thumbnailing pipeline</span>
+    <span class="n">thumbnail_pipeline</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">buffer_probes</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set up playbin pipeline in order to get video properties.</span>
+
+<span class="sd">        Initializes and runs the gobject.MainLoop()</span>
+
+<span class="sd">        Abstract</span>
+<span class="sd">        - Set up a playbin with a fake audio sink and video sink. Load the video</span>
+<span class="sd">          into the playbin</span>
+<span class="sd">        - Initialize</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_path</span> <span class="o">=</span> <span class="n">source_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dest_path</span> <span class="o">=</span> <span class="n">dest_path</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span> <span class="o">=</span> <span class="n">gobject</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+
+        <span class="c"># Set up the playbin. It will be used to discover certain</span>
+        <span class="c"># properties of the input file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;playbin&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">videosink</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;fakesink&#39;</span><span class="p">,</span> <span class="s">&#39;videosink&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;video-sink&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">videosink</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">audiosink</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;fakesink&#39;</span><span class="p">,</span> <span class="s">&#39;audiosink&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;audio-sink&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">audiosink</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">get_bus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">add_signal_watch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">watch_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_bus_message</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;uri&#39;</span><span class="p">,</span> <span class="s">&#39;file:{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">urllib</span><span class="o">.</span><span class="n">pathname2url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_PAUSED</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<div class="viewcode-block" id="VideoThumbnailer.run"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoThumbnailer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">_on_bus_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39; thumbnail playbin: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_ERROR</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;thumbnail playbin: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+            <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_bus_error</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_STATE_CHANGED</span><span class="p">:</span>
+            <span class="c"># The pipeline state has changed</span>
+            <span class="c"># Parse state changing data</span>
+            <span class="n">_prev</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">_pending</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">parse_state_changed</span><span class="p">()</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;State changed: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">state</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">STATE_PAUSED</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">src</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="p">:</span>
+                    <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_bus_paused</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_bus_paused</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set up thumbnailing pipeline</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">current_video</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s">&#39;current-video&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current_video</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Found current video from playbin&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Could not get any current video from playbin!&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_duration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Video length: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="n">gst</span><span class="o">.</span><span class="n">SECOND</span><span class="p">))</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Setting up thumbnailing pipeline&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">parse_launch</span><span class="p">(</span>
+            <span class="s">&#39;filesrc location=&quot;{0}&quot; ! decodebin ! &#39;</span>
+            <span class="s">&#39;ffmpegcolorspace ! videoscale ! &#39;</span>
+            <span class="s">&#39;video/x-raw-rgb,depth=24,bpp=24,pixel-aspect-ratio=1/1,width=180 ! &#39;</span>
+            <span class="s">&#39;fakesink signal-handoffs=True&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_bus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span><span class="o">.</span><span class="n">get_bus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_bus</span><span class="o">.</span><span class="n">add_signal_watch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_watch_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_bus</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_thumbnail_bus_message</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_PAUSED</span><span class="p">)</span>
+
+        <span class="c">#gobject.timeout_add(3000, self._on_timeout)</span>
+
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">_on_thumbnail_bus_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;thumbnail: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_ERROR</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+            <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_bus_error</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_STATE_CHANGED</span><span class="p">:</span>
+            <span class="n">_prev</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">_pending</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">parse_state_changed</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">state</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">STATE_PAUSED</span> <span class="ow">and</span>
+                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE_PROCESSING</span> <span class="ow">and</span>
+                <span class="n">message</span><span class="o">.</span><span class="n">src</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span><span class="p">):</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Pipeline paused, processing&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE_PROCESSING</span>
+
+                <span class="k">for</span> <span class="n">sink</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span><span class="o">.</span><span class="n">sinks</span><span class="p">():</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+                    <span class="n">factoryname</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_factory</span><span class="p">()</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+
+                    <span class="k">if</span> <span class="n">factoryname</span> <span class="o">==</span> <span class="s">&#39;fakesink&#39;</span><span class="p">:</span>
+                        <span class="n">sinkpad</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_pad</span><span class="p">(</span><span class="s">&#39;sink&#39;</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">buffer_probes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sinkpad</span><span class="o">.</span><span class="n">add_buffer_probe</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">buffer_probe_handler</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+                        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Added buffer probe&#39;</span><span class="p">)</span>
+
+                        <span class="k">break</span>
+
+                <span class="c"># Apply the wadsworth constant, fallback to 1 second</span>
+                <span class="c"># TODO: Will break if video is shorter than 1 sec</span>
+                <span class="n">seek_amount</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">/</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">gst</span><span class="o">.</span><span class="n">SECOND</span><span class="p">)</span>
+
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;seek amount: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seek_amount</span><span class="p">))</span>
+
+                <span class="n">seek_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail_pipeline</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span>
+                    <span class="mf">1.0</span><span class="p">,</span>
+                    <span class="n">gst</span><span class="o">.</span><span class="n">FORMAT_TIME</span><span class="p">,</span>
+                    <span class="n">gst</span><span class="o">.</span><span class="n">SEEK_FLAG_FLUSH</span> <span class="o">|</span> <span class="n">gst</span><span class="o">.</span><span class="n">SEEK_FLAG_ACCURATE</span><span class="p">,</span>
+                    <span class="n">gst</span><span class="o">.</span><span class="n">SEEK_TYPE_SET</span><span class="p">,</span>
+                    <span class="n">seek_amount</span><span class="p">,</span>
+                    <span class="n">gst</span><span class="o">.</span><span class="n">SEEK_TYPE_NONE</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">seek_result</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;COULD_NOT_SEEK&#39;</span><span class="p">)</span>
+                    <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Couldn</span><span class="se">\&#39;</span><span class="s">t seek! result: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">seek_result</span><span class="p">))</span>
+                    <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                    <span class="c">#self.thumbnail_pipeline.set_state(gst.STATE_PAUSED)</span>
+                    <span class="c">#pdb.set_trace()</span>
+
+<div class="viewcode-block" id="VideoThumbnailer.buffer_probe_handler_real"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler_real">[docs]</a>    <span class="k">def</span> <span class="nf">buffer_probe_handler_real</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">buff</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Capture buffers as gdk_pixbufs when told to.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">caps</span> <span class="o">=</span> <span class="n">buff</span><span class="o">.</span><span class="n">caps</span>
+            <span class="k">if</span> <span class="n">caps</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;No caps passed to buffer probe handler!&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;caps: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">caps</span><span class="p">))</span>
+
+            <span class="n">filters</span> <span class="o">=</span> <span class="n">caps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[</span><span class="s">&quot;width&quot;</span><span class="p">]</span>
+            <span class="n">height</span> <span class="o">=</span> <span class="n">filters</span><span class="p">[</span><span class="s">&quot;height&quot;</span><span class="p">]</span>
+
+            <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pixbuf_to_pilbuf</span><span class="p">(</span><span class="n">buff</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="n">im</span><span class="o">.</span><span class="n">putdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dest_path</span><span class="p">)</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Saved thumbnail&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+        <span class="k">except</span> <span class="n">gst</span><span class="o">.</span><span class="n">QueryError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="VideoThumbnailer.buffer_probe_handler"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler">[docs]</a>    <span class="k">def</span> <span class="nf">buffer_probe_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">buff</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Proxy function for buffer_probe_handler_real</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_probe_handler_real</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">buff</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Get the duration of a pipeline.</span>
+
+<span class="sd">        Retries 5 times.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">retries</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">query_duration</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">FORMAT_TIME</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="n">gst</span><span class="o">.</span><span class="n">QueryError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_duration</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">retries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_on_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Timeout in thumbnailer!&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_on_bus_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;AHAHAHA! Error! args: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+<div class="viewcode-block" id="VideoThumbnailer.shutdown"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoThumbnailer.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Tell gobject to call __halt when the mainloop is idle.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Shutting down&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__halt</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">__halt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Halt all pipelines and shut down the main loop</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Halting...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">STATE_HALTING</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__disconnect</span><span class="p">()</span>
+
+        <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__halt_final</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Disconnecting...&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_NULL</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sink</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span><span class="o">.</span><span class="n">sinks</span><span class="p">():</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+                <span class="n">factoryname</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_factory</span><span class="p">()</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Disconnecting {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">factoryname</span> <span class="o">==</span> <span class="s">&quot;fakesink&quot;</span><span class="p">:</span>
+                    <span class="n">pad</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_pad</span><span class="p">(</span><span class="s">&quot;sink&quot;</span><span class="p">)</span>
+                    <span class="n">pad</span><span class="o">.</span><span class="n">remove_buffer_probe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_probes</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_probes</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">playbin</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">watch_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__halt_final</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Done&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">errors</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="VideoTranscoder"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoTranscoder">[docs]</a><span class="k">class</span> <span class="nc">VideoTranscoder</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Video transcoder</span>
+
+<span class="sd">    Transcodes the SRC video file to a VP8 WebM video file at DST</span>
+
+<span class="sd">     - Does the same thing as VideoThumbnailer, but produces a WebM vp8</span>
+<span class="sd">       and vorbis video file.</span>
+<span class="sd">     - The VideoTranscoder exceeds the VideoThumbnailer in the way</span>
+<span class="sd">       that it was refined afterwards and therefore is done more</span>
+<span class="sd">       correctly.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing VideoTranscoder...&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span> <span class="o">=</span> <span class="n">gobject</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+
+<div class="viewcode-block" id="VideoTranscoder.transcode"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoTranscoder.transcode">[docs]</a>    <span class="k">def</span> <span class="nf">transcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Transcode a video file into a &#39;medium&#39;-sized version.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_path</span> <span class="o">=</span> <span class="n">src</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">destination_path</span> <span class="o">=</span> <span class="n">dst</span>
+
+        <span class="c"># Options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">destination_dimensions</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dimensions&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">640</span><span class="p">,</span> <span class="mi">640</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quality</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;quality&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;threads&#39;</span><span class="p">,</span> <span class="n">CPU_COUNT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_callback</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;progress_callback&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">destination_dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;dimensions must be tuple: (width, height)&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="VideoTranscoder.discover"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.transcoders.VideoTranscoder.discover">[docs]</a>    <span class="k">def</span> <span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Discover properties about a media file</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Discovering {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_path</span> <span class="o">=</span> <span class="n">src</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_discover</span><span class="p">(</span><span class="n">discovered_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__on_discovered</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">discoverer</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_discovered_data&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_data</span><span class="o">.</span><span class="n">__dict__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</div>
+    <span class="k">def</span> <span class="nf">__on_discovered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">is_media</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Discovered: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_media</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__stop</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Could not discover {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovered_data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stop_mainloop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_discover</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_pipeline</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Discovering...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discoverer</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Done&#39;</span><span class="p">)</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Initializing MainLoop()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_setup_discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting up discoverer&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discoverer</span> <span class="o">=</span> <span class="n">discoverer</span><span class="o">.</span><span class="n">Discoverer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">)</span>
+
+        <span class="c"># Connect self.__discovered to the &#39;discovered&#39; event</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discoverer</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="s">&#39;discovered&#39;</span><span class="p">,</span>
+            <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;discovered_callback&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__discovered</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__discovered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">is_media</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Callback for media discoverer.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_media</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__stop</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;Could not discover {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">))</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;__discovered, data: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c"># Launch things that should be done after discovery</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_link_elements</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__setup_videoscale_capsfilter</span><span class="p">()</span>
+
+        <span class="c"># Tell the transcoding pipeline to start running</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_PLAYING</span><span class="p">)</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Transcoding...&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_setup_pipeline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Setting up transcoding pipeline&#39;</span><span class="p">)</span>
+        <span class="c"># Create the pipeline bin.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span><span class="s">&#39;VideoTranscoderPipeline&#39;</span><span class="p">)</span>
+
+        <span class="c"># Create all GStreamer elements, starting with</span>
+        <span class="c"># filesrc &amp; decoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesrc</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;filesrc&#39;</span><span class="p">,</span> <span class="s">&#39;filesrc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesrc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;location&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesrc</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;decodebin2&#39;</span><span class="p">,</span> <span class="s">&#39;decoder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;new-decoded-pad&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_dynamic_pad</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">)</span>
+
+        <span class="c"># Video elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">videoqueue</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;queue&#39;</span><span class="p">,</span> <span class="s">&#39;videoqueue&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">videoqueue</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">videorate</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;videorate&#39;</span><span class="p">,</span> <span class="s">&#39;videorate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">videorate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffmpegcolorspace</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span>
+            <span class="s">&#39;ffmpegcolorspace&#39;</span><span class="p">,</span> <span class="s">&#39;ffmpegcolorspace&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ffmpegcolorspace</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">videoscale</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;ffvideoscale&#39;</span><span class="p">,</span> <span class="s">&#39;videoscale&#39;</span><span class="p">)</span>
+        <span class="c">#self.videoscale.set_property(&#39;method&#39;, 2)  # I&#39;m not sure this works</span>
+        <span class="c">#self.videoscale.set_property(&#39;add-borders&#39;, 0)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">videoscale</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">capsfilter</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;capsfilter&#39;</span><span class="p">,</span> <span class="s">&#39;capsfilter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">capsfilter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;vp8enc&#39;</span><span class="p">,</span> <span class="s">&#39;vp8enc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;quality&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quality</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;threads&#39;</span><span class="p">,</span> <span class="n">CPU_COUNT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;speed&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;max-latency&#39;</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;mode&#39;</span><span class="p">,</span> <span class="s">&#39;vbr&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="p">)</span>
+
+        <span class="c"># Audio elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audioqueue</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;queue&#39;</span><span class="p">,</span> <span class="s">&#39;audioqueue&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audioqueue</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">audiorate</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;audiorate&#39;</span><span class="p">,</span> <span class="s">&#39;audiorate&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audiorate</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;tolerance&#39;</span><span class="p">,</span> <span class="mi">80000000</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audiorate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">audioconvert</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;audioconvert&#39;</span><span class="p">,</span> <span class="s">&#39;audioconvert&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audioconvert</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">audiocapsfilter</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;capsfilter&#39;</span><span class="p">,</span> <span class="s">&#39;audiocapsfilter&#39;</span><span class="p">)</span>
+        <span class="n">audiocaps</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;audio/x-raw-float&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audiocapsfilter</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span>
+            <span class="s">&#39;caps&#39;</span><span class="p">,</span>
+            <span class="n">gst</span><span class="o">.</span><span class="n">caps_from_string</span><span class="p">(</span>
+                <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">audiocaps</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audiocapsfilter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vorbisenc</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;vorbisenc&#39;</span><span class="p">,</span> <span class="s">&#39;vorbisenc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vorbisenc</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;quality&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vorbisenc</span><span class="p">)</span>
+
+        <span class="c"># WebMmux &amp; filesink</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">webmmux</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;webmmux&#39;</span><span class="p">,</span> <span class="s">&#39;webmmux&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">webmmux</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesink</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span><span class="s">&#39;filesink&#39;</span><span class="p">,</span> <span class="s">&#39;filesink&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesink</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;location&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">destination_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filesink</span><span class="p">)</span>
+
+        <span class="c"># Progressreport</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressreport</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">element_factory_make</span><span class="p">(</span>
+            <span class="s">&#39;progressreport&#39;</span><span class="p">,</span> <span class="s">&#39;progressreport&#39;</span><span class="p">)</span>
+        <span class="c"># Update every second</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressreport</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;update-freq&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progressreport</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s">&#39;silent&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progressreport</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_link_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Link all the elements</span>
+
+<span class="sd">        This code depends on data from the discoverer and is called</span>
+<span class="sd">        from __discovered</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;linking elements&#39;</span><span class="p">)</span>
+        <span class="c"># Link the filesrc element to the decoder. The decoder then emits</span>
+        <span class="c"># &#39;new-decoded-pad&#39; which links decoded src pads to either a video</span>
+        <span class="c"># or audio sink</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filesrc</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">)</span>
+
+        <span class="c"># Link all the video elements in a row to webmmux</span>
+        <span class="n">gst</span><span class="o">.</span><span class="n">element_link_many</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">videoqueue</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">videorate</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ffmpegcolorspace</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">videoscale</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capsfilter</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vp8enc</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">webmmux</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">is_audio</span><span class="p">:</span>
+            <span class="c"># Link all the audio elements in a row to webmux</span>
+            <span class="n">gst</span><span class="o">.</span><span class="n">element_link_many</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">audioqueue</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">audiorate</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">audioconvert</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">audiocapsfilter</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vorbisenc</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">webmmux</span><span class="p">)</span>
+
+        <span class="n">gst</span><span class="o">.</span><span class="n">element_link_many</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">webmmux</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">progressreport</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filesink</span><span class="p">)</span>
+
+        <span class="c"># Setup the message bus and connect _on_message to the pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_bus</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_on_dynamic_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbin</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">islast</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Callback called when ``decodebin2`` has a pad that we can connect to</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c"># Intersect the capabilities of the video sink and the pad src</span>
+        <span class="c"># Then check if they have no common capabilities.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffmpegcolorspace</span><span class="o">.</span><span class="n">get_pad_template</span><span class="p">(</span><span class="s">&#39;sink&#39;</span><span class="p">)</span>\
+                <span class="o">.</span><span class="n">get_caps</span><span class="p">()</span><span class="o">.</span><span class="n">intersect</span><span class="p">(</span><span class="n">pad</span><span class="o">.</span><span class="n">get_caps</span><span class="p">())</span><span class="o">.</span><span class="n">is_empty</span><span class="p">():</span>
+            <span class="c"># It is NOT a video src pad.</span>
+            <span class="n">pad</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audioqueue</span><span class="o">.</span><span class="n">get_pad</span><span class="p">(</span><span class="s">&#39;sink&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># It IS a video src pad.</span>
+            <span class="n">pad</span><span class="o">.</span><span class="n">link</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">videoqueue</span><span class="o">.</span><span class="n">get_pad</span><span class="p">(</span><span class="s">&#39;sink&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_setup_bus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">get_bus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">add_signal_watch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setup_videoscale_capsfilter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Sets up the output format (width, height) for the video</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">caps</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;video/x-raw-yuv&#39;</span><span class="p">,</span> <span class="s">&#39;pixel-aspect-ratio=1/1&#39;</span><span class="p">,</span> <span class="s">&#39;framerate=30/1&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">videoheight</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">videowidth</span><span class="p">:</span>
+            <span class="c"># Whoa! We have ourselves a portrait video!</span>
+            <span class="n">caps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;height={0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">destination_dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># It&#39;s a landscape, phew, how normal.</span>
+            <span class="n">caps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;width={0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">destination_dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">capsfilter</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span>
+            <span class="s">&#39;caps&#39;</span><span class="p">,</span>
+            <span class="n">gst</span><span class="o">.</span><span class="n">caps_from_string</span><span class="p">(</span>
+                <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">caps</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">((</span><span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span><span class="p">))</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span>
+
+        <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_EOS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_discover_dst_and_stop</span><span class="p">()</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Done&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_ELEMENT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">message</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;progress&#39;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_progress_callback</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_progress_callback</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;{percent}</span><span class="si">% d</span><span class="s">one...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">percent</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;percent&#39;</span><span class="p">)))</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_ERROR</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">((</span><span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__stop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_discover_dst_and_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dst_discoverer</span> <span class="o">=</span> <span class="n">discoverer</span><span class="o">.</span><span class="n">Discoverer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">destination_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dst_discoverer</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discovered&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dst_discovered</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dst_discoverer</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__dst_discovered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">is_media</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dst_data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__stop</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;pipeline&#39;</span><span class="p">):</span>
+            <span class="c"># Stop executing the pipeline</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_NULL</span><span class="p">)</span>
+
+        <span class="c"># This kills the loop, mercifully</span>
+        <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__stop_mainloop</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__stop_mainloop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Wrapper for gobject.MainLoop.quit()</span>
+
+<span class="sd">        This wrapper makes us able to see if self.loop.quit has been called</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Terminating MainLoop&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">nice</span><span class="p">(</span><span class="mi">19</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+    <span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">(</span>
+        <span class="n">usage</span><span class="o">=</span><span class="s">&#39;%prog [-v] -a [ video | thumbnail | discover ] SRC [ DEST ]&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-a&#39;</span><span class="p">,</span> <span class="s">&#39;--action&#39;</span><span class="p">,</span>
+                      <span class="n">dest</span><span class="o">=</span><span class="s">&#39;action&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&#39;One of &quot;video&quot;, &quot;discover&quot; or &quot;thumbnail&quot;&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-v&#39;</span><span class="p">,</span>
+                      <span class="n">dest</span><span class="o">=</span><span class="s">&#39;verbose&#39;</span><span class="p">,</span>
+                      <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&#39;Output debug information&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s">&#39;-q&#39;</span><span class="p">,</span>
+                      <span class="n">dest</span><span class="o">=</span><span class="s">&#39;quiet&#39;</span><span class="p">,</span>
+                      <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s">&#39;Dear program, please be quiet unless *error*&#39;</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+    <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s">&#39;discover&#39;</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="n">transcoder</span> <span class="o">=</span> <span class="n">VideoTranscoder</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s">&#39;thumbnail&#39;</span><span class="p">:</span>
+        <span class="n">VideoThumbnailer</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s">&#39;video&#39;</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">cb</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;I</span><span class="se">\&#39;</span><span class="s">m a callback!&#39;</span><span class="p">)</span>
+        <span class="n">transcoder</span><span class="o">.</span><span class="n">transcode</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="n">cb</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">options</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s">&#39;discover&#39;</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">transcoder</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">__dict__</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

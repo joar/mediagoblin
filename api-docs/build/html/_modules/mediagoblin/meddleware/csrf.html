@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.meddleware.csrf &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.meddleware" href="../meddleware.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../meddleware.html" accesskey="U">mediagoblin.meddleware</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.meddleware.csrf</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">webob.exc</span> <span class="kn">import</span> <span class="n">HTTPForbidden</span>
+<span class="kn">from</span> <span class="nn">wtforms</span> <span class="kn">import</span> <span class="n">Form</span><span class="p">,</span> <span class="n">HiddenField</span><span class="p">,</span> <span class="n">validators</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.meddleware</span> <span class="kn">import</span> <span class="n">BaseMeddleware</span>
+
+<span class="c"># Use the system (hardware-based) random number generator if it exists.</span>
+<span class="c"># -- this optimization is lifted from Django</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">random</span><span class="p">,</span> <span class="s">&#39;SystemRandom&#39;</span><span class="p">):</span>
+    <span class="n">getrandbits</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">SystemRandom</span><span class="p">()</span><span class="o">.</span><span class="n">getrandbits</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">getrandbits</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">getrandbits</span>
+
+
+<div class="viewcode-block" id="csrf_exempt"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.csrf_exempt">[docs]</a><span class="k">def</span> <span class="nf">csrf_exempt</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorate a Controller to exempt it from CSRF protection.&quot;&quot;&quot;</span>
+
+    <span class="n">func</span><span class="o">.</span><span class="n">csrf_enabled</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="n">func</span>
+
+</div>
+<div class="viewcode-block" id="CsrfForm"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.CsrfForm">[docs]</a><span class="k">class</span> <span class="nc">CsrfForm</span><span class="p">(</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simple form to handle rendering a CSRF token and confirming it</span>
+<span class="sd">    is included in the POST.&quot;&quot;&quot;</span>
+
+    <span class="n">csrf_token</span> <span class="o">=</span> <span class="n">HiddenField</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span>
+                             <span class="p">[</span><span class="n">validators</span><span class="o">.</span><span class="n">Required</span><span class="p">()])</span>
+
+</div>
+<div class="viewcode-block" id="render_csrf_form_token"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.render_csrf_form_token">[docs]</a><span class="k">def</span> <span class="nf">render_csrf_form_token</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Render the CSRF token in a format suitable for inclusion in a</span>
+<span class="sd">    form.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="s">&#39;CSRF_TOKEN&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">form</span> <span class="o">=</span> <span class="n">CsrfForm</span><span class="p">(</span><span class="n">csrf_token</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;CSRF_TOKEN&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">form</span><span class="o">.</span><span class="n">csrf_token</span>
+
+</div>
+<div class="viewcode-block" id="CsrfMeddleware"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.CsrfMeddleware">[docs]</a><span class="k">class</span> <span class="nc">CsrfMeddleware</span><span class="p">(</span><span class="n">BaseMeddleware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;CSRF Protection Meddleware</span>
+
+<span class="sd">    Adds a CSRF Cookie to responses and verifies that it is present</span>
+<span class="sd">    and matches the form token for non-safe requests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CSRF_KEYLEN</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">SAFE_HTTP_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;GET&quot;</span><span class="p">,</span> <span class="s">&quot;HEAD&quot;</span><span class="p">,</span> <span class="s">&quot;OPTIONS&quot;</span><span class="p">,</span> <span class="s">&quot;TRACE&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CsrfMeddleware.process_request"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.CsrfMeddleware.process_request">[docs]</a>    <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;For non-safe requests, confirm that the tokens are present</span>
+<span class="sd">        and match.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># get the token from the cookie</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;CSRF_TOKEN&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;csrf_cookie_name&#39;</span><span class="p">]]</span>
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c"># if it doesn&#39;t exist, make a new one</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;CSRF_TOKEN&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_token</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c"># if this is a non-&quot;safe&quot; request (ie, one that could have</span>
+        <span class="c"># side effects), confirm that the CSRF tokens are present and</span>
+        <span class="c"># valid</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">controller</span><span class="p">,</span> <span class="s">&#39;csrf_enabled&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SAFE_HTTP_METHODS</span> <span class="ow">and</span>
+            <span class="p">(</span><span class="s">&#39;gmg.verify_csrf&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span> <span class="ow">or</span>
+             <span class="s">&#39;paste.testing&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+        <span class="p">):</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_tokens</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CsrfMeddleware.process_response"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.CsrfMeddleware.process_response">[docs]</a>    <span class="k">def</span> <span class="nf">process_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add the CSRF cookie to the response if needed and set Vary</span>
+<span class="sd">        headers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># set the CSRF cookie</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;csrf_cookie_name&#39;</span><span class="p">],</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;CSRF_TOKEN&#39;</span><span class="p">],</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;SCRIPT_NAME&#39;</span><span class="p">],</span>
+            <span class="n">domain</span><span class="o">=</span><span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;csrf_cookie_domain&#39;</span><span class="p">),</span>
+            <span class="n">secure</span><span class="o">=</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;https&#39;</span><span class="p">),</span>
+            <span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># update the Vary header</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">vary</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&#39;vary&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;Cookie&#39;</span><span class="p">]</span>
+</div>
+    <span class="k">def</span> <span class="nf">_make_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a new token to use for CSRF protection.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">getrandbits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CSRF_KEYLEN</span><span class="p">),)</span>
+
+<div class="viewcode-block" id="CsrfMeddleware.verify_tokens"><a class="viewcode-back" href="../../../mediagoblin.meddleware.html#mediagoblin.meddleware.csrf.CsrfMeddleware.verify_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">verify_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Verify that the CSRF Cookie exists and that it matches the</span>
+<span class="sd">        form value.&quot;&quot;&quot;</span>
+
+        <span class="c"># confirm the cookie token was presented</span>
+        <span class="n">cookie_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;csrf_cookie_name&#39;</span><span class="p">],</span>
+            <span class="bp">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cookie_token</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># the CSRF cookie must be present in the request</span>
+            <span class="k">return</span> <span class="n">HTTPForbidden</span><span class="p">()</span>
+
+        <span class="c"># get the form token and confirm it matches</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">CsrfForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+            <span class="n">form_token</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">csrf_token</span><span class="o">.</span><span class="n">data</span>
+
+            <span class="k">if</span> <span class="n">form_token</span> <span class="o">==</span> <span class="n">cookie_token</span><span class="p">:</span>
+                <span class="c"># all&#39;s well that ends well</span>
+                <span class="k">return</span>
+
+        <span class="c"># either the tokens didn&#39;t match or the form token wasn&#39;t</span>
+        <span class="c"># present; either way, the request is denied</span>
+        <span class="k">return</span> <span class="n">HTTPForbidden</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../meddleware.html" >mediagoblin.meddleware</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

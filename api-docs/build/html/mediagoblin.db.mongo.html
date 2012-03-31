@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mongo Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mongo-package">
+<h1>mongo Package<a class="headerlink" href="#mongo-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">mongo</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.db.mongo"></span></div>
+<div class="section" id="module-mediagoblin.db.mongo.indexes">
+<span id="indexes-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">indexes</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.mongo.indexes" title="Permalink to this headline">¶</a></h2>
+<p>Indexes for the local database.</p>
+<div class="section" id="to-add-new-indexes">
+<h3>To add new indexes<a class="headerlink" href="#to-add-new-indexes" title="Permalink to this headline">¶</a></h3>
+<p>Indexes are recorded in the following format:</p>
+<dl class="docutils">
+<dt>ACTIVE_INDEXES = {</dt>
+<dd><dl class="first last docutils">
+<dt>&#8216;collection_name&#8217;: {</dt>
+<dd><dl class="first last docutils">
+<dt>&#8216;identifier&#8217;: {  # key identifier used for possibly deprecating later</dt>
+<dd>&#8216;index&#8217;: [index_foo_goes_here]}}</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>... and anything else being parameters to the create_index function
+(including unique=True, etc)</p>
+<p>Current indexes must be registered in ACTIVE_INDEXES... deprecated
+indexes should be marked in DEPRECATED_INDEXES.</p>
+<p>Remember, ordering of compound indexes MATTERS.  Read below for more.</p>
+<dl class="docutils">
+<dt>REQUIRED READING:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://kylebanker.com/blog/2010/09/21/the-joy-of-mongodb-indexes/">http://kylebanker.com/blog/2010/09/21/the-joy-of-mongodb-indexes/</a></li>
+<li><a class="reference external" href="http://www.mongodb.org/display/DOCS/Indexes">http://www.mongodb.org/display/DOCS/Indexes</a></li>
+<li><a class="reference external" href="http://www.mongodb.org/display/DOCS/Indexing+Advice+and+FAQ">http://www.mongodb.org/display/DOCS/Indexing+Advice+and+FAQ</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="to-remove-deprecated-indexes">
+<h3>To remove deprecated indexes<a class="headerlink" href="#to-remove-deprecated-indexes" title="Permalink to this headline">¶</a></h3>
+<p>Removing deprecated indexes is the same, just move the index into the
+deprecated indexes mapping.</p>
+<dl class="docutils">
+<dt>DEPRECATED_INDEXES = {</dt>
+<dd><dl class="first last docutils">
+<dt>&#8216;collection_name&#8217;: {</dt>
+<dd><dl class="first last docutils">
+<dt>&#8216;deprecated_index_identifier1&#8217;: {</dt>
+<dd>&#8216;index&#8217;: [index_foo_goes_here]}}</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>... etc.</p>
+<p>If an index has been deprecated that identifier should NEVER BE USED
+AGAIN.  Eg, if you previously had &#8216;awesomepants_unique&#8217;, you shouldn&#8217;t
+use &#8216;awesomepants_unique&#8217; again, you should create a totally new name
+or at worst use &#8216;awesomepants_unique2&#8217;.</p>
+</div>
+</div>
+<div class="section" id="module-mediagoblin.db.mongo.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.mongo.migrations" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.add_table_field">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">add_table_field</tt><big>(</big><em>db</em>, <em>table_name</em>, <em>field_name</em>, <em>default_value</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#add_table_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.add_table_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new field to the table/collection named table_name.
+The field will have the name field_name and the value default_value</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.convert_exif_media_data">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">convert_exif_media_data</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#convert_exif_media_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.convert_exif_media_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move media_data[&#8220;exif&#8221;][&#8220;clean&#8221;] to media_data[&#8220;exif_all&#8221;].
+Drop media_data[&#8220;exif&#8221;][&#8220;useful&#8221;]
+In preparation for media_data.exif_all</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.convert_gps_media_data">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">convert_gps_media_data</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#convert_gps_media_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.convert_gps_media_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move media_data[&#8220;gps&#8221;][&#8220;*&#8221;] to media_data[&#8220;gps_*&#8221;].
+In preparation for media_data.gps_*</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.convert_video_media_data">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">convert_video_media_data</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#convert_video_media_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.convert_video_media_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move media_data[&#8220;video&#8221;] directly into media_data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.drop_table_field">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">drop_table_field</tt><big>(</big><em>db</em>, <em>table_name</em>, <em>field_name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#drop_table_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.drop_table_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop an old field from a table/collection</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.media_type_image_to_multimedia_type_image">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">media_type_image_to_multimedia_type_image</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#media_type_image_to_multimedia_type_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.media_type_image_to_multimedia_type_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.mediaentry_add_fail_error_and_metadata">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">mediaentry_add_fail_error_and_metadata</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#mediaentry_add_fail_error_and_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.mediaentry_add_fail_error_and_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add &#8216;fail_error&#8217; and &#8216;fail_metadata&#8217; fields to media entries</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.mediaentry_add_license">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">mediaentry_add_license</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#mediaentry_add_license"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.mediaentry_add_license" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the &#8216;license&#8217; field for entries that don&#8217;t have it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.mediaentry_add_queued_task_id">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">mediaentry_add_queued_task_id</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#mediaentry_add_queued_task_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.mediaentry_add_queued_task_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the &#8216;queued_task_id&#8217; field for entries that don&#8217;t have it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.mediaentry_mediafiles_main_to_original">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">mediaentry_mediafiles_main_to_original</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#mediaentry_mediafiles_main_to_original"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.mediaentry_mediafiles_main_to_original" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename &#8220;main&#8221; media file to &#8220;original&#8221;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.mediaentry_remove_thumbnail_file">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">mediaentry_remove_thumbnail_file</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#mediaentry_remove_thumbnail_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.mediaentry_remove_thumbnail_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use media_files[&#8216;thumb&#8217;] instead of media_entries[&#8216;thumbnail_file&#8217;]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.remove_calculated_html">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">remove_calculated_html</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#remove_calculated_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.remove_calculated_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop pre-rendered html again and calculate things
+on the fly (and cache):
+- User.bio_html
+- MediaEntry.description_html
+- MediaComment.content_html</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.user_add_bio_html">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">user_add_bio_html</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#user_add_bio_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.user_add_bio_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Users now have richtext bios via Markdown, reflect appropriately.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.migrations.user_add_forgot_password_token_and_expires">
+<tt class="descclassname">mediagoblin.db.mongo.migrations.</tt><tt class="descname">user_add_forgot_password_token_and_expires</tt><big>(</big><em>database</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/migrations.html#user_add_forgot_password_token_and_expires"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.migrations.user_add_forgot_password_token_and_expires" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add token and expiration fields to help recover forgotten passwords</p>
+</dd></dl>
+
+</div>
+<div class="section" id="models-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#models-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.db.mongo.models"></span><dl class="class">
+<dt id="mediagoblin.db.mongo.models.MediaComment">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.models.</tt><tt class="descname">MediaComment</tt><big>(</big><em>doc=None</em>, <em>gen_skel=True</em>, <em>collection=None</em>, <em>lang='en'</em>, <em>fallback_lang='en'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaComment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">mongokit.document.Document</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.MediaCommentMixin" title="mediagoblin.db.mixin.MediaCommentMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.MediaCommentMixin</span></tt></a></p>
+<p>A comment on a MediaEntry.</p>
+<dl class="docutils">
+<dt>Structure:</dt>
+<dd><ul class="first last simple">
+<li>media_entry: The media entry this comment is attached to</li>
+<li>author: user who posted this comment</li>
+<li>created: when the comment was created</li>
+<li>content: plaintext (but markdown&#8217;able) version of the comment&#8217;s content.</li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.authorized_types">
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.authorized_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.default_values">
+<tt class="descname">default_values</tt><em class="property"> = {'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.default_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.get_author">
+<tt class="descname">get_author</tt><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaComment.get_author"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.get_author" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.models.MediaComment.media_entry">
+<tt class="descname">media_entry</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaComment.media_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.required_fields">
+<tt class="descname">required_fields</tt><em class="property"> = ['media_entry', 'author', 'created', 'content']</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.required_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.structure">
+<tt class="descname">structure</tt><em class="property"> = {'content': &lt;type 'unicode'&gt;, 'created': &lt;type 'datetime.datetime'&gt;, 'media_entry': &lt;class 'bson.objectid.ObjectId'&gt;, 'author': &lt;class 'bson.objectid.ObjectId'&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaComment.use_dot_notation">
+<tt class="descname">use_dot_notation</tt><em class="property"> = True</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaComment.use_dot_notation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.mongo.models.MediaEntry">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.models.</tt><tt class="descname">MediaEntry</tt><big>(</big><em>doc=None</em>, <em>gen_skel=True</em>, <em>collection=None</em>, <em>lang='en'</em>, <em>fallback_lang='en'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">mongokit.document.Document</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin" title="mediagoblin.db.mixin.MediaEntryMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.MediaEntryMixin</span></tt></a></p>
+<p>Record of a piece of media.</p>
+<dl class="docutils">
+<dt>Structure:</dt>
+<dd><ul class="first last">
+<li><p class="first">uploader: A reference to a User who uploaded this.</p>
+</li>
+<li><p class="first">title: Title of this work</p>
+</li>
+<li><p class="first">slug: A normalized &#8220;slug&#8221; which can be used as part of a URL to retrieve
+this work, such as &#8216;my-works-name-in-slug-form&#8217; may be viewable by
+&#8216;<a class="reference external" href="http://mg.example.org/u/username/m/my-works-name-in-slug-form/">http://mg.example.org/u/username/m/my-works-name-in-slug-form/</a>&#8216;
+Note that since URLs are constructed this way, slugs must be unique
+per-uploader.  (An index is provided to enforce that but code should be
+written on the python side to ensure this as well.)</p>
+</li>
+<li><p class="first">created: Date and time of when this piece of work was uploaded.</p>
+</li>
+<li><p class="first">description: Uploader-set description of this work.  This can be marked
+up with MarkDown for slight fanciness (links, boldness, italics,
+paragraphs...)</p>
+</li>
+<li><p class="first">media_type: What type of media is this?  Currently we only support
+&#8216;image&#8217; ;)</p>
+</li>
+<li><p class="first">media_data: Extra information that&#8217;s media-format-dependent.
+For example, images might contain some EXIF data that&#8217;s not appropriate
+to other formats.  You might store it like:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>mediaentry.media_data[&#8216;exif&#8217;] = {</dt>
+<dd><p class="first last">&#8216;manufacturer&#8217;: &#8216;CASIO&#8217;,
+&#8216;model&#8217;: &#8216;QV-4000&#8217;,
+&#8216;exposure_time&#8217;: .659}</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Alternately for video you might store:</p>
+<blockquote>
+<div><p># play length in seconds
+mediaentry.media_data[&#8216;play_length&#8217;] = 340</p>
+</div></blockquote>
+<p>... so what&#8217;s appropriate here really depends on the media type.</p>
+</li>
+<li><p class="first">plugin_data: a mapping of extra plugin information for this User.
+Nothing uses this yet as we don&#8217;t have plugins, but someday we
+might... :)</p>
+</li>
+<li><p class="first">tags: A list of tags.  Each tag is stored as a dictionary that has a key
+for the actual name and the normalized name-as-slug, so ultimately this
+looks like:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>[{&#8216;name&#8217;: &#8216;Gully Gardens&#8217;,</dt>
+<dd><blockquote class="first">
+<div><p>&#8216;slug&#8217;: &#8216;gully-gardens&#8217;},</p>
+</div></blockquote>
+<dl class="last docutils">
+<dt>{&#8216;name&#8217;: &#8216;Castle Adventure Time?!&#8221;,</dt>
+<dd><p class="first last">&#8216;slug&#8217;: &#8216;castle-adventure-time&#8217;}]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+</li>
+<li><p class="first">state: What&#8217;s the state of this file?  Active, inactive, disabled, etc...
+But really for now there are only two states:</p>
+<blockquote>
+<div><p>&#8220;unprocessed&#8221;: uploaded but needs to go through processing for display
+&#8220;processed&#8221;: processed and able to be displayed</p>
+</div></blockquote>
+</li>
+<li><p class="first">license: URI for media&#8217;s license.</p>
+</li>
+<li><p class="first">queued_media_file: storage interface style filepath describing a file
+queued for processing.  This is stored in the mg_globals.queue_store
+storage system.</p>
+</li>
+<li><p class="first">queued_task_id: celery task id.  Use this to fetch the task state.</p>
+</li>
+<li><p class="first">media_files: Files relevant to this that have actually been processed
+and are available for various types of display.  Stored like:</p>
+<blockquote>
+<div><p>{&#8216;thumb&#8217;: [&#8216;dir1&#8217;, &#8216;dir2&#8217;, &#8216;pic.png&#8217;}</p>
+</div></blockquote>
+</li>
+<li><p class="first">attachment_files: A list of &#8220;attachment&#8221; files, ones that aren&#8217;t
+critical to this piece of media but may be usefully relevant to people
+viewing the work.  (currently unused.)</p>
+</li>
+<li><p class="first">fail_error: path to the exception raised</p>
+</li>
+<li><p class="first">fail_metadata:</p>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.authorized_types">
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.authorized_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.default_values">
+<tt class="descname">default_values</tt><em class="property"> = {'state': u'unprocessed', 'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.default_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.get_comments">
+<tt class="descname">get_comments</tt><big>(</big><em>ascending=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry.get_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.get_comments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.get_uploader">
+<tt class="descname">get_uploader</tt><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry.get_uploader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.get_uploader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.media_data_init">
+<tt class="descname">media_data_init</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry.media_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.media_data_init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.required_fields">
+<tt class="descname">required_fields</tt><em class="property"> = ['uploader', 'created', 'media_type', 'slug']</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.required_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.structure">
+<tt class="descname">structure</tt><em class="property"> = {'fail_error': &lt;type 'unicode'&gt;, 'media_data': &lt;type 'dict'&gt;, 'attachment_files': &lt;type 'list'&gt;, 'description': &lt;type 'unicode'&gt;, 'license': &lt;type 'unicode'&gt;, 'title': &lt;type 'unicode'&gt;, 'queued_task_id': &lt;type 'unicode'&gt;, 'created': &lt;type 'datetime.datetime'&gt;, 'media_files': &lt;type 'dict'&gt;, 'fail_metadata': &lt;type 'dict'&gt;, 'state': &lt;type 'unicode'&gt;, 'uploader': &lt;class 'bson.objectid.ObjectId'&gt;, 'media_type': &lt;type 'unicode'&gt;, 'queued_media_file': [&lt;type 'unicode'&gt;], 'slug': &lt;type 'unicode'&gt;, 'tags': [&lt;type 'dict'&gt;], 'plugin_data': &lt;type 'dict'&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.url_to_next">
+<tt class="descname">url_to_next</tt><big>(</big><em>urlgen</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry.url_to_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.url_to_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a url to the next entry from this user, if there is one</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.url_to_prev">
+<tt class="descname">url_to_prev</tt><big>(</big><em>urlgen</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MediaEntry.url_to_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.url_to_prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide a url to the previous entry from this user, if there is one</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MediaEntry.use_dot_notation">
+<tt class="descname">use_dot_notation</tt><em class="property"> = True</em><a class="headerlink" href="#mediagoblin.db.mongo.models.MediaEntry.use_dot_notation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.MongoPK">
+<tt class="descclassname">mediagoblin.db.mongo.models.</tt><tt class="descname">MongoPK</tt><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#MongoPK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.MongoPK" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for the _id primary key</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.mongo.models.User">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.models.</tt><tt class="descname">User</tt><big>(</big><em>doc=None</em>, <em>gen_skel=True</em>, <em>collection=None</em>, <em>lang='en'</em>, <em>fallback_lang='en'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">mongokit.document.Document</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.UserMixin" title="mediagoblin.db.mixin.UserMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.UserMixin</span></tt></a></p>
+<p>A user of MediaGoblin.</p>
+<dl class="docutils">
+<dt>Structure:</dt>
+<dd><ul class="first last simple">
+<li>username: The username of this user, should be unique to this instance.</li>
+<li>email: Email address of this user</li>
+<li>created: When the user was created</li>
+<li>plugin_data: a mapping of extra plugin information for this User.
+Nothing uses this yet as we don&#8217;t have plugins, but someday we
+might... :)</li>
+<li>pw_hash: Hashed version of user&#8217;s password.</li>
+<li>email_verified: Whether or not the user has verified their email or not.
+Most parts of the site are disabled for users who haven&#8217;t yet.</li>
+<li>status: whether or not the user is active, etc.  Currently only has two
+values, &#8216;needs_email_verification&#8217; or &#8216;active&#8217;.  (In the future, maybe
+we&#8217;ll change this to a boolean with a key of &#8216;active&#8217; and have a
+separate field for a reason the user&#8217;s been disabled if that&#8217;s
+appropriate... email_verified is already separate, after all.)</li>
+<li>verification_key: If the user is awaiting email verification, the user
+will have to provide this key (which will be encoded in the presented
+URL) in order to confirm their email as active.</li>
+<li>is_admin: Whether or not this user is an administrator or not.</li>
+<li>url: this user&#8217;s personal webpage/website, if appropriate.</li>
+<li>bio: biography of this user (plaintext, in markdown)</li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.User.authorized_types">
+<tt class="descname">authorized_types</tt><em class="property"> = [&lt;class 'bson.dbref.DBRef'&gt;, &lt;type 'dict'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bool'&gt;, &lt;class 'mongokit.schema_document.CustomType'&gt;, &lt;type 'list'&gt;, &lt;class 'bson.binary.Binary'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'long'&gt;, &lt;type 'datetime.datetime'&gt;, &lt;type 'float'&gt;, &lt;class 'uuid.UUID'&gt;, &lt;type 'int'&gt;, &lt;class 'bson.code.Code'&gt;, &lt;class 'bson.objectid.ObjectId'&gt;, &lt;type 'unicode'&gt;]</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.authorized_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.User.default_values">
+<tt class="descname">default_values</tt><em class="property"> = {'status': u'needs_email_verification', 'email_verified': False, 'is_admin': False, 'created': &lt;built-in method utcnow of type object at 0x2ad6dedd5f00&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.default_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.User.required_fields">
+<tt class="descname">required_fields</tt><em class="property"> = ['username', 'created', 'pw_hash', 'email']</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.required_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.User.structure">
+<tt class="descname">structure</tt><em class="property"> = {'username': &lt;type 'unicode'&gt;, 'status': &lt;type 'unicode'&gt;, 'bio': &lt;type 'unicode'&gt;, 'is_admin': &lt;type 'bool'&gt;, 'fp_token_expire': &lt;type 'datetime.datetime'&gt;, 'fp_verification_key': &lt;type 'unicode'&gt;, 'pw_hash': &lt;type 'unicode'&gt;, 'created': &lt;type 'datetime.datetime'&gt;, 'url': &lt;type 'unicode'&gt;, 'verification_key': &lt;type 'unicode'&gt;, 'email_verified': &lt;type 'bool'&gt;, 'email': &lt;type 'unicode'&gt;, 'plugin_data': &lt;type 'dict'&gt;}</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.models.User.use_dot_notation">
+<tt class="descname">use_dot_notation</tt><em class="property"> = True</em><a class="headerlink" href="#mediagoblin.db.mongo.models.User.use_dot_notation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.models.register_models">
+<tt class="descclassname">mediagoblin.db.mongo.models.</tt><tt class="descname">register_models</tt><big>(</big><em>connection</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/models.html#register_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.models.register_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register all models in REGISTER_MODELS with this connection.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.mongo.open">
+<span id="open-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">open</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.mongo.open" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.db.mongo.open.check_db_migrations_current">
+<tt class="descclassname">mediagoblin.db.mongo.open.</tt><tt class="descname">check_db_migrations_current</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/open.html#check_db_migrations_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.open.check_db_migrations_current" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.open.connect_database_from_config">
+<tt class="descclassname">mediagoblin.db.mongo.open.</tt><tt class="descname">connect_database_from_config</tt><big>(</big><em>app_config</em>, <em>use_pymongo=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/open.html#connect_database_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.open.connect_database_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to the main database, take config from app_config</p>
+<p>Optionally use pymongo instead of mongokit for the connection.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.open.load_models">
+<tt class="descclassname">mediagoblin.db.mongo.open.</tt><tt class="descname">load_models</tt><big>(</big><em>app_config</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/open.html#load_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.open.load_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.open.setup_connection_and_db_from_config">
+<tt class="descclassname">mediagoblin.db.mongo.open.</tt><tt class="descname">setup_connection_and_db_from_config</tt><big>(</big><em>app_config</em>, <em>use_pymongo=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/open.html#setup_connection_and_db_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.open.setup_connection_and_db_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup connection and database from config.</p>
+<p>Optionally use pymongo instead of mongokit.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.mongo.util">
+<span id="util-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.mongo.util" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for database operations.</p>
+<p>Some note on migration and indexing tools:</p>
+<p>We store information about what the state of the database is in the
+&#8216;mediagoblin&#8217; document of the &#8216;app_metadata&#8217; collection.  Keys in that
+document relevant to here:</p>
+<blockquote>
+<div><ul class="simple">
+<li>&#8216;migration_number&#8217;: The integer representing the current state of
+the migrations</li>
+</ul>
+</div></blockquote>
+<dl class="class">
+<dt id="mediagoblin.db.mongo.util.MigrationManager">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">MigrationManager</tt><big>(</big><em>database</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x3e25500&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x3e25578&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x3e255f0&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x3e25668&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x3e256e0&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x3e25758&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x3e257d0&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x3e25848&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x3e258c0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x3e25938&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x3e259b0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x3e25a28&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Migration handling tool.</p>
+<p>Takes information about a database, lets you update the database
+to the latest migrations, etc.</p>
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.database_at_latest_migration">
+<tt class="descname">database_at_latest_migration</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.database_at_latest_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.database_at_latest_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>See if the database is at the latest migration.
+Returns a boolean.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.database_current_migration">
+<tt class="descname">database_current_migration</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.database_current_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.database_current_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current migration in the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.install_migration_version_if_missing">
+<tt class="descname">install_migration_version_if_missing</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.install_migration_version_if_missing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.install_migration_version_if_missing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the migration to the latest version if no migration
+version at all is set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.latest_migration">
+<tt class="descname">latest_migration</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.latest_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.latest_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a migration number for the latest migration, or 0 if
+there are no migrations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.migrate_new">
+<tt class="descname">migrate_new</tt><big>(</big><em>pre_callback=None</em>, <em>post_callback=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.migrate_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.migrate_new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run all migrations.</p>
+<dl class="docutils">
+<dt>Includes two optional args:</dt>
+<dd><ul class="first last simple">
+<li>pre_callback: if called, this is a callback on something to
+run pre-migration.  Takes (migration_number, migration_func)
+as arguments</li>
+<li>pre_callback: if called, this is a callback on something to
+run post-migration.  Takes (migration_number, migration_func)
+as arguments</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.migrations_to_run">
+<tt class="descname">migrations_to_run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.migrations_to_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.migrations_to_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of migrations to run still, if any.</p>
+<p>Note that calling this will set your migration version to the
+latest version if it isn&#8217;t installed to anything yet!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.set_current_migration">
+<tt class="descname">set_current_migration</tt><big>(</big><em>migration_number</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.set_current_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.set_current_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the migration in the database to migration_number</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mongo.util.MigrationManager.sorted_migrations">
+<tt class="descname">sorted_migrations</tt><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MigrationManager.sorted_migrations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MigrationManager.sorted_migrations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort migrations if necessary and store in self._sorted_migrations</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.db.mongo.util.MissingCurrentMigration">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">MissingCurrentMigration</tt><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#MissingCurrentMigration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.MissingCurrentMigration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.mongo.util.RegisterMigration">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">RegisterMigration</tt><big>(</big><em>migration_number</em>, <em>migration_registry={1: &lt;function user_add_bio_html at 0x3e25500&gt;</em>, <em>2: &lt;function mediaentry_mediafiles_main_to_original at 0x3e25578&gt;</em>, <em>3: &lt;function mediaentry_remove_thumbnail_file at 0x3e255f0&gt;</em>, <em>4: &lt;function mediaentry_add_queued_task_id at 0x3e25668&gt;</em>, <em>5: &lt;function mediaentry_add_fail_error_and_metadata at 0x3e256e0&gt;</em>, <em>6: &lt;function user_add_forgot_password_token_and_expires at 0x3e25758&gt;</em>, <em>7: &lt;function media_type_image_to_multimedia_type_image at 0x3e257d0&gt;</em>, <em>8: &lt;function mediaentry_add_license at 0x3e25848&gt;</em>, <em>9: &lt;function remove_calculated_html at 0x3e258c0&gt;</em>, <em>10: &lt;function convert_video_media_data at 0x3e25938&gt;</em>, <em>11: &lt;function convert_gps_media_data at 0x3e259b0&gt;</em>, <em>12: &lt;function convert_exif_media_data at 0x3e25a28&gt;}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#RegisterMigration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.RegisterMigration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Tool for registering migrations</p>
+<p>Call like:</p>
+<p>&#64;RegisterMigration(33)
+def update_dwarves(database):</p>
+<blockquote>
+<div>[...]</div></blockquote>
+<p>This will register your migration with the default migration
+registry.  Alternately, to specify a very specific
+migration_registry, you can pass in that as the second argument.</p>
+<p>Note, the number of your migration should NEVER be 0 or less than
+0.  0 is the default &#8220;no migrations&#8221; state!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.util.add_new_indexes">
+<tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">add_new_indexes</tt><big>(</big><em>database, active_indexes={'media_entries': {'state_uploader_tags_created': {'index': [('state', 1), ('uploader', 1), ('tags.slug', -1), ('created', -1)]}, 'uploader_created': {'index': [('uploader', 1), ('created', -1)]}, 'state_tags_created': {'index': [('state', 1), ('tags.slug', -1), ('created', -1)]}, 'uploader_slug_unique': {'index': [('uploader', 1), ('slug', 1)], 'unique': True}, 'created': {'index': [('created', -1)]}}, 'users': {'username_unique': {'index': 'username', 'unique': True}, 'created': {'index': 'created'}}, 'media_comments': {'mediaentry_created': {'index': [('media_entry', 1), ('created', -1)]}}}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#add_new_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.add_new_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add any new indexes to the database.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last">
+<li><p class="first">database: pymongo or mongokit database instance.</p>
+</li>
+<li><p class="first">active_indexes: indexes to possibly add in the pattern of:
+{&#8216;collection_name&#8217;: {</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>&#8216;identifier&#8217;: {</dt>
+<dd><p class="first last">&#8216;index&#8217;: [index_foo_goes_here],
+&#8216;unique&#8217;: True}}</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>where &#8216;index&#8217; is the index to add and all other options are
+arguments for collection.create_index.</p>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>A list of indexes added in form (&#8216;collection&#8217;, &#8216;index_name&#8217;)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.util.atomic_update">
+<tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">atomic_update</tt><big>(</big><em>table</em>, <em>query_dict</em>, <em>update_values</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#atomic_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.atomic_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.util.check_media_slug_used">
+<tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">check_media_slug_used</tt><big>(</big><em>db</em>, <em>uploader_id</em>, <em>slug</em>, <em>ignore_m_id</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#check_media_slug_used"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.check_media_slug_used" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.util.media_entries_for_tag_slug">
+<tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">media_entries_for_tag_slug</tt><big>(</big><em>db</em>, <em>tag_slug</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#media_entries_for_tag_slug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.media_entries_for_tag_slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.mongo.util.remove_deprecated_indexes">
+<tt class="descclassname">mediagoblin.db.mongo.util.</tt><tt class="descname">remove_deprecated_indexes</tt><big>(</big><em>database</em>, <em>deprecated_indexes={}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mongo/util.html#remove_deprecated_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mongo.util.remove_deprecated_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove any deprecated indexes from the database.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last">
+<li><p class="first">database: pymongo or mongokit database instance.</p>
+</li>
+<li><p class="first">deprecated_indexes: the indexes to deprecate in the pattern of:
+{&#8216;collection_name&#8217;: {</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>&#8216;identifier&#8217;: {</dt>
+<dd><p class="first last">&#8216;index&#8217;: [index_foo_goes_here],
+&#8216;unique&#8217;: True}}</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>(... although we really only need the &#8216;identifier&#8217; here, as the
+rest of the information isn&#8217;t used in this case.  But it&#8217;s kept
+around so we can remember what it was)</p>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>A list of indexes removed in form (&#8216;collection&#8217;, &#8216;index_name&#8217;)</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mongo Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">mongo</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.mongo.indexes"><tt class="docutils literal"><span class="pre">indexes</span></tt> Module</a><ul>
+<li><a class="reference internal" href="#to-add-new-indexes">To add new indexes</a></li>
+<li><a class="reference internal" href="#to-remove-deprecated-indexes">To remove deprecated indexes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mediagoblin.db.mongo.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#models-module"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.mongo.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.mongo.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.db.mongo.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

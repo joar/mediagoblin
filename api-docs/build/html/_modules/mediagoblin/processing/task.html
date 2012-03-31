@@ -1,0 +1,174 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.processing.task &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.processing" href="../processing.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../processing.html" accesskey="U">mediagoblin.processing</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.processing.task</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">celery.task</span> <span class="kn">import</span> <span class="n">Task</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span> <span class="k">as</span> <span class="n">mgg</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">ObjectId</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.media_types</span> <span class="kn">import</span> <span class="n">get_media_manager</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.processing</span> <span class="kn">import</span> <span class="n">mark_entry_failed</span><span class="p">,</span> <span class="n">BaseProcessingFail</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="c">################################</span>
+<span class="c"># Media processing initial steps</span>
+<span class="c">################################</span>
+
+<div class="viewcode-block" id="ProcessMedia"><a class="viewcode-back" href="../../../mediagoblin.processing.html#mediagoblin.processing.task.ProcessMedia">[docs]</a><span class="k">class</span> <span class="nc">ProcessMedia</span><span class="p">(</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DEPRECATED -- This now resides in the individual media plugins</span>
+
+<span class="sd">    Pass this entry off for processing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ProcessMedia.run"><a class="viewcode-back" href="../../../mediagoblin.processing.html#mediagoblin.processing.task.ProcessMedia.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pass the media entry off to the appropriate processing function</span>
+<span class="sd">        (for now just process_image...)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">mgg</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">media_id</span><span class="p">)})</span>
+
+        <span class="c"># Try to process, and handle expected errors.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#__import__(entry.media_type)</span>
+            <span class="n">manager</span> <span class="o">=</span> <span class="n">get_media_manager</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">media_type</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Processing {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span>
+            <span class="n">manager</span><span class="p">[</span><span class="s">&#39;processor&#39;</span><span class="p">](</span><span class="n">entry</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">BaseProcessingFail</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">mark_entry_failed</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s">&#39;Entry {0} failed to process due to an import error: {1}&#39;</span>\
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">entry</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                    <span class="n">exc</span><span class="p">))</span>
+
+            <span class="n">mark_entry_failed</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+
+        <span class="n">entry</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s">u&#39;processed&#39;</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="ProcessMedia.on_failure"><a class="viewcode-back" href="../../../mediagoblin.processing.html#mediagoblin.processing.task.ProcessMedia.on_failure">[docs]</a>    <span class="k">def</span> <span class="nf">on_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">einfo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the processing failed we should mark that in the database.</span>
+
+<span class="sd">        Assuming that the exception raised is a subclass of</span>
+<span class="sd">        BaseProcessingFail, we can use that to get more information</span>
+<span class="sd">        about the failure and store that for conveying information to</span>
+<span class="sd">        users about the failure, etc.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entry_id</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">mark_entry_failed</span><span class="p">(</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../processing.html" >mediagoblin.processing</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

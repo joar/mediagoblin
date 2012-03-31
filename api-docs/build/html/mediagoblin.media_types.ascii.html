@@ -1,0 +1,178 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ascii Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ascii-package">
+<h1>ascii Package<a class="headerlink" href="#ascii-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">ascii</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.media_types.ascii"></span></div>
+<div class="section" id="module-mediagoblin.media_types.ascii.asciitoimage">
+<span id="asciitoimage-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">asciitoimage</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.ascii.asciitoimage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.media_types.ascii.asciitoimage.AsciiToImage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.ascii.asciitoimage.</tt><tt class="descname">AsciiToImage</tt><big>(</big><em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/ascii/asciitoimage.html#AsciiToImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.ascii.asciitoimage.AsciiToImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Converter of ASCII art into image files, preserving whitespace</p>
+<p>kwargs:
+- font: Path to font file</p>
+<blockquote>
+<div>default: fonts/Inconsolata.otf</div></blockquote>
+<ul class="simple">
+<li>font_size: Font size, <tt class="docutils literal"><span class="pre">int</span></tt>
+default: 11</li>
+</ul>
+<dl class="method">
+<dt id="mediagoblin.media_types.ascii.asciitoimage.AsciiToImage.convert">
+<tt class="descname">convert</tt><big>(</big><em>text</em>, <em>destination</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/ascii/asciitoimage.html#AsciiToImage.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.ascii.asciitoimage.AsciiToImage.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.ascii.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.ascii.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.media_types.ascii.models">
+<span id="models-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.ascii.models" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.media_types.ascii.models.AsciiData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.ascii.models.</tt><tt class="descname">AsciiData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/ascii/models.html#AsciiData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.ascii.models.AsciiData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.ascii.models.AsciiData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.ascii.models.AsciiData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.ascii.models.AsciiData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.ascii.models.AsciiData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.ascii.models.DATA_MODEL">
+<tt class="descclassname">mediagoblin.media_types.ascii.models.</tt><tt class="descname">DATA_MODEL</tt><a class="headerlink" href="#mediagoblin.media_types.ascii.models.DATA_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#mediagoblin.media_types.ascii.models.AsciiData" title="mediagoblin.media_types.ascii.models.AsciiData"><tt class="xref py py-class docutils literal"><span class="pre">AsciiData</span></tt></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.ascii.processing">
+<span id="processing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">processing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.ascii.processing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.media_types.ascii.processing.process_ascii">
+<tt class="descclassname">mediagoblin.media_types.ascii.processing.</tt><tt class="descname">process_ascii</tt><big>(</big><em>entry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/ascii/processing.html#process_ascii"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.ascii.processing.process_ascii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Code to process a txt file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.ascii.processing.sniff_handler">
+<tt class="descclassname">mediagoblin.media_types.ascii.processing.</tt><tt class="descname">sniff_handler</tt><big>(</big><em>media_file</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/ascii/processing.html#sniff_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.ascii.processing.sniff_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ascii Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">ascii</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.ascii.asciitoimage"><tt class="docutils literal"><span class="pre">asciitoimage</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.ascii.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.ascii.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.ascii.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.media_types.ascii.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_util &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_util</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">email</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">translate</span><span class="p">,</span> <span class="n">mail</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">testing</span>
+
+<span class="n">testing</span><span class="o">.</span><span class="n">_activate_testing</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_import_component_testing_method</span><span class="p">(</span><span class="n">silly_string</span><span class="p">):</span>
+    <span class="c"># Just for the sake of testing that our component importer works.</span>
+    <span class="k">return</span> <span class="s">u&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; is the silliest string I&#39;ve ever seen&quot;</span> <span class="o">%</span> <span class="n">silly_string</span>
+
+
+<div class="viewcode-block" id="test_import_component"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_import_component">[docs]</a><span class="k">def</span> <span class="nf">test_import_component</span><span class="p">():</span>
+    <span class="n">imported_func</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">import_component</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin.tests.test_util:_import_component_testing_method&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">imported_func</span><span class="p">(</span><span class="s">&#39;hooobaladoobala&#39;</span><span class="p">)</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="s">u&quot;&#39;hooobaladoobala&#39; is the silliest string I&#39;ve ever seen&quot;</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">expected</span>
+
+</div>
+<div class="viewcode-block" id="test_send_email"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_send_email">[docs]</a><span class="k">def</span> <span class="nf">test_send_email</span><span class="p">():</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">_clear_test_inboxes</span><span class="p">()</span>
+
+    <span class="c"># send the email</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">send_email</span><span class="p">(</span>
+        <span class="s">&quot;sender@mediagoblin.example.org&quot;</span><span class="p">,</span>
+        <span class="p">[</span><span class="s">&quot;amanda@example.org&quot;</span><span class="p">,</span> <span class="s">&quot;akila@example.org&quot;</span><span class="p">],</span>
+        <span class="s">&quot;Testing is so much fun!&quot;</span><span class="p">,</span>
+        <span class="sd">&quot;&quot;&quot;HAYYY GUYS!</span>
+
+<span class="sd">I hope you like unit tests JUST AS MUCH AS I DO!&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c"># check the main inbox</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;From&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;sender@mediagoblin.example.org&quot;</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;amanda@example.org, akila@example.org&quot;</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Testing is so much fun!&quot;</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="s">&quot;&quot;&quot;HAYYY GUYS!</span>
+
+<span class="s">I hope you like unit tests JUST AS MUCH AS I DO!&quot;&quot;&quot;</span>
+
+    <span class="c"># Check everything that the FakeMhost.sendmail() method got is correct</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_MBOX_INBOX</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">mbox_dict</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_MBOX_INBOX</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">mbox_dict</span><span class="p">[</span><span class="s">&#39;from&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;sender@mediagoblin.example.org&quot;</span>
+    <span class="k">assert</span> <span class="n">mbox_dict</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="s">&quot;amanda@example.org&quot;</span><span class="p">,</span> <span class="s">&quot;akila@example.org&quot;</span><span class="p">]</span>
+    <span class="n">mbox_message</span> <span class="o">=</span> <span class="n">email</span><span class="o">.</span><span class="n">message_from_string</span><span class="p">(</span><span class="n">mbox_dict</span><span class="p">[</span><span class="s">&#39;message&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">mbox_message</span><span class="p">[</span><span class="s">&#39;From&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;sender@mediagoblin.example.org&quot;</span>
+    <span class="k">assert</span> <span class="n">mbox_message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;amanda@example.org, akila@example.org&quot;</span>
+    <span class="k">assert</span> <span class="n">mbox_message</span><span class="p">[</span><span class="s">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Testing is so much fun!&quot;</span>
+    <span class="k">assert</span> <span class="n">mbox_message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="s">&quot;&quot;&quot;HAYYY GUYS!</span>
+
+<span class="s">I hope you like unit tests JUST AS MUCH AS I DO!&quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="test_slugify"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_slugify">[docs]</a><span class="k">def</span> <span class="nf">test_slugify</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">&#39;a walk in the park&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-walk-in-the-park&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">&#39;A Walk in the Park&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-walk-in-the-park&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">&#39;a  walk in the park&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-walk-in-the-park&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">&#39;a walk in-the-park&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-walk-in-the-park&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">&#39;a w@lk in the park?&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-w-lk-in-the-park&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">u&#39;a walk in the par</span><span class="se">\u0107</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;a-walk-in-the-parc&#39;</span>
+    <span class="k">assert</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="s">u&#39;</span><span class="se">\u00E0\u0042\u00E7\u010F\u00EB\u0066</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;abcdef&#39;</span>
+</div>
+<div class="viewcode-block" id="test_locale_to_lower_upper"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_locale_to_lower_upper">[docs]</a><span class="k">def</span> <span class="nf">test_locale_to_lower_upper</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test cc.i18n.util.locale_to_lower_upper()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="s">&#39;en&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en_US&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="s">&#39;en-us&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en_US&#39;</span>
+
+    <span class="c"># crazy renditions.  Useful?</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="s">&#39;en-US&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en_US&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="s">&#39;en_us&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en_US&#39;</span>
+
+</div>
+<div class="viewcode-block" id="test_locale_to_lower_lower"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_locale_to_lower_lower">[docs]</a><span class="k">def</span> <span class="nf">test_locale_to_lower_lower</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test cc.i18n.util.locale_to_lower_lower()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_lower</span><span class="p">(</span><span class="s">&#39;en&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_lower</span><span class="p">(</span><span class="s">&#39;en_US&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en-us&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_lower</span><span class="p">(</span><span class="s">&#39;en-us&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en-us&#39;</span>
+
+    <span class="c"># crazy renditions.  Useful?</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_lower</span><span class="p">(</span><span class="s">&#39;en-US&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en-us&#39;</span>
+    <span class="k">assert</span> <span class="n">translate</span><span class="o">.</span><span class="n">locale_to_lower_lower</span><span class="p">(</span><span class="s">&#39;en_us&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;en-us&#39;</span>
+
+</div>
+<div class="viewcode-block" id="test_html_cleaner"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_util.test_html_cleaner">[docs]</a><span class="k">def</span> <span class="nf">test_html_cleaner</span><span class="p">():</span>
+    <span class="c"># Remove images</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">clean_html</span><span class="p">(</span>
+        <span class="s">&#39;&lt;p&gt;Hi everybody! &#39;</span>
+        <span class="s">&#39;&lt;img src=&quot;http://example.org/huge-purple-barney.png&quot; /&gt;&lt;/p&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="s">&#39;&lt;p&gt;:)&lt;/p&gt;&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s">&#39;&lt;div&gt;&#39;</span>
+        <span class="s">&#39;&lt;p&gt;Hi everybody! &lt;/p&gt;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="s">&#39;&lt;p&gt;:)&lt;/p&gt;&#39;</span>
+        <span class="s">&#39;&lt;/div&gt;&#39;</span><span class="p">)</span>
+
+    <span class="c"># Remove evil javascript</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">clean_html</span><span class="p">(</span>
+        <span class="s">&#39;&lt;p&gt;&lt;a href=&quot;javascript:nasty_surprise&quot;&gt;innocent link!&lt;/a&gt;&lt;/p&gt;&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s">&#39;&lt;p&gt;&lt;a href=&quot;&quot;&gt;innocent link!&lt;/a&gt;&lt;/p&gt;&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

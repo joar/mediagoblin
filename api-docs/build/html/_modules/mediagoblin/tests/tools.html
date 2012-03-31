@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.tools &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.tools</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">paste.deploy</span> <span class="kn">import</span> <span class="n">loadapp</span>
+<span class="kn">from</span> <span class="nn">webtest</span> <span class="kn">import</span> <span class="n">TestApp</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">testing</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.init.config</span> <span class="kn">import</span> <span class="n">read_mediagoblin_config</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.decorators</span> <span class="kn">import</span> <span class="n">_make_safe</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.open</span> <span class="kn">import</span> <span class="n">setup_connection_and_db_from_config</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.meddleware</span> <span class="kn">import</span> <span class="n">BaseMeddleware</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth.lib</span> <span class="kn">import</span> <span class="n">bcrypt_gen_password_hash</span>
+
+
+<span class="n">MEDIAGOBLIN_TEST_DB_NAME</span> <span class="o">=</span> <span class="s">u&#39;__mediagoblin_tests__&#39;</span>
+<span class="n">TEST_SERVER_CONFIG</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;test_paste.ini&#39;</span><span class="p">)</span>
+<span class="n">TEST_APP_CONFIG</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;test_mgoblin_app.ini&#39;</span><span class="p">)</span>
+<span class="n">TEST_USER_DEV</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;test_user_dev&#39;</span><span class="p">)</span>
+<span class="n">MGOBLIN_APP</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="n">USER_DEV_DIRECTORIES_TO_SETUP</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;media/public&#39;</span><span class="p">,</span> <span class="s">&#39;media/queue&#39;</span><span class="p">,</span>
+    <span class="s">&#39;beaker/sessions/data&#39;</span><span class="p">,</span> <span class="s">&#39;beaker/sessions/lock&#39;</span><span class="p">]</span>
+
+<span class="n">BAD_CELERY_MESSAGE</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">Sorry, you *absolutely* must run nosetests with the</span>
+<span class="s">mediagoblin.init.celery.from_tests module.  Like so:</span>
+<span class="s">$ CELERY_CONFIG_MODULE=mediagoblin.init.celery.from_tests ./bin/nosetests&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="BadCeleryEnviron"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.BadCeleryEnviron">[docs]</a><span class="k">class</span> <span class="nc">BadCeleryEnviron</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span> <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="TestingMeddleware"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.TestingMeddleware">[docs]</a><span class="k">class</span> <span class="nc">TestingMeddleware</span><span class="p">(</span><span class="n">BaseMeddleware</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Meddleware for the Unit tests</span>
+<span class="sd">    </span>
+<span class="sd">    It might make sense to perform some tests on all</span>
+<span class="sd">    requests/responses. Or prepare them in a special</span>
+<span class="sd">    manner. For example all html responses could be tested</span>
+<span class="sd">    for being valid html *after* being rendered.</span>
+
+<span class="sd">    This module is getting inserted at the front of the</span>
+<span class="sd">    meddleware list, which means: requests are handed here</span>
+<span class="sd">    first, responses last. So this wraps up the &quot;normal&quot;</span>
+<span class="sd">    app.</span>
+
+<span class="sd">    If you need to add a test, either add it directly to</span>
+<span class="sd">    the appropiate process_request or process_response, or</span>
+<span class="sd">    create a new method and call it from process_*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestingMeddleware.process_response"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.TestingMeddleware.process_response">[docs]</a>    <span class="k">def</span> <span class="nf">process_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="c"># All following tests should be for html only!</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">content_type</span> <span class="o">!=</span> <span class="s">&quot;text/html&quot;</span><span class="p">:</span>
+            <span class="c"># Get out early</span>
+            <span class="k">return</span>
+
+        <span class="c"># If the template contains a reference to</span>
+        <span class="c"># /mgoblin_static/ instead of using</span>
+        <span class="c"># /request.staticdirect(), error out here.</span>
+        <span class="c"># This could probably be implemented as a grep on</span>
+        <span class="c"># the shipped templates easier...</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;/mgoblin_static/&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s">&quot;Response HTML contains reference to /mgoblin_static/ &quot;</span>
+                <span class="s">&quot;instead of staticdirect. Request was for: &quot;</span>
+                <span class="o">+</span> <span class="n">request</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+</div></div>
+<div class="viewcode-block" id="suicide_if_bad_celery_environ"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.suicide_if_bad_celery_environ">[docs]</a><span class="k">def</span> <span class="nf">suicide_if_bad_celery_environ</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;CELERY_CONFIG_MODULE&#39;</span><span class="p">)</span> <span class="o">==</span> \
+            <span class="s">&#39;mediagoblin.init.celery.from_tests&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BadCeleryEnviron</span><span class="p">(</span><span class="n">BAD_CELERY_MESSAGE</span><span class="p">)</span>
+    
+</div>
+<div class="viewcode-block" id="get_test_app"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.get_test_app">[docs]</a><span class="k">def</span> <span class="nf">get_test_app</span><span class="p">(</span><span class="n">dump_old_app</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">suicide_if_bad_celery_environ</span><span class="p">()</span>
+
+    <span class="c"># Make sure we&#39;ve turned on testing</span>
+    <span class="n">testing</span><span class="o">.</span><span class="n">_activate_testing</span><span class="p">()</span>
+
+    <span class="c"># Leave this imported as it sets up celery.</span>
+    <span class="kn">from</span> <span class="nn">mediagoblin.init.celery</span> <span class="kn">import</span> <span class="n">from_tests</span>
+
+    <span class="k">global</span> <span class="n">MGOBLIN_APP</span>
+
+    <span class="c"># Just return the old app if that exists and it&#39;s okay to set up</span>
+    <span class="c"># and return</span>
+    <span class="k">if</span> <span class="n">MGOBLIN_APP</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dump_old_app</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">MGOBLIN_APP</span>
+
+    <span class="c"># Remove and reinstall user_dev directories</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">TEST_USER_DEV</span><span class="p">):</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">TEST_USER_DEV</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">USER_DEV_DIRECTORIES_TO_SETUP</span><span class="p">:</span>
+        <span class="n">full_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">TEST_USER_DEV</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">full_dir</span><span class="p">)</span>
+
+    <span class="c"># Get app config</span>
+    <span class="n">global_config</span><span class="p">,</span> <span class="n">validation_result</span> <span class="o">=</span> <span class="n">read_mediagoblin_config</span><span class="p">(</span><span class="n">TEST_APP_CONFIG</span><span class="p">)</span>
+    <span class="n">app_config</span> <span class="o">=</span> <span class="n">global_config</span><span class="p">[</span><span class="s">&#39;mediagoblin&#39;</span><span class="p">]</span>
+
+    <span class="c"># Wipe database</span>
+    <span class="c"># @@: For now we&#39;re dropping collections, but we could also just</span>
+    <span class="c"># collection.remove() ?</span>
+    <span class="n">connection</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">setup_connection_and_db_from_config</span><span class="p">(</span><span class="n">app_config</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">db</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">MEDIAGOBLIN_TEST_DB_NAME</span>
+
+    <span class="n">collections_to_wipe</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">collection</span>
+        <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">collection_names</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;system.&#39;</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="n">collections_to_wipe</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">drop_collection</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+
+    <span class="c"># TODO: Drop and recreate indexes</span>
+
+    <span class="c"># setup app and return</span>
+    <span class="n">test_app</span> <span class="o">=</span> <span class="n">loadapp</span><span class="p">(</span>
+        <span class="s">&#39;config:&#39;</span> <span class="o">+</span> <span class="n">TEST_SERVER_CONFIG</span><span class="p">)</span>
+
+    <span class="c"># Insert the TestingMeddleware, which can do some</span>
+    <span class="c"># sanity checks on every request/response.</span>
+    <span class="c"># Doing it this way is probably not the cleanest way.</span>
+    <span class="c"># We&#39;ll fix it, when we have plugins!</span>
+    <span class="n">mg_globals</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">meddleware</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TestingMeddleware</span><span class="p">(</span><span class="n">mg_globals</span><span class="o">.</span><span class="n">app</span><span class="p">))</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">TestApp</span><span class="p">(</span><span class="n">test_app</span><span class="p">)</span>
+    <span class="n">MGOBLIN_APP</span> <span class="o">=</span> <span class="n">app</span>
+
+    <span class="k">return</span> <span class="n">app</span>
+
+</div>
+<div class="viewcode-block" id="setup_fresh_app"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.setup_fresh_app">[docs]</a><span class="k">def</span> <span class="nf">setup_fresh_app</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to setup a fresh test application for this function.</span>
+
+<span class="sd">    Cleans out test buckets and passes in a new, fresh test_app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">test_app</span> <span class="o">=</span> <span class="n">get_test_app</span><span class="p">()</span>
+        <span class="n">testing</span><span class="o">.</span><span class="n">clear_test_buckets</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">test_app</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="install_fixtures_simple"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.install_fixtures_simple">[docs]</a><span class="k">def</span> <span class="nf">install_fixtures_simple</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">fixtures</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Very simply install fixtures in the database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">collection_fixtures</span> <span class="ow">in</span> <span class="n">fixtures</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">fixture</span> <span class="ow">in</span> <span class="n">collection_fixtures</span><span class="p">:</span>
+            <span class="n">collection</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">fixture</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="assert_db_meets_expected"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.assert_db_meets_expected">[docs]</a><span class="k">def</span> <span class="nf">assert_db_meets_expected</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">expected</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assert a database contains the things we expect it to.</span>
+
+<span class="sd">    Objects are found via &#39;_id&#39;, so you should make sure your document</span>
+<span class="sd">    has an _id.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - db: pymongo or mongokit database connection</span>
+<span class="sd">     - expected: the data we expect.  Formatted like:</span>
+<span class="sd">         {&#39;collection_name&#39;: [</span>
+<span class="sd">             {&#39;_id&#39;: &#39;foo&#39;,</span>
+<span class="sd">              &#39;some_field&#39;: &#39;some_value&#39;},]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">collection_data</span> <span class="ow">in</span> <span class="n">expected</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">db</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">expected_document</span> <span class="ow">in</span> <span class="n">collection_data</span><span class="p">:</span>
+            <span class="n">document</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">expected_document</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]})</span>
+            <span class="k">assert</span> <span class="n">document</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>  <span class="c"># make sure it exists</span>
+            <span class="k">assert</span> <span class="n">document</span> <span class="o">==</span> <span class="n">expected_document</span>  <span class="c"># make sure it matches</span>
+
+</div>
+<div class="viewcode-block" id="fixture_add_user"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.tools.fixture_add_user">[docs]</a><span class="k">def</span> <span class="nf">fixture_add_user</span><span class="p">(</span><span class="n">username</span> <span class="o">=</span> <span class="s">u&#39;chris&#39;</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="s">&#39;toast&#39;</span><span class="p">,</span>
+                     <span class="n">active_user</span> <span class="o">=</span> <span class="bp">True</span><span class="p">):</span>
+    <span class="n">test_user</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="p">()</span>
+    <span class="n">test_user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+    <span class="n">test_user</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">username</span> <span class="o">+</span> <span class="s">u&#39;@example.com&#39;</span>
+    <span class="k">if</span> <span class="n">password</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">test_user</span><span class="o">.</span><span class="n">pw_hash</span> <span class="o">=</span> <span class="n">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">active_user</span><span class="p">:</span>
+        <span class="n">test_user</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">test_user</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s">u&#39;active&#39;</span>
+
+    <span class="n">test_user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">test_user</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

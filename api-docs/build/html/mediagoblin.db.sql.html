@@ -1,0 +1,1388 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>sql Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sql-package">
+<h1>sql Package<a class="headerlink" href="#sql-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">sql</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.db.sql"></span></div>
+<div class="section" id="module-mediagoblin.db.sql.base">
+<span id="base-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">base</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.base" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.db.sql.base.DictReadAttrProxy">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.base.</tt><tt class="descname">DictReadAttrProxy</tt><big>(</big><em>proxied_obj</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#DictReadAttrProxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.DictReadAttrProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Maps read accesses to obj[&#8216;key&#8217;] to obj.key
+and hides all the rest of the obj</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.base.GMGQuery">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.base.</tt><tt class="descname">GMGQuery</tt><big>(</big><em>entities</em>, <em>session=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.orm.query.Query</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGQuery.skip">
+<tt class="descname">skip</tt><big>(</big><em>amount</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGQuery.skip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGQuery.skip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGQuery.sort">
+<tt class="descname">sort</tt><big>(</big><em>key</em>, <em>direction</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGQuery.sort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGQuery.sort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.base.GMGTableBase">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.base.</tt><tt class="descname">GMGTableBase</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.delete">
+<tt class="descname">delete</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.find">
+<em class="property">classmethod </em><tt class="descname">find</tt><big>(</big><em>query_dict={}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.find" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.find_one">
+<em class="property">classmethod </em><tt class="descname">find_one</tt><big>(</big><em>query_dict={}</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.find_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.find_one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.get">
+<tt class="descname">get</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.one">
+<em class="property">classmethod </em><tt class="descname">one</tt><big>(</big><em>query_dict</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.query">
+<tt class="descname">query</tt><em class="property"> = None</em><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.save">
+<tt class="descname">save</tt><big>(</big><em>validate=True</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.base.GMGTableBase.setdefault">
+<tt class="descname">setdefault</tt><big>(</big><em>key</em>, <em>defaultvalue</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/base.html#GMGTableBase.setdefault"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.base.GMGTableBase.setdefault" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.convert">
+<span id="convert-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">convert</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.convert" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.add_obj_ids">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">add_obj_ids</tt><big>(</big><em>entry</em>, <em>new_entry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#add_obj_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.add_obj_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_add_migration_versions">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_add_migration_versions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_add_migration_versions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_add_migration_versions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_image">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_image</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_media_comments">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_media_comments</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_media_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_media_comments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_media_entries">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_media_entries</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_media_entries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_media_entries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_media_tags">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_media_tags</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_media_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_media_tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_users">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_users</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_users"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_users" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.convert_video">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">convert_video</tt><big>(</big><em>mk_db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#convert_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.convert_video" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.copy_attrs">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">copy_attrs</tt><big>(</big><em>entry</em>, <em>new_entry</em>, <em>attr_list</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#copy_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.copy_attrs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.copy_reference_attr">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">copy_reference_attr</tt><big>(</big><em>entry</em>, <em>new_entry</em>, <em>ref_attr</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#copy_reference_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.copy_reference_attr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.convert.run_conversion">
+<tt class="descclassname">mediagoblin.db.sql.convert.</tt><tt class="descname">run_conversion</tt><big>(</big><em>config_name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/convert.html#run_conversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.convert.run_conversion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.extratypes">
+<span id="extratypes-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">extratypes</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.extratypes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.db.sql.extratypes.JSONEncoded">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.extratypes.</tt><tt class="descname">JSONEncoded</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#JSONEncoded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.JSONEncoded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></p>
+<p>Represents an immutable structure as a json-encoded string.</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.extratypes.JSONEncoded.impl">
+<tt class="descname">impl</tt><a class="headerlink" href="#mediagoblin.db.sql.extratypes.JSONEncoded.impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">VARCHAR</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.extratypes.JSONEncoded.process_bind_param">
+<tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#JSONEncoded.process_bind_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.JSONEncoded.process_bind_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.extratypes.JSONEncoded.process_result_value">
+<tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#JSONEncoded.process_result_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.JSONEncoded.process_result_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.extratypes.PathTupleWithSlashes">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.extratypes.</tt><tt class="descname">PathTupleWithSlashes</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#PathTupleWithSlashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.PathTupleWithSlashes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.types.TypeDecorator</span></tt></p>
+<p>Represents a Tuple of strings as a slash separated string.</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.extratypes.PathTupleWithSlashes.impl">
+<tt class="descname">impl</tt><a class="headerlink" href="#mediagoblin.db.sql.extratypes.PathTupleWithSlashes.impl" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <tt class="xref py py-class docutils literal"><span class="pre">Unicode</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.extratypes.PathTupleWithSlashes.process_bind_param">
+<tt class="descname">process_bind_param</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#PathTupleWithSlashes.process_bind_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.PathTupleWithSlashes.process_bind_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.extratypes.PathTupleWithSlashes.process_result_value">
+<tt class="descname">process_result_value</tt><big>(</big><em>value</em>, <em>dialect</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/extratypes.html#PathTupleWithSlashes.process_result_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.extratypes.PathTupleWithSlashes.process_result_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.fake">
+<span id="fake-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">fake</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.fake" title="Permalink to this headline">¶</a></h2>
+<p>This module contains some fake classes and functions to
+calm the rest of the code base. Or provide super minimal
+implementations.</p>
+<p>Currently:
+- ObjectId &#8220;class&#8221;: It&#8217;s a function mostly doing</p>
+<blockquote>
+<div>int(init_arg) to convert string primary keys into
+integer primary keys.</div></blockquote>
+<ul class="simple">
+<li>InvalidId exception</li>
+<li>DESCENDING &#8220;constant&#8221;</li>
+</ul>
+<dl class="exception">
+<dt id="mediagoblin.db.sql.fake.InvalidId">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.db.sql.fake.</tt><tt class="descname">InvalidId</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/fake.html#InvalidId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.fake.InvalidId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.fake.ObjectId">
+<tt class="descclassname">mediagoblin.db.sql.fake.</tt><tt class="descname">ObjectId</tt><big>(</big><em>value=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/fake.html#ObjectId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.fake.ObjectId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.db.sql.models">
+<span id="models-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.models" title="Permalink to this headline">¶</a></h2>
+<p>TODO: indexes on foreignkeys, where useful.</p>
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.FileKeynames">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">FileKeynames</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#FileKeynames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.FileKeynames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>keywords for various places.
+currently the MediaFile keys</p>
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.models.FileKeynames.find_or_new">
+<em class="property">classmethod </em><tt class="descname">find_or_new</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#FileKeynames.find_or_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.FileKeynames.find_or_new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.FileKeynames.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.FileKeynames.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.FileKeynames.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models.FileKeynames.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MediaAttachmentFile</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaAttachmentFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.dict_view">
+<tt class="descname">dict_view</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaAttachmentFile.dict_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.dict_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dict like view on this object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.filepath">
+<tt class="descname">filepath</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.filepath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaAttachmentFile.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaAttachmentFile.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MediaComment">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MediaComment</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaComment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.MediaCommentMixin" title="mediagoblin.db.mixin.MediaCommentMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.MediaCommentMixin</span></tt></a></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.author">
+<tt class="descname">author</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.author" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.content">
+<tt class="descname">content</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.content" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.get_author">
+<tt class="descname">get_author</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.get_author" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaComment.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaComment.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MediaEntry">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MediaEntry</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin" title="mediagoblin.db.mixin.MediaEntryMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.MediaEntryMixin</span></tt></a></p>
+<p>TODO: Consider fetching the media_files using join</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.attachment_files">
+<tt class="descname">attachment_files</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.attachment_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.attachment_files_helper">
+<tt class="descname">attachment_files_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.attachment_files_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.description">
+<tt class="descname">description</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.fail_error">
+<tt class="descname">fail_error</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.fail_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.fail_metadata">
+<tt class="descname">fail_metadata</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.fail_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.models.MediaEntry.get_comments">
+<tt class="descname">get_comments</tt><big>(</big><em>ascending=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.get_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.get_comments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.get_uploader">
+<tt class="descname">get_uploader</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.get_uploader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.license">
+<tt class="descname">license</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.license" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_data">
+<tt class="descname">media_data</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.media_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_data_init">
+<tt class="descname">media_data_init</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.media_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize or update the contents of a media entry&#8217;s media_data row</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_data_table">
+<tt class="descname">media_data_table</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.media_data_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_data_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_files">
+<tt class="descname">media_files</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_files_helper">
+<tt class="descname">media_files_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_files_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.media_type">
+<tt class="descname">media_type</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.media_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.queued_media_file">
+<tt class="descname">queued_media_file</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.queued_media_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.queued_task_id">
+<tt class="descname">queued_task_id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.queued_task_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.state">
+<tt class="descname">state</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.tags">
+<tt class="descname">tags</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.tags_helper">
+<tt class="descname">tags_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.tags_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.title">
+<tt class="descname">title</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaEntry.uploader">
+<tt class="descname">uploader</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.uploader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.models.MediaEntry.url_to_next">
+<tt class="descname">url_to_next</tt><big>(</big><em>urlgen</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.url_to_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.url_to_next" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the next &#8216;older&#8217; entry by this user</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.models.MediaEntry.url_to_prev">
+<tt class="descname">url_to_prev</tt><big>(</big><em>urlgen</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaEntry.url_to_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaEntry.url_to_prev" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the next &#8216;newer&#8217; entry by this user</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MediaFile">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MediaFile</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>TODO: Highly consider moving &#8220;name&#8221; into a new table.
+TODO: Consider preloading said table in software</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaFile.file_path">
+<tt class="descname">file_path</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile.file_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaFile.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaFile.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaFile.name_helper">
+<tt class="descname">name_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile.name_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaFile.name_id">
+<tt class="descname">name_id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaFile.name_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MediaTag">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MediaTag</tt><big>(</big><em>name=None</em>, <em>slug=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaTag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.dict_view">
+<tt class="descname">dict_view</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MediaTag.dict_view"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.dict_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dict like view on this object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.slug" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.tag">
+<tt class="descname">tag</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.tag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MediaTag.tag_helper">
+<tt class="descname">tag_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MediaTag.tag_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.MigrationData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">MigrationData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#MigrationData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.MigrationData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MigrationData.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MigrationData.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.MigrationData.version">
+<tt class="descname">version</tt><a class="headerlink" href="#mediagoblin.db.sql.models.MigrationData.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.SimpleFieldAlias">
+<tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">SimpleFieldAlias</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#SimpleFieldAlias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.SimpleFieldAlias" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for any field</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.Tag">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">Tag</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#Tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.Tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.models.Tag.find_or_new">
+<em class="property">classmethod </em><tt class="descname">find_or_new</tt><big>(</big><em>slug</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#Tag.find_or_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.Tag.find_or_new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.Tag.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.Tag.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.Tag.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models.Tag.slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models.User">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">User</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt>, <a class="reference internal" href="mediagoblin.db.html#mediagoblin.db.mixin.UserMixin" title="mediagoblin.db.mixin.UserMixin"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.db.mixin.UserMixin</span></tt></a></p>
+<p>TODO: We should consider moving some rarely used fields
+into some sort of &#8220;shadow&#8221; table.</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.bio">
+<tt class="descname">bio</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.bio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.email">
+<tt class="descname">email</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.email" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.email_verified">
+<tt class="descname">email_verified</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.email_verified" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.fp_token_expire">
+<tt class="descname">fp_token_expire</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.fp_token_expire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.fp_verification_key">
+<tt class="descname">fp_verification_key</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.fp_verification_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.is_admin">
+<tt class="descname">is_admin</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.is_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.pw_hash">
+<tt class="descname">pw_hash</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.pw_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.status">
+<tt class="descname">status</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.url">
+<tt class="descname">url</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.username">
+<tt class="descname">username</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models.User.verification_key">
+<tt class="descname">verification_key</tt><a class="headerlink" href="#mediagoblin.db.sql.models.User.verification_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.models.show_table_init">
+<tt class="descclassname">mediagoblin.db.sql.models.</tt><tt class="descname">show_table_init</tt><big>(</big><em>engine_uri</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models.html#show_table_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models.show_table_init" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.models_v0">
+<span id="models-v0-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models_v0</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.models_v0" title="Permalink to this headline">¶</a></h2>
+<p>TODO: indexes on foreignkeys, where useful.</p>
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.FileKeynames">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">FileKeynames</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#FileKeynames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.FileKeynames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>keywords for various places.
+currently the MediaFile keys</p>
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.models_v0.FileKeynames.find_or_new">
+<em class="property">classmethod </em><tt class="descname">find_or_new</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#FileKeynames.find_or_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.FileKeynames.find_or_new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.FileKeynames.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.FileKeynames.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.FileKeynames.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.FileKeynames.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.ImageData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">ImageData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#ImageData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.exif_all">
+<tt class="descname">exif_all</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.exif_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.gps_altitude">
+<tt class="descname">gps_altitude</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.gps_altitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.gps_direction">
+<tt class="descname">gps_direction</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.gps_direction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.gps_latitude">
+<tt class="descname">gps_latitude</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.gps_latitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.gps_longitude">
+<tt class="descname">gps_longitude</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.gps_longitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.height">
+<tt class="descname">height</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.ImageData.width">
+<tt class="descname">width</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.ImageData.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MediaAttachmentFile</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaAttachmentFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile.filepath">
+<tt class="descname">filepath</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile.filepath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaAttachmentFile.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaAttachmentFile.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MediaComment</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaComment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.author">
+<tt class="descname">author</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.author" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.content">
+<tt class="descname">content</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.content" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.get_author">
+<tt class="descname">get_author</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.get_author" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaComment.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaComment.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MediaEntry</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>TODO: Consider fetching the media_files using join</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.attachment_files_helper">
+<tt class="descname">attachment_files_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.attachment_files_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.description">
+<tt class="descname">description</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.fail_error">
+<tt class="descname">fail_error</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.fail_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.fail_metadata">
+<tt class="descname">fail_metadata</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.fail_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.get_uploader">
+<tt class="descname">get_uploader</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.get_uploader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.license">
+<tt class="descname">license</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.license" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.media_data_init">
+<tt class="descname">media_data_init</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaEntry.media_data_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.media_data_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize or update the contents of a media entry&#8217;s media_data row</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.media_data_table">
+<tt class="descname">media_data_table</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaEntry.media_data_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.media_data_table" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.media_files_helper">
+<tt class="descname">media_files_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.media_files_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.media_type">
+<tt class="descname">media_type</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.media_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.queued_media_file">
+<tt class="descname">queued_media_file</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.queued_media_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.queued_task_id">
+<tt class="descname">queued_task_id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.queued_task_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.state">
+<tt class="descname">state</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.tags_helper">
+<tt class="descname">tags_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.tags_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.title">
+<tt class="descname">title</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaEntry.uploader">
+<tt class="descname">uploader</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaEntry.uploader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MediaFile</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>TODO: Highly consider moving &#8220;name&#8221; into a new table.
+TODO: Consider preloading said table in software</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile.file_path">
+<tt class="descname">file_path</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile.file_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile.name_helper">
+<tt class="descname">name_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile.name_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaFile.name_id">
+<tt class="descname">name_id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaFile.name_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MediaTag</tt><big>(</big><em>name=None</em>, <em>slug=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MediaTag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.slug" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptor that presents a read/write view of an object attribute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.tag">
+<tt class="descname">tag</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.tag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MediaTag.tag_helper">
+<tt class="descname">tag_helper</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MediaTag.tag_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.MigrationData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">MigrationData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#MigrationData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MigrationData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MigrationData.name">
+<tt class="descname">name</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MigrationData.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.MigrationData.version">
+<tt class="descname">version</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.MigrationData.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.Tag">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">Tag</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#Tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.Tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="classmethod">
+<dt id="mediagoblin.db.sql.models_v0.Tag.find_or_new">
+<em class="property">classmethod </em><tt class="descname">find_or_new</tt><big>(</big><em>slug</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#Tag.find_or_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.Tag.find_or_new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.Tag.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.Tag.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.Tag.slug">
+<tt class="descname">slug</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.Tag.slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.User">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">User</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<p>TODO: We should consider moving some rarely used fields
+into some sort of &#8220;shadow&#8221; table.</p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.bio">
+<tt class="descname">bio</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.bio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.created">
+<tt class="descname">created</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.email">
+<tt class="descname">email</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.email" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.email_verified">
+<tt class="descname">email_verified</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.email_verified" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.fp_token_expire">
+<tt class="descname">fp_token_expire</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.fp_token_expire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.fp_verification_key">
+<tt class="descname">fp_verification_key</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.fp_verification_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.id">
+<tt class="descname">id</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.is_admin">
+<tt class="descname">is_admin</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.is_admin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.pw_hash">
+<tt class="descname">pw_hash</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.pw_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.status">
+<tt class="descname">status</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.url">
+<tt class="descname">url</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.username">
+<tt class="descname">username</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.User.verification_key">
+<tt class="descname">verification_key</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.User.verification_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.models_v0.VideoData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.models_v0.</tt><tt class="descname">VideoData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/models_v0.html#VideoData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.models_v0.VideoData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.VideoData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.VideoData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.VideoData.height">
+<tt class="descname">height</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.VideoData.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.VideoData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.VideoData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.models_v0.VideoData.width">
+<tt class="descname">width</tt><a class="headerlink" href="#mediagoblin.db.sql.models_v0.VideoData.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.open">
+<span id="open-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">open</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.open" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.db.sql.open.DatabaseMaster">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.open.</tt><tt class="descname">DatabaseMaster</tt><big>(</big><em>engine</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#DatabaseMaster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.DatabaseMaster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.db.sql.open.DatabaseMaster.commit">
+<tt class="descname">commit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#DatabaseMaster.commit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.DatabaseMaster.commit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.open.DatabaseMaster.reset_after_request">
+<tt class="descname">reset_after_request</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#DatabaseMaster.reset_after_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.DatabaseMaster.reset_after_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.open.DatabaseMaster.save">
+<tt class="descname">save</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#DatabaseMaster.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.DatabaseMaster.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.open.check_db_migrations_current">
+<tt class="descclassname">mediagoblin.db.sql.open.</tt><tt class="descname">check_db_migrations_current</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#check_db_migrations_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.check_db_migrations_current" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.open.load_models">
+<tt class="descclassname">mediagoblin.db.sql.open.</tt><tt class="descname">load_models</tt><big>(</big><em>app_config</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#load_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.load_models" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.open.setup_connection_and_db_from_config">
+<tt class="descclassname">mediagoblin.db.sql.open.</tt><tt class="descname">setup_connection_and_db_from_config</tt><big>(</big><em>app_config</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/open.html#setup_connection_and_db_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.open.setup_connection_and_db_from_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.sql.util">
+<span id="util-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.sql.util" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.db.sql.util.MigrationManager">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">MigrationManager</tt><big>(</big><em>name</em>, <em>models</em>, <em>migration_registry</em>, <em>session</em>, <em>printer=&lt;function _simple_printer at 0x4a10ed8&gt;</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Migration handling tool.</p>
+<p>Takes information about a database, lets you update the database
+to the latest migrations, etc.</p>
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.create_new_migration_record">
+<tt class="descname">create_new_migration_record</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.create_new_migration_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.create_new_migration_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new migration record for this migration set</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.util.MigrationManager.database_current_migration">
+<tt class="descname">database_current_migration</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.database_current_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.database_current_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current migration in the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.dry_run">
+<tt class="descname">dry_run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.dry_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.dry_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out a dry run of what we would have upgraded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.init_or_migrate">
+<tt class="descname">init_or_migrate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.init_or_migrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.init_or_migrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the database or migrate if appropriate.</p>
+<p>Returns information about whether or not we initialized
+(&#8216;inited&#8217;), migrated (&#8216;migrated&#8217;), or did nothing (None)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.init_tables">
+<tt class="descname">init_tables</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.init_tables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.init_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create all tables relative to this package</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.util.MigrationManager.latest_migration">
+<tt class="descname">latest_migration</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.latest_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.latest_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a migration number for the latest migration, or 0 if
+there are no migrations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.util.MigrationManager.migration_data">
+<tt class="descname">migration_data</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.migration_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.migration_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the migration row associated with this object, if any.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.migrations_to_run">
+<tt class="descname">migrations_to_run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.migrations_to_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.migrations_to_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of migrations to run still, if any.</p>
+<p>Note that this will fail if there&#8217;s no migration record for
+this class!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.name_for_printing">
+<tt class="descname">name_for_printing</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.name_for_printing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.name_for_printing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.sql.util.MigrationManager.set_current_migration">
+<tt class="descname">set_current_migration</tt><big>(</big><em>migration_number=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.set_current_migration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.set_current_migration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the migration in the database to migration_number
+(or, the latest available)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.sql.util.MigrationManager.sorted_migrations">
+<tt class="descname">sorted_migrations</tt><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#MigrationManager.sorted_migrations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.MigrationManager.sorted_migrations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort migrations if necessary and store in self._sorted_migrations</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.sql.util.RegisterMigration">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">RegisterMigration</tt><big>(</big><em>migration_number</em>, <em>migration_registry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#RegisterMigration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.RegisterMigration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Tool for registering migrations</p>
+<p>Call like:</p>
+<p>&#64;RegisterMigration(33)
+def update_dwarves(database):</p>
+<blockquote>
+<div>[...]</div></blockquote>
+<p>This will register your migration with the default migration
+registry.  Alternately, to specify a very specific
+migration_registry, you can pass in that as the second argument.</p>
+<p>Note, the number of your migration should NEVER be 0 or less than
+0.  0 is the default &#8220;no migrations&#8221; state!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.util.assure_migrations_table_setup">
+<tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">assure_migrations_table_setup</tt><big>(</big><em>db</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#assure_migrations_table_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.assure_migrations_table_setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure the migrations table is set up in the database.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.util.atomic_update">
+<tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">atomic_update</tt><big>(</big><em>table</em>, <em>query_dict</em>, <em>update_values</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#atomic_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.atomic_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.util.check_media_slug_used">
+<tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">check_media_slug_used</tt><big>(</big><em>dummy_db</em>, <em>uploader_id</em>, <em>slug</em>, <em>ignore_m_id</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#check_media_slug_used"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.check_media_slug_used" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.util.clean_orphan_tags">
+<tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">clean_orphan_tags</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#clean_orphan_tags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.clean_orphan_tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.db.sql.util.media_entries_for_tag_slug">
+<tt class="descclassname">mediagoblin.db.sql.util.</tt><tt class="descname">media_entries_for_tag_slug</tt><big>(</big><em>dummy_db</em>, <em>tag_slug</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/sql/util.html#media_entries_for_tag_slug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.sql.util.media_entries_for_tag_slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">sql Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">sql</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.convert"><tt class="docutils literal"><span class="pre">convert</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.extratypes"><tt class="docutils literal"><span class="pre">extratypes</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.fake"><tt class="docutils literal"><span class="pre">fake</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.models_v0"><tt class="docutils literal"><span class="pre">models_v0</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.sql.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.db.sql.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tools.text &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tools.text</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">wtforms</span>
+<span class="kn">import</span> <span class="nn">markdown</span>
+<span class="kn">from</span> <span class="nn">lxml.html.clean</span> <span class="kn">import</span> <span class="n">Cleaner</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">url</span>
+
+
+<span class="c"># A super strict version of the lxml.html cleaner class</span>
+<span class="n">HTML_CLEANER</span> <span class="o">=</span> <span class="n">Cleaner</span><span class="p">(</span>
+    <span class="n">scripts</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">javascript</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">comments</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">links</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">page_structure</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">processing_instructions</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">embedded</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">frames</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">forms</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">annoying_tags</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">allow_tags</span><span class="o">=</span><span class="p">[</span>
+        <span class="s">&#39;div&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;em&#39;</span><span class="p">,</span> <span class="s">&#39;strong&#39;</span><span class="p">,</span> <span class="s">&#39;p&#39;</span><span class="p">,</span> <span class="s">&#39;ul&#39;</span><span class="p">,</span> <span class="s">&#39;ol&#39;</span><span class="p">,</span> <span class="s">&#39;li&#39;</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;br&#39;</span><span class="p">],</span>
+    <span class="n">remove_unknown_tags</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="c"># can&#39;t be used with allow_tags</span>
+    <span class="n">safe_attrs_only</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">add_nofollow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="c"># for now</span>
+    <span class="n">host_whitelist</span><span class="o">=</span><span class="p">(),</span>
+    <span class="n">whitelist_tags</span><span class="o">=</span><span class="nb">set</span><span class="p">([]))</span>
+
+<span class="n">TAGS_DELIMITER</span><span class="o">=</span><span class="s">&#39;,&#39;</span><span class="p">;</span>
+
+<div class="viewcode-block" id="clean_html"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.text.clean_html">[docs]</a><span class="k">def</span> <span class="nf">clean_html</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+    <span class="c"># clean_html barfs on an empty string</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">html</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">u&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="n">HTML_CLEANER</span><span class="o">.</span><span class="n">clean_html</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="convert_to_tag_list_of_dicts"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.text.convert_to_tag_list_of_dicts">[docs]</a><span class="k">def</span> <span class="nf">convert_to_tag_list_of_dicts</span><span class="p">(</span><span class="n">tag_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter input from incoming string containing user tags,</span>
+
+<span class="sd">    Strips trailing, leading, and internal whitespace, and also converts</span>
+<span class="sd">    the &quot;tags&quot; text into an array of tags</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">taglist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">tag_string</span><span class="p">:</span>
+
+        <span class="c"># Strip out internal, trailing, and leading whitespace</span>
+        <span class="n">stripped_tag_string</span> <span class="o">=</span> <span class="s">u&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tag_string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+        <span class="c"># Split the tag string into a list of tags</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">stripped_tag_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+                                       <span class="n">TAGS_DELIMITER</span><span class="p">):</span>
+
+            <span class="c"># Ignore empty or duplicate tags</span>
+            <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">taglist</span><span class="p">]:</span>
+
+                <span class="n">taglist</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                                <span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="n">url</span><span class="o">.</span><span class="n">slugify</span><span class="p">(</span><span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">())})</span>
+    <span class="k">return</span> <span class="n">taglist</span>
+
+</div>
+<div class="viewcode-block" id="media_tags_as_string"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.text.media_tags_as_string">[docs]</a><span class="k">def</span> <span class="nf">media_tags_as_string</span><span class="p">(</span><span class="n">media_entry_tags</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a string from a media item&#39;s tags, stored as a list of dicts</span>
+
+<span class="sd">    This is the opposite of convert_to_tag_list_of_dicts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">media_tag_string</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">media_entry_tags</span><span class="p">:</span>
+        <span class="n">media_tag_string</span> <span class="o">=</span> <span class="p">(</span><span class="n">TAGS_DELIMITER</span><span class="o">+</span><span class="s">u&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                      <span class="p">[</span><span class="n">tag</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">media_entry_tags</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">media_tag_string</span>
+
+</div>
+<span class="n">TOO_LONG_TAG_WARNING</span> <span class="o">=</span> \
+    <span class="s">u&#39;Tags must be shorter than </span><span class="si">%s</span><span class="s"> characters.  Tags that are too long: </span><span class="si">%s</span><span class="s">&#39;</span>
+
+
+<div class="viewcode-block" id="tag_length_validator"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.text.tag_length_validator">[docs]</a><span class="k">def</span> <span class="nf">tag_length_validator</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make sure tags do not exceed the maximum tag length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="n">convert_to_tag_list_of_dicts</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">too_long_tags</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">tag</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;tags_max_length&#39;</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">too_long_tags</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">wtforms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span>
+            <span class="n">TOO_LONG_TAG_WARNING</span> <span class="o">%</span> <span class="p">(</span><span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;tags_max_length&#39;</span><span class="p">],</span> \
+                                    <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">too_long_tags</span><span class="p">)))</span>
+
+</div>
+<span class="n">MARKDOWN_INSTANCE</span> <span class="o">=</span> <span class="n">markdown</span><span class="o">.</span><span class="n">Markdown</span><span class="p">(</span><span class="n">safe_mode</span><span class="o">=</span><span class="s">&#39;escape&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="cleaned_markdown_conversion"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.text.cleaned_markdown_conversion">[docs]</a><span class="k">def</span> <span class="nf">cleaned_markdown_conversion</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a block of text, run it through MarkDown, and clean its HTML.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Markdown will do nothing with and clean_html can do nothing with</span>
+    <span class="c"># an empty string :)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">u&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="n">clean_html</span><span class="p">(</span><span class="n">MARKDOWN_INSTANCE</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">text</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

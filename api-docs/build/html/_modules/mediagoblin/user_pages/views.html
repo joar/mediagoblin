@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.user_pages.views &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.user_pages.views</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">exc</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">messages</span><span class="p">,</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">DESCENDING</span><span class="p">,</span> <span class="n">ObjectId</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.response</span> <span class="kn">import</span> <span class="n">render_to_response</span><span class="p">,</span> <span class="n">render_404</span><span class="p">,</span> <span class="n">redirect</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.translate</span> <span class="kn">import</span> <span class="n">pass_to_ugettext</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.pagination</span> <span class="kn">import</span> <span class="n">Pagination</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.files</span> <span class="kn">import</span> <span class="n">delete_media_files</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.user_pages</span> <span class="kn">import</span> <span class="n">forms</span> <span class="k">as</span> <span class="n">user_forms</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.decorators</span> <span class="kn">import</span> <span class="p">(</span><span class="n">uses_pagination</span><span class="p">,</span> <span class="n">get_user_media_entry</span><span class="p">,</span>
+    <span class="n">require_active_login</span><span class="p">,</span> <span class="n">user_may_delete_media</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">werkzeug.contrib.atom</span> <span class="kn">import</span> <span class="n">AtomFeed</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.media_types</span> <span class="kn">import</span> <span class="n">get_media_manager</span>
+
+
+<span class="nd">@uses_pagination</span>
+<span class="k">def</span> <span class="nf">user_home</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">page</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&#39;Homepage&#39; of a User()&quot;&quot;&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]})</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s">u&#39;active&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">})</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+         <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span>
+
+    <span class="n">pagination</span> <span class="o">=</span> <span class="n">Pagination</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">cursor</span><span class="p">)</span>
+    <span class="n">media_entries</span> <span class="o">=</span> <span class="n">pagination</span><span class="p">()</span>
+
+    <span class="c">#if no data is available, return NotFound</span>
+    <span class="k">if</span> <span class="n">media_entries</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">user_gallery_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin.user_pages.user_gallery&#39;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+         <span class="s">&#39;user_gallery_url&#39;</span><span class="p">:</span> <span class="n">user_gallery_url</span><span class="p">,</span>
+         <span class="s">&#39;media_entries&#39;</span><span class="p">:</span> <span class="n">media_entries</span><span class="p">,</span>
+         <span class="s">&#39;pagination&#39;</span><span class="p">:</span> <span class="n">pagination</span><span class="p">})</span>
+
+
+<span class="nd">@uses_pagination</span>
+<span class="k">def</span> <span class="nf">user_gallery</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">page</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&#39;Gallery&#39; of a User()&quot;&quot;&quot;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+            <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;active&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+         <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span>
+
+    <span class="n">pagination</span> <span class="o">=</span> <span class="n">Pagination</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">cursor</span><span class="p">)</span>
+    <span class="n">media_entries</span> <span class="o">=</span> <span class="n">pagination</span><span class="p">()</span>
+
+    <span class="c">#if no data is available, return NotFound</span>
+    <span class="k">if</span> <span class="n">media_entries</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/user_pages/gallery.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+         <span class="s">&#39;media_entries&#39;</span><span class="p">:</span> <span class="n">media_entries</span><span class="p">,</span>
+         <span class="s">&#39;pagination&#39;</span><span class="p">:</span> <span class="n">pagination</span><span class="p">})</span>
+
+<span class="n">MEDIA_COMMENTS_PER_PAGE</span> <span class="o">=</span> <span class="mi">50</span>
+
+
+<span class="nd">@get_user_media_entry</span>
+<span class="nd">@uses_pagination</span>
+<span class="k">def</span> <span class="nf">media_home</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &#39;Homepage&#39; of a MediaEntry()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;comment&#39;</span><span class="p">)):</span>
+        <span class="n">pagination</span> <span class="o">=</span> <span class="n">Pagination</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span> <span class="n">media</span><span class="o">.</span><span class="n">get_comments</span><span class="p">(</span>
+                <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;comments_ascending&#39;</span><span class="p">]),</span>
+            <span class="n">MEDIA_COMMENTS_PER_PAGE</span><span class="p">,</span>
+            <span class="n">ObjectId</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;comment&#39;</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pagination</span> <span class="o">=</span> <span class="n">Pagination</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span> <span class="n">media</span><span class="o">.</span><span class="n">get_comments</span><span class="p">(</span>
+                <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;comments_ascending&#39;</span><span class="p">]),</span>
+            <span class="n">MEDIA_COMMENTS_PER_PAGE</span><span class="p">)</span>
+
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">pagination</span><span class="p">()</span>
+
+    <span class="n">comment_form</span> <span class="o">=</span> <span class="n">user_forms</span><span class="o">.</span><span class="n">MediaCommentForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+
+    <span class="n">media_template_name</span> <span class="o">=</span> <span class="n">get_media_manager</span><span class="p">(</span><span class="n">media</span><span class="o">.</span><span class="n">media_type</span><span class="p">)[</span><span class="s">&#39;display_template&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="n">media_template_name</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;media&#39;</span><span class="p">:</span> <span class="n">media</span><span class="p">,</span>
+         <span class="s">&#39;comments&#39;</span><span class="p">:</span> <span class="n">comments</span><span class="p">,</span>
+         <span class="s">&#39;pagination&#39;</span><span class="p">:</span> <span class="n">pagination</span><span class="p">,</span>
+         <span class="s">&#39;comment_form&#39;</span><span class="p">:</span> <span class="n">comment_form</span><span class="p">,</span>
+         <span class="s">&#39;app_config&#39;</span><span class="p">:</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">})</span>
+
+
+<span class="nd">@get_user_media_entry</span>
+<span class="nd">@require_active_login</span>
+<span class="k">def</span> <span class="nf">media_post_comment</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    recieves POST from a MediaEntry() comment form, saves the comment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span>
+
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaComment</span><span class="p">()</span>
+    <span class="n">comment</span><span class="o">.</span><span class="n">media_entry</span> <span class="o">=</span> <span class="n">media</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">comment</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span>
+    <span class="n">comment</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;comment_content&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">comment</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;Oops, your comment was empty.&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">comment</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&#39;Your comment has been posted!&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">exc</span><span class="o">.</span><span class="n">HTTPFound</span><span class="p">(</span>
+        <span class="n">location</span><span class="o">=</span><span class="n">media</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">))</span>
+
+
+<span class="nd">@get_user_media_entry</span>
+<span class="nd">@require_active_login</span>
+<span class="nd">@user_may_delete_media</span>
+<span class="k">def</span> <span class="nf">media_confirm_delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">):</span>
+
+    <span class="n">form</span> <span class="o">=</span> <span class="n">user_forms</span><span class="o">.</span><span class="n">ConfirmDeleteForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">confirm</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">username</span> <span class="o">=</span> <span class="n">media</span><span class="o">.</span><span class="n">get_uploader</span><span class="o">.</span><span class="n">username</span>
+
+            <span class="c"># Delete all the associated comments</span>
+            <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">media</span><span class="o">.</span><span class="n">get_comments</span><span class="p">():</span>
+                <span class="n">comment</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+            <span class="c"># Delete all files on the public storage</span>
+            <span class="n">delete_media_files</span><span class="p">(</span><span class="n">media</span><span class="p">)</span>
+
+            <span class="n">media</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span><span class="s">&#39;You deleted the media.&#39;</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;mediagoblin.user_pages.user_home&quot;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;The media was not deleted because you didn&#39;t check that you were sure.&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">exc</span><span class="o">.</span><span class="n">HTTPFound</span><span class="p">(</span>
+                <span class="n">location</span><span class="o">=</span><span class="n">media</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="p">((</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span> <span class="ow">and</span>
+         <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span> <span class="o">!=</span> <span class="n">media</span><span class="o">.</span><span class="n">uploader</span><span class="p">)):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;You are about to delete another user&#39;s media. &quot;</span>
+              <span class="s">&quot;Proceed with caution.&quot;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/user_pages/media_confirm_delete.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;media&#39;</span><span class="p">:</span> <span class="n">media</span><span class="p">,</span>
+         <span class="s">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">})</span>
+
+
+<span class="n">ATOM_DEFAULT_NR_OF_UPDATED_ITEMS</span> <span class="o">=</span> <span class="mi">15</span>
+
+
+<div class="viewcode-block" id="atom_feed"><a class="viewcode-back" href="../../../mediagoblin.user_pages.html#mediagoblin.user_pages.views.atom_feed">[docs]</a><span class="k">def</span> <span class="nf">atom_feed</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    generates the atom feed with the newest images</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span>
+               <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+               <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;active&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">({</span>
+                 <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+                 <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span> \
+                 <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span> \
+                 <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="n">ATOM_DEFAULT_NR_OF_UPDATED_ITEMS</span><span class="p">)</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ATOM feed id is a tag URI (see http://en.wikipedia.org/wiki/Tag_URI)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">atomlinks</span> <span class="o">=</span> <span class="p">[{</span>
+           <span class="s">&#39;href&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+               <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+               <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]),</span>
+           <span class="s">&#39;rel&#39;</span><span class="p">:</span> <span class="s">&#39;alternate&#39;</span><span class="p">,</span>
+           <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;text/html&#39;</span>
+           <span class="p">}];</span>
+    <span class="k">if</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&quot;push_urls&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">push_url</span> <span class="ow">in</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&quot;push_urls&quot;</span><span class="p">]:</span>
+            <span class="n">atomlinks</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s">&#39;rel&#39;</span><span class="p">:</span> <span class="s">&#39;hub&#39;</span><span class="p">,</span>
+                <span class="s">&#39;href&#39;</span><span class="p">:</span> <span class="n">push_url</span><span class="p">})</span>
+
+    <span class="n">feed</span> <span class="o">=</span> <span class="n">AtomFeed</span><span class="p">(</span>
+               <span class="s">&quot;MediaGoblin: Feed for user &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+               <span class="n">feed_url</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+               <span class="nb">id</span><span class="o">=</span><span class="s">&#39;tag:&#39;</span><span class="o">+</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="o">+</span><span class="s">&#39;,2011:gallery.user-&#39;</span><span class="o">+</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+               <span class="n">links</span><span class="o">=</span><span class="n">atomlinks</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">),</span>
+            <span class="n">entry</span><span class="o">.</span><span class="n">description_html</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">,</span><span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="n">content_type</span><span class="o">=</span><span class="s">&#39;html&#39;</span><span class="p">,</span>
+            <span class="n">author</span><span class="o">=</span><span class="p">{</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">get_uploader</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+                <span class="s">&#39;uri&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+                    <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+                    <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">get_uploader</span><span class="o">.</span><span class="n">username</span><span class="p">)},</span>
+            <span class="n">updated</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">),</span>
+            <span class="n">links</span><span class="o">=</span><span class="p">[{</span>
+                <span class="s">&#39;href&#39;</span><span class="p">:</span> <span class="n">entry</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">,</span>
+                    <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                <span class="s">&#39;rel&#39;</span><span class="p">:</span> <span class="s">&#39;alternate&#39;</span><span class="p">,</span>
+                <span class="s">&#39;type&#39;</span><span class="p">:</span> <span class="s">&#39;text/html&#39;</span><span class="p">}])</span>
+
+    <span class="k">return</span> <span class="n">feed</span><span class="o">.</span><span class="n">get_response</span><span class="p">()</span>
+
+</div>
+<span class="nd">@require_active_login</span>
+<span class="k">def</span> <span class="nf">processing_panel</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show to the user what media is still in conversion/processing...</span>
+<span class="sd">    and what failed, and why!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Get the user</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+         <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;active&#39;</span><span class="p">})</span>
+
+    <span class="c"># Make sure the user exists and is active</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s">u&#39;active&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">})</span>
+
+    <span class="c"># XXX: Should this be a decorator?</span>
+    <span class="c">#</span>
+    <span class="c"># Make sure we have permission to access this user&#39;s panel.  Only</span>
+    <span class="c"># admins and this user herself should be able to do so.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span>
+            <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">):</span>
+        <span class="c"># No?  Let&#39;s simply redirect to this user&#39;s homepage then.</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">])</span>
+
+    <span class="c"># Get media entries which are in-processing</span>
+    <span class="n">processing_entries</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+         <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;unprocessed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span>
+
+    <span class="c"># Get media entries which have failed to process</span>
+    <span class="n">failed_entries</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span>
+         <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;failed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span>
+
+    <span class="c"># Render to response</span>
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/user_pages/processing_panel.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+         <span class="s">&#39;processing_entries&#39;</span><span class="p">:</span> <span class="n">processing_entries</span><span class="p">,</span>
+         <span class="s">&#39;failed_entries&#39;</span><span class="p">:</span> <span class="n">failed_entries</span><span class="p">})</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>image Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="image-package">
+<h1>image Package<a class="headerlink" href="#image-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">image</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.media_types.image"></span></div>
+<div class="section" id="module-mediagoblin.media_types.image.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.image.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.media_types.image.models">
+<span id="models-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.image.models" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.DATA_MODEL">
+<tt class="descclassname">mediagoblin.media_types.image.models.</tt><tt class="descname">DATA_MODEL</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.DATA_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#mediagoblin.media_types.image.models.ImageData" title="mediagoblin.media_types.image.models.ImageData"><tt class="xref py py-class docutils literal"><span class="pre">ImageData</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.image.models.ImageData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.image.models.</tt><tt class="descname">ImageData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/image/models.html#ImageData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.exif_all">
+<tt class="descname">exif_all</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.exif_all" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.gps_altitude">
+<tt class="descname">gps_altitude</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.gps_altitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.gps_direction">
+<tt class="descname">gps_direction</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.gps_direction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.gps_latitude">
+<tt class="descname">gps_latitude</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.gps_latitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.gps_longitude">
+<tt class="descname">gps_longitude</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.gps_longitude" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.height">
+<tt class="descname">height</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.image.models.ImageData.width">
+<tt class="descname">width</tt><a class="headerlink" href="#mediagoblin.media_types.image.models.ImageData.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.image.processing">
+<span id="processing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">processing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.image.processing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.media_types.image.processing.process_image">
+<tt class="descclassname">mediagoblin.media_types.image.processing.</tt><tt class="descname">process_image</tt><big>(</big><em>entry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/image/processing.html#process_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.image.processing.process_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Code to process an image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.image.processing.resize_image">
+<tt class="descclassname">mediagoblin.media_types.image.processing.</tt><tt class="descname">resize_image</tt><big>(</big><em>entry</em>, <em>filename</em>, <em>new_path</em>, <em>exif_tags</em>, <em>workdir</em>, <em>new_size</em>, <em>size_limits=(0</em>, <em>0)</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/image/processing.html#resize_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.image.processing.resize_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store a resized version of an image and return its pathname.</p>
+<p>Arguments:
+entry &#8211; the entry for the image to resize
+filename &#8211; the filename of the original image being resized
+new_path &#8211; public file path for the new resized image
+exif_tags &#8211; EXIF data for the original image
+workdir &#8211; directory path for storing converted image files
+new_size &#8211; 2-tuple size for the resized image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.image.processing.sniff_handler">
+<tt class="descclassname">mediagoblin.media_types.image.processing.</tt><tt class="descname">sniff_handler</tt><big>(</big><em>media_file</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/image/processing.html#sniff_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.image.processing.sniff_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">image Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">image</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.image.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.image.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.image.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.media_types.image.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.workbench &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.workbench</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+
+<span class="n">DEFAULT_WORKBENCH_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s">u&#39;mgoblin_workbench&#39;</span><span class="p">)</span>
+
+
+<span class="c"># Actual workbench stuff</span>
+<span class="c"># ----------------------</span>
+
+<div class="viewcode-block" id="Workbench"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.Workbench">[docs]</a><span class="k">class</span> <span class="nc">Workbench</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represent the directory for the workbench</span>
+
+<span class="sd">    WARNING: DO NOT create Workbench objects on your own,</span>
+<span class="sd">    let the WorkbenchManager do that for you!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        WARNING: DO NOT create Workbench objects on your own,</span>
+<span class="sd">        let the WorkbenchManager do that for you!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dir</span> <span class="o">=</span> <span class="nb">dir</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;None&#39;</span>
+
+<div class="viewcode-block" id="Workbench.joinpath"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.Workbench.joinpath">[docs]</a>    <span class="k">def</span> <span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Workbench.localized_file"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.Workbench.localized_file">[docs]</a>    <span class="k">def</span> <span class="nf">localized_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">storage</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span>
+                       <span class="n">filename_if_copying</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                       <span class="n">keep_extension_if_copying</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Possibly localize the file from this storage system (for read-only</span>
+<span class="sd">        purposes, modifications should be written to a new file.).</span>
+
+<span class="sd">        If the file is already local, just return the absolute filename of that</span>
+<span class="sd">        local file.  Otherwise, copy the file locally to the workbench, and</span>
+<span class="sd">        return the absolute path of the new file.</span>
+
+<span class="sd">        If it is copying locally, we might want to require a filename like</span>
+<span class="sd">        &quot;source.jpg&quot; to ensure that we won&#39;t conflict with other filenames in</span>
+<span class="sd">        our workbench... if that&#39;s the case, make sure filename_if_copying is</span>
+<span class="sd">        set to something like &#39;source.jpg&#39;.  Relatedly, if you set</span>
+<span class="sd">        keep_extension_if_copying, you don&#39;t have to set an extension on</span>
+<span class="sd">        filename_if_copying yourself, it&#39;ll be set for you (assuming such an</span>
+<span class="sd">        extension can be extacted from the filename in the filepath).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">          localized_filename</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">          &gt;&gt;&gt; wb_manager.localized_file(</span>
+<span class="sd">          ...     &#39;/our/workbench/subdir&#39;, local_storage,</span>
+<span class="sd">          ...     [&#39;path&#39;, &#39;to&#39;, &#39;foobar.jpg&#39;])</span>
+<span class="sd">          u&#39;/local/storage/path/to/foobar.jpg&#39;</span>
+
+<span class="sd">          &gt;&gt;&gt; wb_manager.localized_file(</span>
+<span class="sd">          ...     &#39;/our/workbench/subdir&#39;, remote_storage,</span>
+<span class="sd">          ...     [&#39;path&#39;, &#39;to&#39;, &#39;foobar.jpg&#39;])</span>
+<span class="sd">          &#39;/our/workbench/subdir/foobar.jpg&#39;</span>
+
+<span class="sd">          &gt;&gt;&gt; wb_manager.localized_file(</span>
+<span class="sd">          ...     &#39;/our/workbench/subdir&#39;, remote_storage,</span>
+<span class="sd">          ...     [&#39;path&#39;, &#39;to&#39;, &#39;foobar.jpg&#39;], &#39;source.jpeg&#39;, False)</span>
+<span class="sd">          &#39;/our/workbench/subdir/foobar.jpeg&#39;</span>
+
+<span class="sd">          &gt;&gt;&gt; wb_manager.localized_file(</span>
+<span class="sd">          ...     &#39;/our/workbench/subdir&#39;, remote_storage,</span>
+<span class="sd">          ...     [&#39;path&#39;, &#39;to&#39;, &#39;foobar.jpg&#39;], &#39;source&#39;, True)</span>
+<span class="sd">          &#39;/our/workbench/subdir/foobar.jpg&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">storage</span><span class="o">.</span><span class="n">local_storage</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">storage</span><span class="o">.</span><span class="n">get_local_path</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename_if_copying</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">dest_filename</span> <span class="o">=</span> <span class="n">filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orig_filename</span><span class="p">,</span> <span class="n">orig_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">keep_extension_if_copying</span> <span class="ow">and</span> <span class="n">orig_ext</span><span class="p">:</span>
+                    <span class="n">dest_filename</span> <span class="o">=</span> <span class="n">filename_if_copying</span> <span class="o">+</span> <span class="n">orig_ext</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dest_filename</span> <span class="o">=</span> <span class="n">filename_if_copying</span>
+
+            <span class="n">full_dest_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">dest_filename</span><span class="p">)</span>
+
+            <span class="c"># copy it over</span>
+            <span class="n">storage</span><span class="o">.</span><span class="n">copy_locally</span><span class="p">(</span>
+                <span class="n">filepath</span><span class="p">,</span> <span class="n">full_dest_filename</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">full_dest_filename</span>
+</div>
+<div class="viewcode-block" id="Workbench.destroy_self"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.Workbench.destroy_self">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_self</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Destroy this workbench!  Deletes the directory and all its contents!</span>
+
+<span class="sd">        WARNING: Does no checks for a sane value in self.dir!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># just in case</span>
+        <span class="n">workbench</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">workbench</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span>
+
+</div></div>
+<div class="viewcode-block" id="WorkbenchManager"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.WorkbenchManager">[docs]</a><span class="k">class</span> <span class="nc">WorkbenchManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A system for generating and destroying workbenches.</span>
+
+<span class="sd">    Workbenches are actually just subdirectories of a temporary storage space</span>
+<span class="sd">    for during the processing stage.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_workbench_dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_workbench_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">base_workbench_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_workbench_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_workbench_dir</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WorkbenchManager.create_workbench"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.workbench.WorkbenchManager.create_workbench">[docs]</a>    <span class="k">def</span> <span class="nf">create_workbench</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create and return the path to a new workbench (directory).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Workbench</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_workbench_dir</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

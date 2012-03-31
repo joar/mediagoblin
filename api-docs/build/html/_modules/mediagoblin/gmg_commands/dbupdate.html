@@ -1,0 +1,185 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.gmg_commands.dbupdate &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.gmg_commands" href="../gmg_commands.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../gmg_commands.html" accesskey="U">mediagoblin.gmg_commands</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.gmg_commands.dbupdate</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.open</span> <span class="kn">import</span> <span class="n">setup_connection_and_db_from_config</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.util</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MigrationManager</span><span class="p">,</span> <span class="n">assure_migrations_table_setup</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.init</span> <span class="kn">import</span> <span class="n">setup_global_and_app_config</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.common</span> <span class="kn">import</span> <span class="n">import_component</span>
+
+
+<div class="viewcode-block" id="dbupdate_parse_setup"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.dbupdate.dbupdate_parse_setup">[docs]</a><span class="k">def</span> <span class="nf">dbupdate_parse_setup</span><span class="p">(</span><span class="n">subparser</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="DatabaseData"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.dbupdate.DatabaseData">[docs]</a><span class="k">class</span> <span class="nc">DatabaseData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">migrations</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migrations</span> <span class="o">=</span> <span class="n">migrations</span>
+
+<div class="viewcode-block" id="DatabaseData.make_migration_manager"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.dbupdate.DatabaseData.make_migration_manager">[docs]</a>    <span class="k">def</span> <span class="nf">make_migration_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">MigrationManager</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrations</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="gather_database_data"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.dbupdate.gather_database_data">[docs]</a><span class="k">def</span> <span class="nf">gather_database_data</span><span class="p">(</span><span class="n">media_types</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gather all database data relevant to the extensions we have</span>
+<span class="sd">    installed so we can do migrations and table initialization.</span>
+
+<span class="sd">    Returns a list of DatabaseData objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">managed_dbdata</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Add main first</span>
+    <span class="kn">from</span> <span class="nn">mediagoblin.db.sql.models</span> <span class="kn">import</span> <span class="n">MODELS</span> <span class="k">as</span> <span class="n">MAIN_MODELS</span>
+    <span class="kn">from</span> <span class="nn">mediagoblin.db.sql.migrations</span> <span class="kn">import</span> <span class="n">MIGRATIONS</span> <span class="k">as</span> <span class="n">MAIN_MIGRATIONS</span>
+
+    <span class="n">managed_dbdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">DatabaseData</span><span class="p">(</span>
+            <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="n">MAIN_MODELS</span><span class="p">,</span> <span class="n">MAIN_MIGRATIONS</span><span class="p">))</span>
+
+    <span class="c"># Then get all registered media managers (eventually, plugins)</span>
+    <span class="k">for</span> <span class="n">media_type</span> <span class="ow">in</span> <span class="n">media_types</span><span class="p">:</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="n">import_component</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.models:MODELS&#39;</span> <span class="o">%</span> <span class="n">media_type</span><span class="p">)</span>
+        <span class="n">migrations</span> <span class="o">=</span> <span class="n">import_component</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">.migrations:MIGRATIONS&#39;</span> <span class="o">%</span> <span class="n">media_type</span><span class="p">)</span>
+        <span class="n">managed_dbdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">DatabaseData</span><span class="p">(</span><span class="n">media_type</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">migrations</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">managed_dbdata</span>
+
+</div>
+<div class="viewcode-block" id="dbupdate"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.dbupdate.dbupdate">[docs]</a><span class="k">def</span> <span class="nf">dbupdate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize or migrate the database as specified by the config file.</span>
+
+<span class="sd">    Will also initialize or migrate all extensions (media types, and</span>
+<span class="sd">    in the future, plugins)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">globa_config</span><span class="p">,</span> <span class="n">app_config</span> <span class="o">=</span> <span class="n">setup_global_and_app_config</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">conf_file</span><span class="p">)</span>
+
+    <span class="c"># Gather information from all media managers / projects</span>
+    <span class="n">dbdatas</span> <span class="o">=</span> <span class="n">gather_database_data</span><span class="p">(</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;media_types&#39;</span><span class="p">])</span>
+
+    <span class="c"># Set up the database</span>
+    <span class="n">connection</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">setup_connection_and_db_from_config</span><span class="p">(</span><span class="n">app_config</span><span class="p">)</span>
+
+    <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="c"># Setup media managers for all dbdata, run init/migrate and print info</span>
+    <span class="c"># For each component, create/migrate tables</span>
+    <span class="k">for</span> <span class="n">dbdata</span> <span class="ow">in</span> <span class="n">dbdatas</span><span class="p">:</span>
+        <span class="n">migration_manager</span> <span class="o">=</span> <span class="n">dbdata</span><span class="o">.</span><span class="n">make_migration_manager</span><span class="p">(</span><span class="n">Session</span><span class="p">())</span>
+        <span class="n">migration_manager</span><span class="o">.</span><span class="n">init_or_migrate</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../gmg_commands.html" >mediagoblin.gmg_commands</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

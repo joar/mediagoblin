@@ -1,0 +1,167 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.init.celery &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.init" href="../init.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../init.html" accesskey="U">mediagoblin.init</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.init.celery</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<span class="n">MANDATORY_CELERY_IMPORTS</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mediagoblin.processing.task&#39;</span><span class="p">]</span>
+
+<span class="n">DEFAULT_SETTINGS_MODULE</span> <span class="o">=</span> <span class="s">&#39;mediagoblin.init.celery.dummy_settings_module&#39;</span>
+
+
+<div class="viewcode-block" id="setup_celery_from_config"><a class="viewcode-back" href="../../../mediagoblin.init.celery.html#mediagoblin.init.celery.setup_celery_from_config">[docs]</a><span class="k">def</span> <span class="nf">setup_celery_from_config</span><span class="p">(</span><span class="n">app_config</span><span class="p">,</span> <span class="n">global_config</span><span class="p">,</span>
+                             <span class="n">settings_module</span><span class="o">=</span><span class="n">DEFAULT_SETTINGS_MODULE</span><span class="p">,</span>
+                             <span class="n">force_celery_always_eager</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                             <span class="n">set_environ</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a mediagoblin app config and try to set up a celery settings</span>
+<span class="sd">    module from this.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - app_config: the application config section</span>
+<span class="sd">    - global_config: the entire ConfigObj loaded config, all sections</span>
+<span class="sd">    - settings_module: the module to populate, as a string</span>
+<span class="sd">    - force_celery_always_eager: whether or not to force celery into</span>
+<span class="sd">      always eager mode; good for development and small installs</span>
+<span class="sd">    - set_environ: if set, this will CELERY_CONFIG_MODULE to the</span>
+<span class="sd">      settings_module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&#39;celery&#39;</span> <span class="ow">in</span> <span class="n">global_config</span><span class="p">:</span>
+        <span class="n">celery_conf</span> <span class="o">=</span> <span class="n">global_config</span><span class="p">[</span><span class="s">&#39;celery&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">celery_conf</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">celery_settings</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c"># Add all celery settings from config</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">celery_conf</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">celery_settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="c"># TODO: use default result stuff here if it exists</span>
+
+    <span class="c"># add mandatory celery imports</span>
+    <span class="n">celery_imports</span> <span class="o">=</span> <span class="n">celery_settings</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;CELERY_IMPORTS&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">celery_imports</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">MANDATORY_CELERY_IMPORTS</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">force_celery_always_eager</span><span class="p">:</span>
+        <span class="n">celery_settings</span><span class="p">[</span><span class="s">&#39;CELERY_ALWAYS_EAGER&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">celery_settings</span><span class="p">[</span><span class="s">&#39;CELERY_EAGER_PROPAGATES_EXCEPTIONS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="nb">__import__</span><span class="p">(</span><span class="n">settings_module</span><span class="p">)</span>
+    <span class="n">this_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">settings_module</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">celery_settings</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">this_module</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">set_environ</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;CELERY_CONFIG_MODULE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings_module</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../init.html" >mediagoblin.init</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

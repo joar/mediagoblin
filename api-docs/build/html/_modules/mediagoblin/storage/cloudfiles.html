@@ -1,0 +1,259 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.storage.cloudfiles &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.storage" href="../storage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../storage.html" accesskey="U">mediagoblin.storage</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.storage.cloudfiles</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Make it so that ``import cloudfiles`` does not pick THIS file, but the</span>
+<span class="sd">python-cloudfiles one.</span>
+
+<span class="sd">http://docs.python.org/whatsnew/2.5.html#pep-328-absolute-and-relative-imports</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.storage</span> <span class="kn">import</span> <span class="n">StorageInterface</span><span class="p">,</span> <span class="n">clean_listy_filepath</span>
+
+<span class="kn">import</span> <span class="nn">cloudfiles</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+
+
+<div class="viewcode-block" id="CloudFilesStorage"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorage">[docs]</a><span class="k">class</span> <span class="nc">CloudFilesStorage</span><span class="p">(</span><span class="n">StorageInterface</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    OpenStack/Rackspace Cloud&#39;s Swift/CloudFiles support</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">local_storage</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_container</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cloudfiles_container&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_user</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cloudfiles_user&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_api_key</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cloudfiles_api_key&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_host</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cloudfiles_host&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_use_servicenet</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cloudfiles_use_servicenet&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_host</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;No CloudFiles host URL specified, &#39;</span>
+                  <span class="s">&#39;defaulting to Rackspace US&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">cloudfiles</span><span class="o">.</span><span class="n">get_connection</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">param_user</span><span class="p">,</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">param_api_key</span><span class="p">,</span>
+            <span class="n">servicenet</span><span class="o">=</span><span class="bp">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_use_servicenet</span> <span class="o">==</span> <span class="s">&#39;true&#39;</span> <span class="ow">or</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">param_use_servicenet</span> <span class="o">==</span> <span class="bp">True</span> <span class="k">else</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_container</span> <span class="o">==</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">get_container</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_container</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param_container</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">make_public</span><span class="p">(</span>
+                <span class="n">ttl</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">get_container</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param_container</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">container_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">public_uri</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_resolve_filepath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">clean_listy_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+
+<div class="viewcode-block" id="CloudFilesStorage.file_exists"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorage.file_exists">[docs]</a>    <span class="k">def</span> <span class="nf">file_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">cloudfiles</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">NoSuchObject</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="CloudFilesStorage.get_file"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorage.get_file">[docs]</a>    <span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        - Doesn&#39;t care about the &quot;mode&quot; argument</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">cloudfiles</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">NoSuchObject</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">create_object</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+
+            <span class="n">mimetype</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span>
+                <span class="n">filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">mimetype</span><span class="p">:</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="n">mimetype</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">CloudFilesStorageObjectWrapper</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CloudFilesStorage.delete_file"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorage.delete_file">[docs]</a>    <span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="c"># TODO: Also delete unused directories if empty (safely, with</span>
+        <span class="c"># checks to avoid race conditions).</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">cloudfiles</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">ResponseError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">pass</span>
+        
+</div>
+<div class="viewcode-block" id="CloudFilesStorage.file_url"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorage.file_url">[docs]</a>    <span class="k">def</span> <span class="nf">file_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">container_uri</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)])</span>
+
+</div></div>
+<div class="viewcode-block" id="CloudFilesStorageObjectWrapper"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper">[docs]</a><span class="k">class</span> <span class="nc">CloudFilesStorageObjectWrapper</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper for python-cloudfiles&#39;s cloudfiles.storage_object.Object</span>
+<span class="sd">    used to circumvent the mystic `medium.jpg` corruption issue, where</span>
+<span class="sd">    we had both python-cloudfiles and PIL doing buffering on both</span>
+<span class="sd">    ends and that breaking things.</span>
+
+<span class="sd">    This wrapper currently meets mediagoblin&#39;s needs for a public_store</span>
+<span class="sd">    file-like object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">storage_object</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_object</span> <span class="o">=</span> <span class="n">storage_object</span>
+
+<div class="viewcode-block" id="CloudFilesStorageObjectWrapper.read"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_object</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CloudFilesStorageObjectWrapper.write"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        write data to the cloudfiles storage object</span>
+
+<span class="sd">        The original motivation for this wrapper is to ensure</span>
+<span class="sd">        that buffered writing to a cloudfiles storage object does not overwrite</span>
+<span class="sd">        any preexisting data.</span>
+
+<span class="sd">        Currently this method does not support any write modes except &quot;append&quot;.</span>
+<span class="sd">        However if we should need it it would be easy implement.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_object</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">+</span> <span class="n">data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">storage_object</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CloudFilesStorageObjectWrapper.close"><a class="viewcode-back" href="../../../mediagoblin.storage.html#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Context Manager API implementation</span>
+<span class="sd">        http://docs.python.org/library/stdtypes.html#context-manager-types</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">exc_info</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Context Manger API implementation</span>
+<span class="sd">        see self.__enter__()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../storage.html" >mediagoblin.storage</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

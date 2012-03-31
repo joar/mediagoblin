@@ -1,0 +1,453 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.audio.spectrogram &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.audio.spectrogram</h1><div class="highlight"><pre>
+<span class="c"># processing.py -- various audio processing functions</span>
+<span class="c"># Copyright (C) 2008 MUSIC TECHNOLOGY GROUP (MTG)</span>
+<span class="c">#                    UNIVERSITAT POMPEU FABRA</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as</span>
+<span class="c"># published by the Free Software Foundation, either version 3 of the</span>
+<span class="c"># License, or (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">#</span>
+<span class="c"># Authors:</span>
+<span class="c">#   Bram de Jong &lt;bram.dejong at domain.com where domain in gmail&gt;</span>
+<span class="c">#   2012, Joar Wandborg &lt;first name at last name dot se&gt;</span>
+
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">scikits.audiolab</span> <span class="kn">as</span> <span class="nn">audiolab</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;WARNING: audiolab is not installed so wav2png will not work&quot;</span>
+
+
+<div class="viewcode-block" id="AudioProcessingException"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.AudioProcessingException">[docs]</a><span class="k">class</span> <span class="nc">AudioProcessingException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="SpectrogramImage"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.SpectrogramImage">[docs]</a><span class="k">class</span> <span class="nc">SpectrogramImage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_size</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_height</span> <span class="o">=</span> <span class="n">image_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span> <span class="o">=</span> <span class="n">fft_size</span>
+
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">58</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">68</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">65</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">80</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">153</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+         <span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="n">interpolate_colors</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+
+        <span class="c"># Generate lookup table for y-coordinate from fft-bin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_to_bin</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">fft_min</span> <span class="o">=</span> <span class="mf">100.0</span>
+        <span class="n">fft_max</span> <span class="o">=</span> <span class="mf">22050.0</span>  <span class="c"># kHz?</span>
+
+        <span class="n">y_min</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">fft_min</span><span class="p">)</span>
+        <span class="n">y_max</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">fft_max</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_height</span><span class="p">):</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span>
+                    <span class="mf">10.0</span><span class="p">,</span>
+                    <span class="n">y_min</span> <span class="o">+</span> <span class="n">y</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_height</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+                    <span class="o">*</span> <span class="p">(</span><span class="n">y_max</span> <span class="o">-</span> <span class="n">y_min</span><span class="p">))</span>
+
+            <span class="n">fft_bin</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">/</span> <span class="n">fft_max</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">fft_bin</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="n">fft_bin</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">fft_bin</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">y_to_bin</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">fft_bin</span><span class="p">),</span> <span class="n">alpha</span> <span class="o">*</span> <span class="mi">255</span><span class="p">))</span>
+
+        <span class="c"># this is a bit strange, but using image.load()[x,y] = ... is</span>
+        <span class="c"># a lot slower than using image.putadata and then rotating the image</span>
+        <span class="c"># so we store all the pixels in an array and then create the image when saving</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pixels</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="SpectrogramImage.draw_spectrum"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.SpectrogramImage.draw_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">draw_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">):</span>
+        <span class="c"># for all frequencies, draw the pixels</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_to_bin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pixels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="mf">255.0</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">spectrum</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                        <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">spectrum</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])])</span>
+
+        <span class="c"># if the FFT is too small to fill up the image, fill with black to the top</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_to_bin</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_height</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pixels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="SpectrogramImage.save"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.SpectrogramImage.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">quality</span><span class="o">=</span><span class="mi">90</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+                <span class="s">&#39;RGBA&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image_height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_width</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">putdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pixels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                <span class="n">filename</span><span class="p">,</span>
+                <span class="n">quality</span><span class="o">=</span><span class="n">quality</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="AudioProcessor"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.AudioProcessor">[docs]</a><span class="k">class</span> <span class="nc">AudioProcessor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The audio processor processes chunks of audio an calculates the spectrac centroid and the peak</span>
+<span class="sd">    samples in that chunk of audio.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_filename</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">,</span> <span class="n">window_function</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">hanning</span><span class="p">):</span>
+        <span class="n">max_level</span> <span class="o">=</span> <span class="n">get_max_level</span><span class="p">(</span><span class="n">input_filename</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span> <span class="o">=</span> <span class="n">audiolab</span><span class="o">.</span><span class="n">Sndfile</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span> <span class="o">=</span> <span class="n">fft_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_range</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">higher</span> <span class="o">=</span> <span class="mi">22050</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower_log</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">higher_log</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">higher</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="c"># figure out what the maximum value is for an FFT doing the FFT of a DC signal</span>
+        <span class="n">fft</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">fft_size</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
+        <span class="n">max_fft</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="c"># set the scale to normalized audio and normalized FFT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">max_level</span> <span class="o">/</span> <span class="n">max_fft</span> <span class="k">if</span> <span class="n">max_level</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="AudioProcessor.read"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.AudioProcessor.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">resize_if_less</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; read size samples starting at start, if resize_if_less is True and less than size</span>
+<span class="sd">        samples are read, resize the array to size and fill with zeros &quot;&quot;&quot;</span>
+
+        <span class="c"># number of zeros to add to start and end of the buffer</span>
+        <span class="n">add_to_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">add_to_end</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># the first FFT window starts centered around zero</span>
+            <span class="k">if</span> <span class="n">size</span> <span class="o">+</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">resize_if_less</span> <span class="k">else</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">add_to_start</span> <span class="o">=</span> <span class="o">-</span> <span class="n">start</span>  <span class="c"># remember: start is negative!</span>
+                <span class="n">to_read</span> <span class="o">=</span> <span class="n">size</span> <span class="o">+</span> <span class="n">start</span>
+
+                <span class="k">if</span> <span class="n">to_read</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span><span class="p">:</span>
+                    <span class="n">add_to_end</span> <span class="o">=</span> <span class="n">to_read</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span>
+                    <span class="n">to_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+
+            <span class="n">to_read</span> <span class="o">=</span> <span class="n">size</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">+</span> <span class="n">to_read</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span><span class="p">:</span>
+                <span class="n">to_read</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span> <span class="o">-</span> <span class="n">start</span>
+                <span class="n">add_to_end</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="n">to_read</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">read_frames</span><span class="p">(</span><span class="n">to_read</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="c"># this can happen for wave files with broken headers...</span>
+            <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">size</span><span class="p">)</span> <span class="k">if</span> <span class="n">resize_if_less</span> <span class="k">else</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c"># convert to mono by selecting left channel only</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">channels</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">resize_if_less</span> <span class="ow">and</span> <span class="p">(</span><span class="n">add_to_start</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">add_to_end</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">add_to_start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">samples</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">add_to_start</span><span class="p">),</span> <span class="n">samples</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">add_to_end</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">samples</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+                <span class="n">samples</span><span class="p">[</span><span class="n">size</span> <span class="o">-</span> <span class="n">add_to_end</span><span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">samples</span>
+</div>
+<div class="viewcode-block" id="AudioProcessor.spectral_centroid"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.AudioProcessor.spectral_centroid">[docs]</a>    <span class="k">def</span> <span class="nf">spectral_centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seek_point</span><span class="p">,</span> <span class="n">spec_range</span><span class="o">=</span><span class="mf">110.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; starting at seek_point read fft_size samples, and calculate the spectral centroid &quot;&quot;&quot;</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">seek_point</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fft_size</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">samples</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span>
+        <span class="n">fft</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="p">)</span>  <span class="c"># normalized abs(FFT) between 0 and 1</span>
+
+        <span class="n">length</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c"># scale the db spectrum from [- spec_range db ... 0 db] &gt; [0..1]</span>
+        <span class="n">db_spectrum</span> <span class="o">=</span> <span class="p">((</span><span class="mi">20</span><span class="o">*</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">spectrum</span> <span class="o">+</span> <span class="mf">1e-60</span><span class="p">)))</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="o">-</span><span class="n">spec_range</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">spec_range</span><span class="p">)</span><span class="o">/</span><span class="n">spec_range</span>
+
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">spectral_centroid</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">energy</span> <span class="o">&gt;</span> <span class="mf">1e-60</span><span class="p">:</span>
+            <span class="c"># calculate the spectral centroid</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_range</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_range</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+
+            <span class="n">spectral_centroid</span> <span class="o">=</span> <span class="p">(</span><span class="n">spectrum</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectrum_range</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">energy</span> <span class="o">*</span> <span class="p">(</span><span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">samplerate</span> <span class="o">*</span> <span class="mf">0.5</span>
+
+            <span class="c"># clip &gt; log10 &gt; scale between 0 and 1</span>
+            <span class="n">spectral_centroid</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">spectral_centroid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">higher</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_log</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">higher_log</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_log</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">spectral_centroid</span><span class="p">,</span> <span class="n">db_spectrum</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="AudioProcessor.peaks"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.AudioProcessor.peaks">[docs]</a>    <span class="k">def</span> <span class="nf">peaks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_seek</span><span class="p">,</span> <span class="n">end_seek</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; read all samples between start_seek and end_seek, then find the minimum and maximum peak</span>
+<span class="sd">        in that range. Returns that pair in the order they were found. So if min was found first,</span>
+<span class="sd">        it returns (min, max) else the other way around. &quot;&quot;&quot;</span>
+
+        <span class="c"># larger blocksizes are faster but take more mem...</span>
+        <span class="c"># Aha, Watson, a clue, a tradeof!</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="mi">4096</span>
+
+        <span class="n">max_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">max_value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">min_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">min_value</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">start_seek</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">start_seek</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">end_seek</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span><span class="p">:</span>
+            <span class="n">end_seek</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span>
+
+        <span class="k">if</span> <span class="n">end_seek</span> <span class="o">&lt;=</span> <span class="n">start_seek</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">start_seek</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">block_size</span> <span class="o">&gt;</span> <span class="n">end_seek</span> <span class="o">-</span> <span class="n">start_seek</span><span class="p">:</span>
+            <span class="n">block_size</span> <span class="o">=</span> <span class="n">end_seek</span> <span class="o">-</span> <span class="n">start_seek</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_seek</span><span class="p">,</span> <span class="n">end_seek</span><span class="p">,</span> <span class="n">block_size</span><span class="p">):</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+
+            <span class="n">local_max_index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+            <span class="n">local_max_value</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">local_max_index</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">local_max_value</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
+                <span class="n">max_value</span> <span class="o">=</span> <span class="n">local_max_value</span>
+                <span class="n">max_index</span> <span class="o">=</span> <span class="n">local_max_index</span>
+
+            <span class="n">local_min_index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+            <span class="n">local_min_value</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">local_min_index</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">local_min_value</span> <span class="o">&lt;</span> <span class="n">min_value</span><span class="p">:</span>
+                <span class="n">min_value</span> <span class="o">=</span> <span class="n">local_min_value</span>
+                <span class="n">min_index</span> <span class="o">=</span> <span class="n">local_min_index</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">min_value</span><span class="p">,</span> <span class="n">max_value</span><span class="p">)</span> <span class="k">if</span> <span class="n">min_index</span> <span class="o">&lt;</span> <span class="n">max_index</span> <span class="k">else</span> <span class="p">(</span><span class="n">max_value</span><span class="p">,</span> <span class="n">min_value</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="create_spectrogram_image"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.create_spectrogram_image">[docs]</a><span class="k">def</span> <span class="nf">create_spectrogram_image</span><span class="p">(</span><span class="n">source_filename</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span>
+        <span class="n">image_size</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+    <span class="n">processor</span> <span class="o">=</span> <span class="n">AudioProcessor</span><span class="p">(</span><span class="n">source_filename</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">hamming</span><span class="p">)</span>
+    <span class="n">samples_per_pixel</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">SpectrogramImage</span><span class="p">(</span><span class="n">image_size</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">%</span> <span class="p">(</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">progress_callback</span><span class="p">((</span><span class="n">x</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">seek_point</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">samples_per_pixel</span><span class="p">)</span>
+        <span class="n">next_seek_point</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">samples_per_pixel</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="n">spectral_centroid</span><span class="p">,</span> <span class="n">db_spectrum</span><span class="p">)</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">spectral_centroid</span><span class="p">(</span><span class="n">seek_point</span><span class="p">)</span>
+
+        <span class="n">spectrogram</span><span class="o">.</span><span class="n">draw_spectrum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">db_spectrum</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">progress_callback</span><span class="p">:</span>
+        <span class="n">progress_callback</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">spectrogram</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="interpolate_colors"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.interpolate_colors">[docs]</a><span class="k">def</span> <span class="nf">interpolate_colors</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">num_colors</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+
+    <span class="n">palette</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_colors</span><span class="p">):</span>
+        <span class="c"># TODO: What does this do?</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">i</span> <span class="o">*</span>
+                    <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c"># 7</span>
+                <span class="p">)</span>  <span class="c"># 0..7..14..21..28...</span>
+            <span class="o">/</span>
+                <span class="p">(</span><span class="n">num_colors</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>  <span class="c"># 255.0</span>
+            <span class="p">)</span>
+
+        <span class="c"># TODO: What is the meaning of &#39;alpha&#39; in this context?</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">index</span> <span class="o">-</span> <span class="nb">round</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="s">&#39;rgb&#39;</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">channels</span><span class="p">)),</span> <span class="n">channels</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">alpha</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
+                    <span class="o">*</span>
+                        <span class="n">colors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)][</span><span class="n">k</span><span class="p">]</span>
+                    <span class="o">+</span>
+                        <span class="n">alpha</span> <span class="o">*</span> <span class="n">colors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
+                    <span class="o">*</span>
+                        <span class="n">colors</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">index</span><span class="p">)][</span><span class="n">k</span><span class="p">]</span>
+                    <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">flat</span><span class="p">:</span>
+            <span class="n">palette</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">palette</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">palette</span>
+
+</div>
+<div class="viewcode-block" id="get_max_level"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.spectrogram.get_max_level">[docs]</a><span class="k">def</span> <span class="nf">get_max_level</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">max_value</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">buffer_size</span> <span class="o">=</span> <span class="mi">4096</span>
+    <span class="n">audio_file</span> <span class="o">=</span> <span class="n">audiolab</span><span class="o">.</span><span class="n">Sndfile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">n_samples_left</span> <span class="o">=</span> <span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span>
+
+    <span class="k">while</span> <span class="n">n_samples_left</span><span class="p">:</span>
+        <span class="n">to_read</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">buffer_size</span><span class="p">,</span> <span class="n">n_samples_left</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">audio_file</span><span class="o">.</span><span class="n">read_frames</span><span class="p">(</span><span class="n">to_read</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="c"># this can happen with a broken header</span>
+            <span class="k">break</span>
+
+        <span class="c"># convert to mono by selecting left channel only</span>
+        <span class="k">if</span> <span class="n">audio_file</span><span class="o">.</span><span class="n">channels</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">max_value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_value</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+        <span class="n">n_samples_left</span> <span class="o">-=</span> <span class="n">to_read</span>
+
+    <span class="n">audio_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">max_value</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;x&#39;</span><span class="p">)])</span>
+
+    <span class="n">create_spectrogram_image</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

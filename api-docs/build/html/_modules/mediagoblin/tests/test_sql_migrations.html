@@ -1,0 +1,980 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_sql_migrations &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_sql_migrations</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2012, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Table</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span>
+    <span class="n">Integer</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">,</span> <span class="n">UnicodeText</span><span class="p">,</span> <span class="n">DateTime</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">,</span>
+    <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">UniqueConstraint</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span><span class="p">,</span> <span class="n">relationship</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">select</span><span class="p">,</span> <span class="n">insert</span>
+<span class="kn">from</span> <span class="nn">migrate</span> <span class="kn">import</span> <span class="n">changeset</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.base</span> <span class="kn">import</span> <span class="n">GMGTableBase</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.sql.util</span> <span class="kn">import</span> <span class="n">MigrationManager</span><span class="p">,</span> <span class="n">RegisterMigration</span>
+
+
+<span class="c"># This one will get filled with local migrations</span>
+<span class="n">FULL_MIGRATIONS</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<span class="c">#######################################################</span>
+<span class="c"># Migration set 1: Define initial models, no migrations</span>
+<span class="c">#######################################################</span>
+
+<span class="n">Base1</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="n">GMGTableBase</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Creature1"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Creature1">[docs]</a><span class="k">class</span> <span class="nc">Creature1</span><span class="p">(</span><span class="n">Base1</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;creature&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">num_legs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">is_demon</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Level1"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Level1">[docs]</a><span class="k">class</span> <span class="nc">Level1</span><span class="p">(</span><span class="n">Base1</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;level&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">exits</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">PickleType</span><span class="p">)</span>
+</div>
+<span class="n">SET1_MODELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">Creature1</span><span class="p">,</span> <span class="n">Level1</span><span class="p">]</span>
+
+<span class="n">SET1_MIGRATIONS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c">#######################################################</span>
+<span class="c"># Migration set 2: A few migrations and new model</span>
+<span class="c">#######################################################</span>
+
+<span class="n">Base2</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="n">GMGTableBase</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Creature2"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Creature2">[docs]</a><span class="k">class</span> <span class="nc">Creature2</span><span class="p">(</span><span class="n">Base2</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;creature&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">num_legs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">magical_powers</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;CreaturePower2&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CreaturePower2"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.CreaturePower2">[docs]</a><span class="k">class</span> <span class="nc">CreaturePower2</span><span class="p">(</span><span class="n">Base2</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;creature_power&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;creature.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">hitpower</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Level2"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Level2">[docs]</a><span class="k">class</span> <span class="nc">Level2</span><span class="p">(</span><span class="n">Base2</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;level&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LevelExit2"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.LevelExit2">[docs]</a><span class="k">class</span> <span class="nc">LevelExit2</span><span class="p">(</span><span class="n">Base2</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;level_exit&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">from_level</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">to_level</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<span class="n">SET2_MODELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">Creature2</span><span class="p">,</span> <span class="n">CreaturePower2</span><span class="p">,</span> <span class="n">Level2</span><span class="p">,</span> <span class="n">LevelExit2</span><span class="p">]</span>
+
+
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_remove_is_demon"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.creature_remove_is_demon">[docs]</a><span class="k">def</span> <span class="nf">creature_remove_is_demon</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove the is_demon field from the creature model.  We don&#39;t need</span>
+<span class="sd">    it!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># :( Commented out &#39;cuz of:</span>
+    <span class="c"># http://code.google.com/p/sqlalchemy-migrate/issues/detail?id=143&amp;thanks=143&amp;ts=1327882242</span>
+
+    <span class="c"># metadata = MetaData(bind=db_conn.bind)</span>
+    <span class="c"># creature_table = Table(</span>
+    <span class="c">#     &#39;creature&#39;, metadata,</span>
+    <span class="c">#     autoload=True, autoload_with=db_conn.bind)</span>
+    <span class="c"># creature_table.drop_column(&#39;is_demon&#39;)</span>
+    <span class="k">pass</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_powers_new_table"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.creature_powers_new_table">[docs]</a><span class="k">def</span> <span class="nf">creature_powers_new_table</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a new table for creature powers.  Nothing needs to go in it</span>
+<span class="sd">    yet though as there wasn&#39;t anything that previously held this</span>
+<span class="sd">    information</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="c"># We have to access the creature table so sqlalchemy can make the</span>
+    <span class="c"># foreign key relationship</span>
+    <span class="n">creature_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="n">creature_powers</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature_power&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;creature&#39;</span><span class="p">,</span> 
+               <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;creature.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;hitpower&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="level_exits_new_table"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.level_exits_new_table">[docs]</a><span class="k">def</span> <span class="nf">level_exits_new_table</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a new table for level exits and move the previously pickled</span>
+<span class="sd">    stuff over to here (then drop the old unneeded table)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># First, create the table</span>
+    <span class="c"># -----------------------</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="c"># Minimal representation of level table.</span>
+    <span class="c"># Not auto-introspecting here because of pickle table.  I&#39;m not</span>
+    <span class="c"># sure sqlalchemy can auto-introspect pickle columns.</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;exits&#39;</span><span class="p">,</span> <span class="n">PickleType</span><span class="p">))</span>
+
+    <span class="n">level_exits</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level_exit&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;from_level&#39;</span><span class="p">,</span>
+               <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;to_level&#39;</span><span class="p">,</span>
+               <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="c"># And now, convert all the old exit pickles to new level exits</span>
+    <span class="c"># ------------------------------------------------------------</span>
+
+    <span class="c"># query over and insert</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">select</span><span class="p">([</span><span class="n">levels</span><span class="p">],</span> <span class="n">levels</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">exits</span><span class="o">!=</span><span class="bp">None</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">exit_name</span><span class="p">,</span> <span class="n">to_level</span> <span class="ow">in</span> <span class="n">level</span><span class="p">[</span><span class="s">&#39;exits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="c"># Insert the level exit</span>
+            <span class="n">db_conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">level_exits</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">exit_name</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="n">to_level</span><span class="p">))</span>
+
+    <span class="c"># Finally, drop the old level exits pickle table</span>
+    <span class="c"># ----------------------------------------------</span>
+    <span class="n">levels</span><span class="o">.</span><span class="n">drop_column</span><span class="p">(</span><span class="s">&#39;exits&#39;</span><span class="p">)</span>    
+
+
+<span class="c"># A hack!  At this point we freeze-fame and get just a partial list of</span>
+<span class="c"># migrations</span>
+</div>
+<span class="n">SET2_MIGRATIONS</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+
+<span class="c">#######################################################</span>
+<span class="c"># Migration set 3: Final migrations</span>
+<span class="c">#######################################################</span>
+
+<span class="n">Base3</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">(</span><span class="n">cls</span><span class="o">=</span><span class="n">GMGTableBase</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Creature3"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Creature3">[docs]</a><span class="k">class</span> <span class="nc">Creature3</span><span class="p">(</span><span class="n">Base3</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;creature&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">num_limbs</span><span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">magical_powers</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s">&quot;CreaturePower3&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CreaturePower3"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.CreaturePower3">[docs]</a><span class="k">class</span> <span class="nc">CreaturePower3</span><span class="p">(</span><span class="n">Base3</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;creature_power&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;creature.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">hitpower</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Level3"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.Level3">[docs]</a><span class="k">class</span> <span class="nc">Level3</span><span class="p">(</span><span class="n">Base3</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;level&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LevelExit3"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.LevelExit3">[docs]</a><span class="k">class</span> <span class="nc">LevelExit3</span><span class="p">(</span><span class="n">Base3</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&quot;level_exit&quot;</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">)</span>
+    <span class="n">from_level</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">to_level</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">Unicode</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;level.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="n">SET3_MODELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">Creature3</span><span class="p">,</span> <span class="n">CreaturePower3</span><span class="p">,</span> <span class="n">Level3</span><span class="p">,</span> <span class="n">LevelExit3</span><span class="p">]</span>
+<span class="n">SET3_MIGRATIONS</span> <span class="o">=</span> <span class="n">FULL_MIGRATIONS</span>
+
+
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_num_legs_to_num_limbs"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.creature_num_legs_to_num_limbs">[docs]</a><span class="k">def</span> <span class="nf">creature_num_legs_to_num_limbs</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Turns out we&#39;re tracking all sorts of limbs, not &quot;legs&quot;</span>
+<span class="sd">    specifically.  Humans would be 4 here, for instance.  So we</span>
+<span class="sd">    renamed the column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">creature_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">num_legs</span><span class="o">.</span><span class="n">alter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&quot;num_limbs&quot;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="level_exit_index_from_and_to_level"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.level_exit_index_from_and_to_level">[docs]</a><span class="k">def</span> <span class="nf">level_exit_index_from_and_to_level</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Index the from and to levels of the level exit table.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">level_exit</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level_exit&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">Index</span><span class="p">(</span><span class="s">&#39;ix_level_exit_from_level&#39;</span><span class="p">,</span>
+          <span class="n">level_exit</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">from_level</span><span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">Index</span><span class="p">(</span><span class="s">&#39;ix_level_exit_to_level&#39;</span><span class="p">,</span>
+          <span class="n">level_exit</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">to_level</span><span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_power_index_creature"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.creature_power_index_creature">[docs]</a><span class="k">def</span> <span class="nf">creature_power_index_creature</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Index our foreign key relationship to the creatures</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">creature_power</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature_power&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+    <span class="n">Index</span><span class="p">(</span><span class="s">&#39;ix_creature_power_creature&#39;</span><span class="p">,</span>
+          <span class="n">creature_power</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">creature</span><span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">FULL_MIGRATIONS</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_power_hitpower_to_float"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.creature_power_hitpower_to_float">[docs]</a><span class="k">def</span> <span class="nf">creature_power_hitpower_to_float</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert hitpower column on creature power table from integer to</span>
+<span class="sd">    float.</span>
+
+<span class="sd">    Turns out we want super precise values of how much hitpower there</span>
+<span class="sd">    really is.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="c"># We have to access the creature table so sqlalchemy can make the</span>
+    <span class="c"># foreign key relationship</span>
+    <span class="n">creature_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">db_conn</span><span class="o">.</span><span class="n">bind</span><span class="p">)</span>
+
+    <span class="n">creature_power</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature_power&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span>
+               <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;creature.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+               <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="n">Unicode</span><span class="p">),</span>
+        <span class="n">Column</span><span class="p">(</span><span class="s">&#39;hitpower&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+    <span class="n">creature_power</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">hitpower</span><span class="o">.</span><span class="n">alter</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Float</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_insert_migration1_objects</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test objects to insert for the first set of things</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Insert creatures</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Creature1</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;centipede&#39;</span><span class="p">,</span>
+                   <span class="n">num_legs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                   <span class="n">is_demon</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+         <span class="n">Creature1</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;wolf&#39;</span><span class="p">,</span>
+                   <span class="n">num_legs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                   <span class="n">is_demon</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
+         <span class="c"># don&#39;t ask me what a wizardsnake is.</span>
+         <span class="n">Creature1</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;wizardsnake&#39;</span><span class="p">,</span>
+                   <span class="n">num_legs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                   <span class="n">is_demon</span><span class="o">=</span><span class="bp">True</span><span class="p">)])</span>
+
+    <span class="c"># Insert levels</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Level1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;The Necroplex&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A complex full of pure deathzone.&#39;</span><span class="p">,</span>
+                <span class="n">exits</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s">&#39;deathwell&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}),</span>
+         <span class="n">Level1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Evil Storm&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+                <span class="n">exits</span><span class="o">=</span><span class="p">{}),</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+         <span class="n">Level1</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">,</span>
+                <span class="n">exits</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">})])</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_insert_migration2_objects</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test objects to insert for the second set of things</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Insert creatures</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Creature2</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;centipede&#39;</span><span class="p">,</span>
+                <span class="n">num_legs</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+         <span class="n">Creature2</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wolf&#39;</span><span class="p">,</span>
+                <span class="n">num_legs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="n">magical_powers</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&quot;ice breath&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A blast of icy breath!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&quot;death stare&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A frightening stare, for sure!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">45</span><span class="p">)]),</span>
+         <span class="n">Creature2</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wizardsnake&#39;</span><span class="p">,</span>
+                <span class="n">num_legs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">magical_powers</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;death_rattle&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A rattle... of DEATH!&#39;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;sneaky_stare&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;The sneakiest stare you&#39;ve ever seen!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">300</span><span class="p">),</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;slithery_smoke&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A blast of slithery, slithery smoke.&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+                    <span class="n">CreaturePower2</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;treacherous_tremors&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;The ground shakes beneath footed animals!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mi">0</span><span class="p">)])])</span>
+
+    <span class="c"># Insert levels</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Level2</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;The Necroplex&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A complex full of pure deathzone.&#39;</span><span class="p">),</span>
+         <span class="n">Level2</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Evil Storm&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+                <span class="n">exits</span><span class="o">=</span><span class="p">[]),</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+         <span class="n">Level2</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">)])</span>
+
+    <span class="c"># necroplex exits</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">LevelExit2</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;deathwell&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">),</span>
+         <span class="n">LevelExit2</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;portal&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">)])</span>
+
+    <span class="c"># there are no evilstorm exits because there is no exit from the</span>
+    <span class="c"># evilstorm</span>
+      
+    <span class="c"># central park exits</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">LevelExit2</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;portal&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">)])</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">_insert_migration3_objects</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test objects to insert for the third set of things</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Insert creatures</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Creature3</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;centipede&#39;</span><span class="p">,</span>
+                <span class="n">num_limbs</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+         <span class="n">Creature3</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wolf&#39;</span><span class="p">,</span>
+                <span class="n">num_limbs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="n">magical_powers</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&quot;ice breath&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A blast of icy breath!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&quot;death stare&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A frightening stare, for sure!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">45.0</span><span class="p">)]),</span>
+         <span class="n">Creature3</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wizardsnake&#39;</span><span class="p">,</span>
+                <span class="n">num_limbs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">magical_powers</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;death_rattle&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A rattle... of DEATH!&#39;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">),</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;sneaky_stare&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;The sneakiest stare you&#39;ve ever seen!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">300.0</span><span class="p">),</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;slithery_smoke&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;A blast of slithery, slithery smoke.&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;treacherous_tremors&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&quot;The ground shakes beneath footed animals!&quot;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)])],</span>
+        <span class="c"># annnnnd one more to test a floating point hitpower</span>
+        <span class="n">Creature3</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;deity&#39;</span><span class="p">,</span>
+                <span class="n">numb_limbs</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                <span class="n">magical_powers</span><span class="o">=</span><span class="p">[</span>
+                    <span class="n">CreaturePower3</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;smite&#39;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s">u&#39;Smitten by holy wrath!&#39;</span><span class="p">,</span>
+                        <span class="n">hitpower</span><span class="o">=</span><span class="mf">9999.9</span><span class="p">)]))</span>
+
+    <span class="c"># Insert levels</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">Level3</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;The Necroplex&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A complex full of pure deathzone.&#39;</span><span class="p">),</span>
+         <span class="n">Level3</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Evil Storm&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+                <span class="n">exits</span><span class="o">=</span><span class="p">[]),</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+         <span class="n">Level3</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s">u&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="s">u&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">)])</span>
+
+    <span class="c"># necroplex exits</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">LevelExit3</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;deathwell&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">),</span>
+         <span class="n">LevelExit3</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;portal&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">)])</span>
+
+    <span class="c"># there are no evilstorm exits because there is no exit from the</span>
+    <span class="c"># evilstorm</span>
+      
+    <span class="c"># central park exits</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">LevelExit3</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">u&#39;portal&#39;</span><span class="p">,</span>
+                    <span class="n">from_level</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">,</span>
+                    <span class="n">to_level</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">)])</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="CollectingPrinter"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.CollectingPrinter">[docs]</a><span class="k">class</span> <span class="nc">CollectingPrinter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="CollectingPrinter.combined_string"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.CollectingPrinter.combined_string">[docs]</a>    <span class="k">def</span> <span class="nf">combined_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">u&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="create_test_engine"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.create_test_engine">[docs]</a><span class="k">def</span> <span class="nf">create_test_engine</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;sqlite:///:memory:&#39;</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">engine</span><span class="p">,</span> <span class="n">Session</span>
+
+</div>
+<div class="viewcode-block" id="assert_col_type"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.assert_col_type">[docs]</a><span class="k">def</span> <span class="nf">assert_col_type</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">this_class</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">this_class</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_get_level3_exits</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="p">[(</span><span class="n">level_exit</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">level_exit</span><span class="o">.</span><span class="n">to_level</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">level_exit</span> <span class="ow">in</span>
+         <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">LevelExit3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">from_level</span><span class="o">=</span><span class="n">level</span><span class="o">.</span><span class="n">id</span><span class="p">)])</span>
+
+
+<div class="viewcode-block" id="test_set1_to_set3"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_sql_migrations.test_set1_to_set3">[docs]</a><span class="k">def</span> <span class="nf">test_set1_to_set3</span><span class="p">():</span>
+    <span class="c"># Create / connect to database</span>
+    <span class="c"># ----------------------------</span>
+
+    <span class="n">engine</span><span class="p">,</span> <span class="n">Session</span> <span class="o">=</span> <span class="n">create_test_engine</span><span class="p">()</span>
+
+    <span class="c"># Create tables by migrating on empty initial set</span>
+    <span class="c"># -----------------------------------------------</span>
+
+    <span class="n">printer</span> <span class="o">=</span> <span class="n">CollectingPrinter</span><span class="p">()</span>
+    <span class="n">migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+        <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="n">SET1_MODELS</span><span class="p">,</span> <span class="n">SET1_MIGRATIONS</span><span class="p">,</span> <span class="n">Session</span><span class="p">(),</span>
+        <span class="n">printer</span><span class="p">)</span>
+
+    <span class="c"># Check latest migration and database current migration</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">latest_migration</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="o">==</span> <span class="bp">None</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">init_or_migrate</span><span class="p">()</span>
+
+    <span class="c"># Make sure output was &quot;inited&quot;</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s">u&#39;inited&#39;</span>
+    <span class="c"># Check output</span>
+    <span class="k">assert</span> <span class="n">printer</span><span class="o">.</span><span class="n">combined_string</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s">&quot;-&gt; Initializing main mediagoblin tables... done.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="c"># Check version in database</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">latest_migration</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c"># Install the initial set</span>
+    <span class="c"># -----------------------</span>
+
+    <span class="n">_insert_migration1_objects</span><span class="p">(</span><span class="n">Session</span><span class="p">())</span>
+
+    <span class="c"># Try to &quot;re-migrate&quot; with same manager settings... nothing should happen</span>
+    <span class="n">migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+        <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="n">SET1_MODELS</span><span class="p">,</span> <span class="n">SET1_MIGRATIONS</span><span class="p">,</span> <span class="n">Session</span><span class="p">(),</span>
+        <span class="n">printer</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">init_or_migrate</span><span class="p">()</span> <span class="o">==</span> <span class="bp">None</span>
+
+    <span class="c"># Check version in database</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">latest_migration</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c"># Sanity check a few things in the database...</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="c"># Check the structure of the creature table</span>
+    <span class="n">creature_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;num_legs&#39;</span><span class="p">,</span> <span class="s">&#39;is_demon&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="c">#assert creature_table.c.name.index is True</span>
+    <span class="c">#assert creature_table.c.name.unique is True</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">num_legs</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">num_legs</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">is_demon</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">)</span>
+
+    <span class="c"># Check the structure of the level table</span>
+    <span class="n">level_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="s">&#39;exits&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">primary_key</span> <span class="ow">is</span> <span class="bp">True</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="c"># Skipping exits... Not sure if we can detect pickletype, not a</span>
+    <span class="c"># big deal regardless.</span>
+
+    <span class="c"># Now check to see if stuff seems to be in there.</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;centipede&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_legs</span> <span class="o">==</span> <span class="mi">100</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">is_demon</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wolf&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_legs</span> <span class="o">==</span> <span class="mi">4</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">is_demon</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wizardsnake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_legs</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">is_demon</span> <span class="o">==</span> <span class="bp">True</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;The Necroplex&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&#39;A complex full of pure deathzone.&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">exits</span> <span class="o">==</span> <span class="p">{</span>
+        <span class="s">&#39;deathwell&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+        <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;Evil Storm&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&#39;A storm full of pure evil.&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">exits</span> <span class="o">==</span> <span class="p">{}</span>  <span class="c"># You still can&#39;t escape the evilstorm!</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level1</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;Central Park, NY, NY&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&quot;New York&#39;s friendly Central Park.&quot;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">exits</span> <span class="o">==</span> <span class="p">{</span>
+        <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}</span>
+
+    <span class="c"># Create new migration manager, but make sure the db migration</span>
+    <span class="c"># isn&#39;t said to be updated yet</span>
+    <span class="n">printer</span> <span class="o">=</span> <span class="n">CollectingPrinter</span><span class="p">()</span>
+    <span class="n">migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+        <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="n">SET3_MODELS</span><span class="p">,</span> <span class="n">SET3_MIGRATIONS</span><span class="p">,</span> <span class="n">Session</span><span class="p">(),</span>
+        <span class="n">printer</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">latest_migration</span> <span class="o">==</span> <span class="mi">7</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c"># Migrate</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">init_or_migrate</span><span class="p">()</span>
+
+    <span class="c"># Make sure result was &quot;migrated&quot;</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s">u&#39;migrated&#39;</span>
+
+    <span class="c"># TODO: Check output to user</span>
+    <span class="k">assert</span> <span class="n">printer</span><span class="o">.</span><span class="n">combined_string</span> <span class="o">==</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">-&gt; Updating main mediagoblin tables:</span>
+<span class="s">   + Running migration 1, &quot;creature_remove_is_demon&quot;... done.</span>
+<span class="s">   + Running migration 2, &quot;creature_powers_new_table&quot;... done.</span>
+<span class="s">   + Running migration 3, &quot;level_exits_new_table&quot;... done.</span>
+<span class="s">   + Running migration 4, &quot;creature_num_legs_to_num_limbs&quot;... done.</span>
+<span class="s">   + Running migration 5, &quot;level_exit_index_from_and_to_level&quot;... done.</span>
+<span class="s">   + Running migration 6, &quot;creature_power_index_creature&quot;... done.</span>
+<span class="s">   + Running migration 7, &quot;creature_power_hitpower_to_float&quot;... done.</span>
+<span class="s">&quot;&quot;&quot;</span>
+    
+    <span class="c"># Make sure version matches expected</span>
+    <span class="n">migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+        <span class="s">&#39;__main__&#39;</span><span class="p">,</span> <span class="n">SET3_MODELS</span><span class="p">,</span> <span class="n">SET3_MIGRATIONS</span><span class="p">,</span> <span class="n">Session</span><span class="p">(),</span>
+        <span class="n">printer</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">latest_migration</span> <span class="o">==</span> <span class="mi">7</span>
+    <span class="k">assert</span> <span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span> <span class="o">==</span> <span class="mi">7</span>
+
+    <span class="c"># Check all things in database match expected</span>
+
+    <span class="c"># Check the creature table</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="n">creature_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="c"># assert set(creature_table.c.keys()) == set(</span>
+    <span class="c">#     [&#39;id&#39;, &#39;name&#39;, &#39;num_limbs&#39;])</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">u&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">u&#39;num_limbs&#39;</span><span class="p">,</span> <span class="s">u&#39;is_demon&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="c">#assert creature_table.c.name.index is True</span>
+    <span class="c">#assert creature_table.c.name.unique is True</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">num_limbs</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">num_limbs</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+
+    <span class="c"># Check the CreaturePower table</span>
+    <span class="n">creature_power_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;creature_power&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;creature&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="s">&#39;hitpower&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">creature</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">creature</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">hitpower</span><span class="p">,</span> <span class="n">Float</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">creature_power_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">hitpower</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+
+    <span class="c"># Check the structure of the level table</span>
+    <span class="n">level_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;description&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">primary_key</span> <span class="ow">is</span> <span class="bp">True</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+
+    <span class="c"># Check the structure of the level_exits table</span>
+    <span class="n">level_exit_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+        <span class="s">&#39;level_exit&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+        <span class="n">autoload</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;from_level&#39;</span><span class="p">,</span> <span class="s">&#39;to_level&#39;</span><span class="p">])</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">Integer</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">from_level</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">from_level</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="c">#assert level_exit_table.c.from_level.index is True</span>
+    <span class="n">assert_col_type</span><span class="p">(</span><span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">to_level</span><span class="p">,</span> <span class="n">VARCHAR</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_exit_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">to_level</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">is</span> <span class="bp">False</span>
+    <span class="c">#assert level_exit_table.c.to_level.index is True</span>
+
+    <span class="c"># Now check to see if stuff seems to be in there.</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;centipede&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_limbs</span> <span class="o">==</span> <span class="mf">100.0</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">magical_powers</span> <span class="o">==</span> <span class="p">[]</span>
+
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wolf&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_limbs</span> <span class="o">==</span> <span class="mf">4.0</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">magical_powers</span> <span class="o">==</span> <span class="p">[]</span>
+
+    <span class="n">creature</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Creature3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s">u&#39;wizardsnake&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">num_limbs</span> <span class="o">==</span> <span class="mf">0.0</span>
+    <span class="k">assert</span> <span class="n">creature</span><span class="o">.</span><span class="n">magical_powers</span> <span class="o">==</span> <span class="p">[]</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;necroplex&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;The Necroplex&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&#39;A complex full of pure deathzone.&#39;</span>
+    <span class="n">level_exits</span> <span class="o">=</span> <span class="n">_get_level3_exits</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_exits</span> <span class="o">==</span> <span class="p">{</span>
+        <span class="s">u&#39;deathwell&#39;</span><span class="p">:</span> <span class="s">u&#39;evilstorm&#39;</span><span class="p">,</span>
+        <span class="s">u&#39;portal&#39;</span><span class="p">:</span> <span class="s">u&#39;central_park&#39;</span><span class="p">}</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;evilstorm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;Evil Storm&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&#39;A storm full of pure evil.&#39;</span>
+    <span class="n">level_exits</span> <span class="o">=</span> <span class="n">_get_level3_exits</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_exits</span> <span class="o">==</span> <span class="p">{}</span>  <span class="c"># You still can&#39;t escape the evilstorm!</span>
+
+    <span class="n">level</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Level3</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s">u&#39;central_park&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">u&#39;Central Park, NY, NY&#39;</span>
+    <span class="k">assert</span> <span class="n">level</span><span class="o">.</span><span class="n">description</span> <span class="o">==</span> <span class="s">u&quot;New York&#39;s friendly Central Park.&quot;</span>
+    <span class="n">level_exits</span> <span class="o">=</span> <span class="n">_get_level3_exits</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">level_exits</span> <span class="o">==</span> <span class="p">{</span>
+        <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}</span>
+
+
+<span class="c">#def test_set2_to_set3():</span>
+    <span class="c"># Create / connect to database</span>
+    <span class="c"># Create tables by migrating on empty initial set</span>
+
+    <span class="c"># Install the initial set</span>
+    <span class="c"># Check version in database</span>
+    <span class="c"># Sanity check a few things in the database</span>
+
+    <span class="c"># Migrate</span>
+    <span class="c"># Make sure version matches expected</span>
+    <span class="c"># Check all things in database match expected</span>
+    <span class="c"># pass</span>
+
+
+<span class="c">#def test_set1_to_set2_to_set3():</span>
+    <span class="c"># Create / connect to database</span>
+    <span class="c"># Create tables by migrating on empty initial set</span>
+
+    <span class="c"># Install the initial set</span>
+    <span class="c"># Check version in database</span>
+    <span class="c"># Sanity check a few things in the database</span>
+
+    <span class="c"># Migrate</span>
+    <span class="c"># Make sure version matches expected</span>
+    <span class="c"># Check all things in database match expected</span>
+
+    <span class="c"># Migrate again</span>
+    <span class="c"># Make sure version matches expected again</span>
+    <span class="c"># Check all things in database match expected again</span>
+
+    <span class="c">##### Set2</span>
+    <span class="c"># creature_table = Table(</span>
+    <span class="c">#     &#39;creature&#39;, metadata,</span>
+    <span class="c">#     autoload=True, autoload_with=db_conn.bind)</span>
+    <span class="c"># assert set(creature_table.c.keys()) == set(</span>
+    <span class="c">#     [&#39;id&#39;, &#39;name&#39;, &#39;num_legs&#39;])</span>
+    <span class="c"># assert_col_type(creature_table.c.id, Integer)</span>
+    <span class="c"># assert_col_type(creature_table.c.name, VARCHAR)</span>
+    <span class="c"># assert creature_table.c.name.nullable is False</span>
+    <span class="c"># assert creature_table.c.name.index is True</span>
+    <span class="c"># assert creature_table.c.name.unique is True</span>
+    <span class="c"># assert_col_type(creature_table.c.num_legs, Integer)</span>
+    <span class="c"># assert creature_table.c.num_legs.nullable is False</span>
+
+    <span class="c"># # Check the CreaturePower table</span>
+    <span class="c"># creature_power_table = Table(</span>
+    <span class="c">#     &#39;creature_power&#39;, metadata,</span>
+    <span class="c">#     autoload=True, autoload_with=db_conn.bind)</span>
+    <span class="c"># assert set(creature_power_table.c.keys()) == set(</span>
+    <span class="c">#     [&#39;id&#39;, &#39;creature&#39;, &#39;name&#39;, &#39;description&#39;, &#39;hitpower&#39;])</span>
+    <span class="c"># assert_col_type(creature_power_table.c.id, Integer)</span>
+    <span class="c"># assert_col_type(creature_power_table.c.creature, Integer)</span>
+    <span class="c"># assert creature_power_table.c.creature.nullable is False</span>
+    <span class="c"># assert_col_type(creature_power_table.c.name, VARCHAR)</span>
+    <span class="c"># assert_col_type(creature_power_table.c.description, VARCHAR)</span>
+    <span class="c"># assert_col_type(creature_power_table.c.hitpower, Integer)</span>
+    <span class="c"># assert creature_power_table.c.hitpower.nullable is False</span>
+
+    <span class="c"># # Check the structure of the level table</span>
+    <span class="c"># level_table = Table(</span>
+    <span class="c">#     &#39;level&#39;, metadata,</span>
+    <span class="c">#     autoload=True, autoload_with=db_conn.bind)</span>
+    <span class="c"># assert set(level_table.c.keys()) == set(</span>
+    <span class="c">#     [&#39;id&#39;, &#39;name&#39;, &#39;description&#39;])</span>
+    <span class="c"># assert_col_type(level_table.c.id, VARCHAR)</span>
+    <span class="c"># assert level_table.c.id.primary_key is True</span>
+    <span class="c"># assert_col_type(level_table.c.name, VARCHAR)</span>
+    <span class="c"># assert_col_type(level_table.c.description, VARCHAR)</span>
+
+    <span class="c"># # Check the structure of the level_exits table</span>
+    <span class="c"># level_exit_table = Table(</span>
+    <span class="c">#     &#39;level_exit&#39;, metadata,</span>
+    <span class="c">#     autoload=True, autoload_with=db_conn.bind)</span>
+    <span class="c"># assert set(level_exit_table.c.keys()) == set(</span>
+    <span class="c">#     [&#39;id&#39;, &#39;name&#39;, &#39;from_level&#39;, &#39;to_level&#39;])</span>
+    <span class="c"># assert_col_type(level_exit_table.c.id, Integer)</span>
+    <span class="c"># assert_col_type(level_exit_table.c.name, VARCHAR)</span>
+    <span class="c"># assert_col_type(level_exit_table.c.from_level, VARCHAR)</span>
+    <span class="c"># assert level_exit_table.c.from_level.nullable is False</span>
+    <span class="c"># assert_col_type(level_exit_table.c.to_level, VARCHAR)</span>
+
+    <span class="c"># pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

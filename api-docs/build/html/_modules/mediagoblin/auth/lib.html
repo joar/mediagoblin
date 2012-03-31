@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.auth.lib &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.auth.lib</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">import</span> <span class="nn">bcrypt</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.mail</span> <span class="kn">import</span> <span class="n">send_email</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.template</span> <span class="kn">import</span> <span class="n">render_template</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+
+
+<div class="viewcode-block" id="bcrypt_check_password"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.lib.bcrypt_check_password">[docs]</a><span class="k">def</span> <span class="nf">bcrypt_check_password</span><span class="p">(</span><span class="n">raw_pass</span><span class="p">,</span> <span class="n">stored_hash</span><span class="p">,</span> <span class="n">extra_salt</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check to see if this password matches.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - raw_pass: user submitted password to check for authenticity.</span>
+<span class="sd">    - stored_hash: The hash of the raw password (and possibly extra</span>
+<span class="sd">      salt) to check against</span>
+<span class="sd">    - extra_salt: (optional) If this password is with stored with a</span>
+<span class="sd">      non-database extra salt (probably in the config file) for extra</span>
+<span class="sd">      security, factor this into the check.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      True or False depending on success.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_salt</span><span class="p">:</span>
+        <span class="n">raw_pass</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">extra_salt</span><span class="p">,</span> <span class="n">raw_pass</span><span class="p">)</span>
+
+    <span class="n">hashed_pass</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">raw_pass</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">stored_hash</span><span class="p">)</span>
+
+    <span class="c"># Reduce risk of timing attacks by hashing again with a random</span>
+    <span class="c"># number (thx to zooko on this advice, which I hopefully</span>
+    <span class="c"># incorporated right.)</span>
+    <span class="c">#</span>
+    <span class="c"># See also:</span>
+    <span class="n">rand_salt</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">randplus_stored_hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">stored_hash</span><span class="p">,</span> <span class="n">rand_salt</span><span class="p">)</span>
+    <span class="n">randplus_hashed_pass</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">hashed_pass</span><span class="p">,</span> <span class="n">rand_salt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">randplus_stored_hash</span> <span class="o">==</span> <span class="n">randplus_hashed_pass</span>
+
+</div>
+<div class="viewcode-block" id="bcrypt_gen_password_hash"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.lib.bcrypt_gen_password_hash">[docs]</a><span class="k">def</span> <span class="nf">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">raw_pass</span><span class="p">,</span> <span class="n">extra_salt</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a salt for this new password.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - raw_pass: user submitted password</span>
+<span class="sd">    - extra_salt: (optional) If this password is with stored with a</span>
+<span class="sd">      non-database extra salt</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">extra_salt</span><span class="p">:</span>
+        <span class="n">raw_pass</span> <span class="o">=</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">extra_salt</span><span class="p">,</span> <span class="n">raw_pass</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span>
+        <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">raw_pass</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">()))</span>
+
+</div>
+<div class="viewcode-block" id="fake_login_attempt"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.lib.fake_login_attempt">[docs]</a><span class="k">def</span> <span class="nf">fake_login_attempt</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pretend we&#39;re trying to login.</span>
+
+<span class="sd">    Nothing actually happens here, we&#39;re just trying to take up some</span>
+<span class="sd">    time, approximately the same amount of time as</span>
+<span class="sd">    bcrypt_check_password, so as to avoid figuring out what users are</span>
+<span class="sd">    on the system by intentionally faking logins a bunch of times.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rand_salt</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">gensalt</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">hashed_pass</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()),</span> <span class="n">rand_salt</span><span class="p">)</span>
+
+    <span class="n">randplus_stored_hash</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()),</span> <span class="n">rand_salt</span><span class="p">)</span>
+    <span class="n">randplus_hashed_pass</span> <span class="o">=</span> <span class="n">bcrypt</span><span class="o">.</span><span class="n">hashpw</span><span class="p">(</span><span class="n">hashed_pass</span><span class="p">,</span> <span class="n">rand_salt</span><span class="p">)</span>
+
+    <span class="n">randplus_stored_hash</span> <span class="o">==</span> <span class="n">randplus_hashed_pass</span>
+
+</div>
+<span class="n">EMAIL_VERIFICATION_TEMPLATE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s">u&quot;http://{host}{uri}?&quot;</span>
+    <span class="s">u&quot;userid={userid}&amp;token={verification_key}&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="send_verification_email"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.lib.send_verification_email">[docs]</a><span class="k">def</span> <span class="nf">send_verification_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send the verification email to users to activate their accounts.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - user: a user object</span>
+<span class="sd">    - request: the request</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rendered_email</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin/auth/verification_email.txt&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+         <span class="s">&#39;verification_url&#39;</span><span class="p">:</span> <span class="n">EMAIL_VERIFICATION_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+                <span class="n">uri</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span><span class="s">&#39;mediagoblin.auth.verify_email&#39;</span><span class="p">),</span>
+                <span class="n">userid</span><span class="o">=</span><span class="nb">unicode</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">),</span>
+                <span class="n">verification_key</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">verification_key</span><span class="p">)})</span>
+
+    <span class="c"># TODO: There is no error handling in place</span>
+    <span class="n">send_email</span><span class="p">(</span>
+        <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_sender_address&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">],</span>
+        <span class="c"># TODO</span>
+        <span class="c"># Due to the distributed nature of GNU MediaGoblin, we should</span>
+        <span class="c"># find a way to send some additional information about the</span>
+        <span class="c"># specific GNU MediaGoblin instance in the subject line. For</span>
+        <span class="c"># example &quot;GNU MediaGoblin @ Wandborg - [...]&quot;.</span>
+        <span class="s">&#39;GNU MediaGoblin - Verify your email!&#39;</span><span class="p">,</span>
+        <span class="n">rendered_email</span><span class="p">)</span>
+
+</div>
+<span class="n">EMAIL_FP_VERIFICATION_TEMPLATE</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s">u&quot;http://{host}{uri}?&quot;</span>
+    <span class="s">u&quot;userid={userid}&amp;token={fp_verification_key}&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="send_fp_verification_email"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.lib.send_fp_verification_email">[docs]</a><span class="k">def</span> <span class="nf">send_fp_verification_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Send the verification email to users to change their password.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - user: a user object</span>
+<span class="sd">    - request: the request</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rendered_email</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin/auth/fp_verification_email.txt&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+         <span class="s">&#39;verification_url&#39;</span><span class="p">:</span> <span class="n">EMAIL_FP_VERIFICATION_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+                <span class="n">uri</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span><span class="s">&#39;mediagoblin.auth.verify_forgot_password&#39;</span><span class="p">),</span>
+                <span class="n">userid</span><span class="o">=</span><span class="nb">unicode</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">),</span>
+                <span class="n">fp_verification_key</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">fp_verification_key</span><span class="p">)})</span>
+
+    <span class="c"># TODO: There is no error handling in place</span>
+    <span class="n">send_email</span><span class="p">(</span>
+        <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_sender_address&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">],</span>
+        <span class="s">&#39;GNU MediaGoblin - Change forgotten password!&#39;</span><span class="p">,</span>
+        <span class="n">rendered_email</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

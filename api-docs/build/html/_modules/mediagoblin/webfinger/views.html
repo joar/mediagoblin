@@ -1,0 +1,211 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.webfinger.views &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.webfinger.views</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">For references, see docstring in mediagoblin/webfinger/__init__.py</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">urlparse</span> <span class="kn">import</span> <span class="n">urlparse</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.response</span> <span class="kn">import</span> <span class="n">render_to_response</span><span class="p">,</span> <span class="n">render_404</span>
+
+<div class="viewcode-block" id="host_meta"><a class="viewcode-back" href="../../../mediagoblin.webfinger.html#mediagoblin.webfinger.views.host_meta">[docs]</a><span class="k">def</span> <span class="nf">host_meta</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Webfinger host-meta</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">placeholder</span> <span class="o">=</span> <span class="s">&#39;MG_LRDD_PLACEHOLDER&#39;</span>
+
+    <span class="n">lrdd_title</span> <span class="o">=</span> <span class="s">&#39;GNU MediaGoblin - User lookup&#39;</span>
+
+    <span class="n">lrdd_template</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin.webfinger.xrd&#39;</span><span class="p">,</span>
+        <span class="n">uri</span><span class="o">=</span><span class="n">placeholder</span><span class="p">,</span>
+        <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/webfinger/host-meta.xml&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+         <span class="s">&#39;lrdd_template&#39;</span><span class="p">:</span> <span class="n">lrdd_template</span><span class="p">,</span>
+         <span class="s">&#39;lrdd_title&#39;</span><span class="p">:</span> <span class="n">lrdd_title</span><span class="p">,</span>
+         <span class="s">&#39;placeholder&#39;</span><span class="p">:</span> <span class="n">placeholder</span><span class="p">})</span>
+</div>
+<span class="n">MATCH_SCHEME_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^acct:&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="xrd"><a class="viewcode-back" href="../../../mediagoblin.webfinger.html#mediagoblin.webfinger.views.xrd">[docs]</a><span class="k">def</span> <span class="nf">xrd</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; </span>
+<span class="sd">    Find user data based on a webfinger URI</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">param_uri</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;uri&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">param_uri</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    :py:module:`urlparse` does not recognize usernames in URIs of the</span>
+<span class="sd">    form ``acct:user@example.org`` or ``user@example.org``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">MATCH_SCHEME_PATTERN</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">param_uri</span><span class="p">):</span>
+        <span class="c"># Assume the URI is in the form ``user@example.org``</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="s">&#39;acct://&#39;</span> <span class="o">+</span> <span class="n">param_uri</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Assumes the URI looks like ``acct:user@example.org</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">MATCH_SCHEME_PATTERN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="s">&#39;acct://&#39;</span><span class="p">,</span> <span class="n">param_uri</span><span class="p">)</span>
+
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+
+    <span class="n">xrd_subject</span> <span class="o">=</span> <span class="n">param_uri</span>
+
+    <span class="c"># TODO: Verify that the user exists</span>
+    <span class="c"># Q: Does webfinger support error handling in this case?</span>
+    <span class="c">#    Returning 404 seems intuitive, need to check.</span>
+    <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+        <span class="c"># The user object</span>
+        <span class="c"># TODO: Fetch from database instead of using the MockUser</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">MockUser</span><span class="p">()</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">username</span>
+
+        <span class="n">xrd_links</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s">&#39;attrs&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;rel&#39;</span><span class="p">:</span> <span class="s">&#39;http://microformats.org/profile/hcard&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;href&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+                        <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+                        <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">)}},</span>
+            <span class="p">{</span><span class="s">&#39;attrs&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;rel&#39;</span><span class="p">:</span> <span class="s">&#39;http://schemas.google.com/g/2010#updates-from&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;href&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+                        <span class="s">&#39;mediagoblin.user_pages.atom_feed&#39;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+                        <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">)}}]</span>
+
+        <span class="n">xrd_alias</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+            <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">qualified</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="s">&#39;mediagoblin/webfinger/xrd.xml&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&#39;request&#39;</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
+             <span class="s">&#39;subject&#39;</span><span class="p">:</span> <span class="n">xrd_subject</span><span class="p">,</span>
+             <span class="s">&#39;alias&#39;</span><span class="p">:</span> <span class="n">xrd_alias</span><span class="p">,</span>
+             <span class="s">&#39;links&#39;</span><span class="p">:</span> <span class="n">xrd_links</span> <span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MockUser"><a class="viewcode-back" href="../../../mediagoblin.webfinger.html#mediagoblin.webfinger.views.MockUser">[docs]</a><span class="k">class</span> <span class="nc">MockUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    TEMPORARY user object</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="bp">None</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

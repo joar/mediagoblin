@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.audio.transcoders &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.audio.transcoders</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">Image</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.processing</span> <span class="kn">import</span> <span class="n">BadMediaFail</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.media_types.audio</span> <span class="kn">import</span> <span class="n">audioprocessing</span>
+
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># Just assuming for now</span>
+
+<span class="c"># IMPORT MULTIPROCESSING</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">multiprocessing</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">CPU_COUNT</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;multiprocessing.cpu_count not implemented!</span><span class="se">\n</span><span class="s">&#39;</span>
+                     <span class="s">&#39;Assuming 2 CPU cores&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Could not import multiprocessing, assuming 2 CPU cores&#39;</span><span class="p">)</span>
+
+<span class="c"># IMPORT GOBJECT</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">gobject</span>
+    <span class="n">gobject</span><span class="o">.</span><span class="n">threads_init</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;gobject could not be found&#39;</span><span class="p">)</span>
+
+<span class="c"># IMPORT PYGST</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pygst</span>
+
+    <span class="c"># We won&#39;t settle for less. For now, this is an arbitrary limit</span>
+    <span class="c"># as we have not tested with &gt; 0.10</span>
+    <span class="n">pygst</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s">&#39;0.10&#39;</span><span class="p">)</span>
+
+    <span class="kn">import</span> <span class="nn">gst</span>
+
+    <span class="kn">import</span> <span class="nn">gst.extend.discoverer</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;gst/pygst &gt;= 0.10 could not be imported&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+
+<div class="viewcode-block" id="AudioThumbnailer"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioThumbnailer">[docs]</a><span class="k">class</span> <span class="nc">AudioThumbnailer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+
+<div class="viewcode-block" id="AudioThumbnailer.spectrogram"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioThumbnailer.spectrogram">[docs]</a>    <span class="k">def</span> <span class="nf">spectrogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s">&#39;width&#39;</span><span class="p">]</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;height&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">))</span>
+        <span class="n">fft_size</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;fft_size&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+        <span class="n">callback</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;progress_callback&#39;</span><span class="p">)</span>
+
+        <span class="n">processor</span> <span class="o">=</span> <span class="n">audioprocessing</span><span class="o">.</span><span class="n">AudioProcessor</span><span class="p">(</span>
+            <span class="n">src</span><span class="p">,</span>
+            <span class="n">fft_size</span><span class="p">,</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">hanning</span><span class="p">)</span>
+
+        <span class="n">samples_per_pixel</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">audio_file</span><span class="o">.</span><span class="n">nframes</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+
+        <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">audioprocessing</span><span class="o">.</span><span class="n">SpectrogramImage</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">fft_size</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">callback</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">%</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">callback</span><span class="p">((</span><span class="n">x</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span><span class="p">)</span>
+
+            <span class="n">seek_point</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">samples_per_pixel</span><span class="p">)</span>
+
+            <span class="p">(</span><span class="n">spectral_centroid</span><span class="p">,</span> <span class="n">db_spectrum</span><span class="p">)</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">spectral_centroid</span><span class="p">(</span>
+                <span class="n">seek_point</span><span class="p">)</span>
+
+            <span class="n">spectrogram</span><span class="o">.</span><span class="n">draw_spectrum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">db_spectrum</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">spectrogram</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="AudioThumbnailer.thumbnail_spectrogram"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioThumbnailer.thumbnail_spectrogram">[docs]</a>    <span class="k">def</span> <span class="nf">thumbnail_spectrogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">thumb_size</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Takes a spectrogram and creates a thumbnail from it</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">thumb_size</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">thumb_size</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;thumb_size argument should be a tuple(width, height)&#39;</span><span class="p">)</span>
+
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="n">im_w</span><span class="p">,</span> <span class="n">im_h</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">]</span>
+        <span class="n">th_w</span><span class="p">,</span> <span class="n">th_h</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">thumb_size</span><span class="p">]</span>
+
+        <span class="n">wadsworth_position</span> <span class="o">=</span> <span class="n">im_w</span> <span class="o">*</span> <span class="mf">0.3</span>
+
+        <span class="n">start_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span>
+                <span class="n">wadsworth_position</span> <span class="o">-</span> <span class="p">((</span><span class="n">im_h</span> <span class="o">*</span> <span class="p">(</span><span class="n">th_w</span> <span class="o">/</span> <span class="n">th_h</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">),</span>
+                <span class="mf">0.0</span><span class="p">))</span>
+
+        <span class="n">stop_x</span> <span class="o">=</span> <span class="n">start_x</span> <span class="o">+</span> <span class="p">(</span><span class="n">im_h</span> <span class="o">*</span> <span class="p">(</span><span class="n">th_w</span> <span class="o">/</span> <span class="n">th_h</span><span class="p">))</span>
+
+        <span class="n">th</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">crop</span><span class="p">((</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">start_x</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">stop_x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">im_h</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">th</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">th_w</span> <span class="ow">or</span> <span class="n">th</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">th_h</span><span class="p">:</span>
+            <span class="n">th</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">(</span><span class="n">thumb_size</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+
+        <span class="n">th</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="AudioTranscoder"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioTranscoder">[docs]</a><span class="k">class</span> <span class="nc">AudioTranscoder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+
+        <span class="c"># Instantiate MainLoop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span> <span class="o">=</span> <span class="n">gobject</span><span class="o">.</span><span class="n">MainLoop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_failed</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="AudioTranscoder.discover"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioTranscoder.discover">[docs]</a>    <span class="k">def</span> <span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_src_path</span> <span class="o">=</span> <span class="n">src</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Discovering {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovery_path</span> <span class="o">=</span> <span class="n">src</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discoverer</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">extend</span><span class="o">.</span><span class="n">discoverer</span><span class="o">.</span><span class="n">Discoverer</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_discovery_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discoverer</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;discovered&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__on_discovered</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discoverer</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>  <span class="c"># Run MainLoop</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_failed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">_failed</span>
+
+        <span class="c"># Once MainLoop has returned, return discovery data</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_discovery_data&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__on_discovered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">is_media</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_media</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_failed</span> <span class="o">=</span> <span class="n">BadMediaFail</span><span class="p">()</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Could not discover {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_src_path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">halt</span><span class="p">()</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Discovered: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">__dict__</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovery_data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c"># Gracefully shut down MainLoop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">halt</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AudioTranscoder.transcode"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioTranscoder.transcode">[docs]</a>    <span class="k">def</span> <span class="nf">transcode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Transcoding {0} into {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_discovery_data</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__on_progress</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;progress_callback&#39;</span><span class="p">)</span>
+
+        <span class="n">quality</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;quality&#39;</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="n">mux_string</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">&#39;mux_string&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vorbisenc quality={0} ! webmmux&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quality</span><span class="p">))</span>
+
+        <span class="c"># Set up pipeline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">gst</span><span class="o">.</span><span class="n">parse_launch</span><span class="p">(</span>
+            <span class="s">&#39;filesrc location=&quot;{src}&quot; ! &#39;</span>
+            <span class="s">&#39;decodebin2 ! queue ! audiorate tolerance={tolerance} ! &#39;</span>
+            <span class="s">&#39;audioconvert ! audio/x-raw-float,channels=2 ! &#39;</span>
+            <span class="s">&#39;{mux_string} ! &#39;</span>
+            <span class="s">&#39;progressreport silent=true ! &#39;</span>
+            <span class="s">&#39;filesink location=&quot;{dst}&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">,</span>
+                <span class="n">tolerance</span><span class="o">=</span><span class="mi">80000000</span><span class="p">,</span>
+                <span class="n">mux_string</span><span class="o">=</span><span class="n">mux_string</span><span class="p">,</span>
+                <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">get_bus</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">add_signal_watch</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bus</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__on_bus_message</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_PLAYING</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</div>
+    <span class="k">def</span> <span class="nf">__on_bus_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bus</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_ELEMENT</span>
+            <span class="ow">and</span> <span class="n">message</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;progress&#39;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__on_progress</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__on_progress</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;{0}</span><span class="si">% d</span><span class="s">one...&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;percent&#39;</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="n">message</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">gst</span><span class="o">.</span><span class="n">MESSAGE_EOS</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Done&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">halt</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AudioTranscoder.halt"><a class="viewcode-back" href="../../../../mediagoblin.media_types.audio.html#mediagoblin.media_types.audio.transcoders.AudioTranscoder.halt">[docs]</a>    <span class="k">def</span> <span class="nf">halt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;pipeline&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">gst</span><span class="o">.</span><span class="n">STATE_NULL</span><span class="p">)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Quitting MainLoop gracefully...&#39;</span><span class="p">)</span>
+        <span class="n">gobject</span><span class="o">.</span><span class="n">idle_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+    <span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="c">#transcoder = AudioTranscoder()</span>
+    <span class="c">#data = transcoder.discover(sys.argv[1])</span>
+    <span class="c">#res = transcoder.transcode(*sys.argv[1:3])</span>
+
+    <span class="n">thumbnailer</span> <span class="o">=</span> <span class="n">AudioThumbnailer</span><span class="p">()</span>
+
+    <span class="n">thumbnailer</span><span class="o">.</span><span class="n">spectrogram</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">)</span>
+
+    <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

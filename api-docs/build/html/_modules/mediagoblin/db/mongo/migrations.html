@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.db.mongo.migrations &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.db.mongo.migrations</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo.util</span> <span class="kn">import</span> <span class="n">RegisterMigration</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.text</span> <span class="kn">import</span> <span class="n">cleaned_markdown_conversion</span>
+
+
+<div class="viewcode-block" id="add_table_field"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.add_table_field">[docs]</a><span class="k">def</span> <span class="nf">add_table_field</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">default_value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a new field to the table/collection named table_name.</span>
+<span class="sd">    The field will have the name field_name and the value default_value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">field_name</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">field_name</span><span class="p">:</span> <span class="n">default_value</span><span class="p">}},</span>
+        <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="drop_table_field"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.drop_table_field">[docs]</a><span class="k">def</span> <span class="nf">drop_table_field</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">field_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drop an old field from a table/collection</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">db</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">field_name</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;$unset&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">field_name</span><span class="p">:</span> <span class="mi">1</span><span class="p">}},</span>
+        <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="c"># Please see mediagoblin/tests/test_migrations.py for some examples of</span>
+<span class="c"># basic migrations.</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<div class="viewcode-block" id="user_add_bio_html"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.user_add_bio_html">[docs]</a><span class="k">def</span> <span class="nf">user_add_bio_html</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Users now have richtext bios via Markdown, reflect appropriately.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;users&#39;</span><span class="p">]</span>
+
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;bio_html&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">document</span><span class="p">[</span><span class="s">&#39;bio_html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaned_markdown_conversion</span><span class="p">(</span>
+            <span class="n">document</span><span class="p">[</span><span class="s">&#39;bio&#39;</span><span class="p">])</span>
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="viewcode-block" id="mediaentry_mediafiles_main_to_original"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.mediaentry_mediafiles_main_to_original">[docs]</a><span class="k">def</span> <span class="nf">mediaentry_mediafiles_main_to_original</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rename &quot;main&quot; media file to &quot;original&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;media_files.main&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">original</span> <span class="o">=</span> <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;main&#39;</span><span class="p">)</span>
+        <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_files&#39;</span><span class="p">][</span><span class="s">&#39;original&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original</span>
+
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class="viewcode-block" id="mediaentry_remove_thumbnail_file"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.mediaentry_remove_thumbnail_file">[docs]</a><span class="k">def</span> <span class="nf">mediaentry_remove_thumbnail_file</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use media_files[&#39;thumb&#39;] instead of media_entries[&#39;thumbnail_file&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;thumbnail_file&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;$unset&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;thumbnail_file&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}},</span>
+        <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<div class="viewcode-block" id="mediaentry_add_queued_task_id"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.mediaentry_add_queued_task_id">[docs]</a><span class="k">def</span> <span class="nf">mediaentry_add_queued_task_id</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add the &#39;queued_task_id&#39; field for entries that don&#39;t have it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_entries&#39;</span><span class="p">,</span> <span class="s">&#39;queued_task_id&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<div class="viewcode-block" id="mediaentry_add_fail_error_and_metadata"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.mediaentry_add_fail_error_and_metadata">[docs]</a><span class="k">def</span> <span class="nf">mediaentry_add_fail_error_and_metadata</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add &#39;fail_error&#39; and &#39;fail_metadata&#39; fields to media entries</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_entries&#39;</span><span class="p">,</span> <span class="s">&#39;fail_error&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_entries&#39;</span><span class="p">,</span> <span class="s">&#39;fail_metadata&#39;</span><span class="p">,</span> <span class="p">{})</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<div class="viewcode-block" id="user_add_forgot_password_token_and_expires"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.user_add_forgot_password_token_and_expires">[docs]</a><span class="k">def</span> <span class="nf">user_add_forgot_password_token_and_expires</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add token and expiration fields to help recover forgotten passwords</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;fp_verification_key&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;fp_token_expire&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<div class="viewcode-block" id="media_type_image_to_multimedia_type_image"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.media_type_image_to_multimedia_type_image">[docs]</a><span class="k">def</span> <span class="nf">media_type_image_to_multimedia_type_image</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;media_type&#39;</span><span class="p">:</span> <span class="s">&#39;image&#39;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;media_type&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.media_types.image&#39;</span><span class="p">}},</span>
+        <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<div class="viewcode-block" id="mediaentry_add_license"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.mediaentry_add_license">[docs]</a><span class="k">def</span> <span class="nf">mediaentry_add_license</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add the &#39;license&#39; field for entries that don&#39;t have it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_entries&#39;</span><span class="p">,</span> <span class="s">&#39;license&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+<div class="viewcode-block" id="remove_calculated_html"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.remove_calculated_html">[docs]</a><span class="k">def</span> <span class="nf">remove_calculated_html</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drop pre-rendered html again and calculate things</span>
+<span class="sd">    on the fly (and cache):</span>
+<span class="sd">    - User.bio_html</span>
+<span class="sd">    - MediaEntry.description_html</span>
+<span class="sd">    - MediaComment.content_html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">drop_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="s">&#39;bio_html&#39;</span><span class="p">)</span>
+    <span class="n">drop_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_entries&#39;</span><span class="p">,</span> <span class="s">&#39;description_html&#39;</span><span class="p">)</span>
+    <span class="n">drop_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;media_comments&#39;</span><span class="p">,</span> <span class="s">&#39;content_html&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<div class="viewcode-block" id="convert_video_media_data"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.convert_video_media_data">[docs]</a><span class="k">def</span> <span class="nf">convert_video_media_data</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move media_data[&quot;video&quot;] directly into media_data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;media_data.video&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">][</span><span class="s">&#39;video&#39;</span><span class="p">]</span>
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+<div class="viewcode-block" id="convert_gps_media_data"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.convert_gps_media_data">[docs]</a><span class="k">def</span> <span class="nf">convert_gps_media_data</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move media_data[&quot;gps&quot;][&quot;*&quot;] to media_data[&quot;gps_*&quot;].</span>
+<span class="sd">    In preparation for media_data.gps_*</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;media_data.gps&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">][</span><span class="s">&#39;gps&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">][</span><span class="s">&#39;gps_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">del</span> <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">][</span><span class="s">&#39;gps&#39;</span><span class="p">]</span>
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<div class="viewcode-block" id="convert_exif_media_data"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.migrations.convert_exif_media_data">[docs]</a><span class="k">def</span> <span class="nf">convert_exif_media_data</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move media_data[&quot;exif&quot;][&quot;clean&quot;] to media_data[&quot;exif_all&quot;].</span>
+<span class="sd">    Drop media_data[&quot;exif&quot;][&quot;useful&quot;]</span>
+<span class="sd">    In preparation for media_data.exif_all</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;media_data.exif.clean&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">media_data</span> <span class="o">=</span> <span class="n">document</span><span class="p">[</span><span class="s">&#39;media_data&#39;</span><span class="p">]</span>
+
+        <span class="n">exif_all</span> <span class="o">=</span> <span class="n">media_data</span><span class="p">[</span><span class="s">&#39;exif&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;clean&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exif_all</span><span class="p">):</span>
+            <span class="n">media_data</span><span class="p">[</span><span class="s">&#39;exif_all&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">exif_all</span>
+
+        <span class="k">del</span> <span class="n">media_data</span><span class="p">[</span><span class="s">&#39;exif&#39;</span><span class="p">][</span><span class="s">&#39;useful&#39;</span><span class="p">]</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">media_data</span><span class="p">[</span><span class="s">&#39;exif&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">del</span> <span class="n">media_data</span><span class="p">[</span><span class="s">&#39;exif&#39;</span><span class="p">]</span>
+
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

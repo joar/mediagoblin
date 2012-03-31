@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>storage Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="storage-package">
+<h1>storage Package<a class="headerlink" href="#storage-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">storage</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.storage"></span><dl class="exception">
+<dt id="mediagoblin.storage.Error">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">Error</tt><a class="reference internal" href="_modules/mediagoblin/storage.html#Error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.storage.InvalidFilepath">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">InvalidFilepath</tt><a class="reference internal" href="_modules/mediagoblin/storage.html#InvalidFilepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.InvalidFilepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.Error" title="mediagoblin.storage.Error"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.Error</span></tt></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.storage.NoWebServing">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">NoWebServing</tt><a class="reference internal" href="_modules/mediagoblin/storage.html#NoWebServing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.NoWebServing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.Error" title="mediagoblin.storage.Error"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.Error</span></tt></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.storage.NotImplementedError">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">NotImplementedError</tt><a class="reference internal" href="_modules/mediagoblin/storage.html#NotImplementedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.NotImplementedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.Error" title="mediagoblin.storage.Error"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.Error</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.storage.StorageInterface">
+<em class="property">class </em><tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">StorageInterface</tt><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Interface for the storage API.</p>
+<p>This interface doesn&#8217;t actually provide behavior, but it defines
+what kind of storage patterns subclasses should provide.</p>
+<p>It is important to note that the storage API idea of a &#8220;filepath&#8221;
+is actually like [&#8216;dir1&#8217;, &#8216;dir2&#8217;, &#8216;file.jpg&#8217;], so keep that in
+mind while reading method documentation.</p>
+<p>You should set up your __init__ method with whatever keyword
+arguments are appropriate to your storage system, but you should
+also passively accept all extraneous keyword arguments like:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>def __init__(self, <a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs):</dt>
+<dd>pass</dd>
+</dl>
+</div></blockquote>
+<p>See BasicFileStorage as a simple implementation of the
+StorageInterface.</p>
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.copy_local_to_storage">
+<tt class="descname">copy_local_to_storage</tt><big>(</big><em>filename</em>, <em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.copy_local_to_storage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.copy_local_to_storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy this file from locally to the storage system.</p>
+<p>This is kind of the opposite of copy_locally.  It&#8217;s likely you
+could override this method with something more appropriate to
+your storage system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.copy_locally">
+<tt class="descname">copy_locally</tt><big>(</big><em>filepath</em>, <em>dest_path</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.copy_locally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.copy_locally" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy this file locally.</p>
+<p>A basic working method for this is provided that should
+function both for local_storage systems and remote storge
+systems, but if more efficient systems for copying locally
+apply to your system, override this method with something more
+appropriate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.delete_file">
+<tt class="descname">delete_file</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.delete_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete or dereference the file at filepath.</p>
+<p>This might need to delete directories, buckets, whatever, for
+cleanliness.  (Be sure to avoid race conditions on that though)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.file_exists">
+<tt class="descname">file_exists</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.file_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.file_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a boolean asserting whether or not file at filepath
+exists in our storage system.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>True / False depending on whether file exists or not.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.file_url">
+<tt class="descname">file_url</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.file_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the URL for this file.  This assumes our storage has been
+mounted with some kind of URL which makes this possible.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.get_file">
+<tt class="descname">get_file</tt><big>(</big><em>filepath</em>, <em>mode='r'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.get_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a file-like object for reading/writing from this filepath.</p>
+<p>Should create directories, buckets, whatever, as necessary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.get_local_path">
+<tt class="descname">get_local_path</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.get_local_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.get_local_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this is a local_storage implementation, give us a link to
+the local filesystem reference to this file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">storage_handler</span><span class="o">.</span><span class="n">get_local_path</span><span class="p">([</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">,</span> <span class="s">&#39;baz.jpg&#39;</span><span class="p">])</span>
+<span class="go">u&#39;/path/to/mounting/foo/bar/baz.jpg&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.StorageInterface.get_unique_filepath">
+<tt class="descname">get_unique_filepath</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#StorageInterface.get_unique_filepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.StorageInterface.get_unique_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a filename at filepath already exists, generate a new name.</p>
+<p>Eg, if the filename doesn&#8217;t exist:
+&gt;&gt;&gt; storage_handler.get_unique_filename([&#8216;dir1&#8217;, &#8216;dir2&#8217;, &#8216;fname.jpg&#8217;])
+[u&#8217;dir1&#8217;, u&#8217;dir2&#8217;, u&#8217;fname.jpg&#8217;]</p>
+<p>But if a file does exist, let&#8217;s get one back with at uuid tacked on:
+&gt;&gt;&gt; storage_handler.get_unique_filename([&#8216;dir1&#8217;, &#8216;dir2&#8217;, &#8216;fname.jpg&#8217;])
+[u&#8217;dir1&#8217;, u&#8217;dir2&#8217;, u&#8217;d02c3571-dd62-4479-9d62-9e3012dada29-fname.jpg&#8217;]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.storage.StorageInterface.local_storage">
+<tt class="descname">local_storage</tt><em class="property"> = False</em><a class="headerlink" href="#mediagoblin.storage.StorageInterface.local_storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.storage.clean_listy_filepath">
+<tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">clean_listy_filepath</tt><big>(</big><em>listy_filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#clean_listy_filepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.clean_listy_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a listy filepath (like [&#8216;dir1&#8217;, &#8216;dir2&#8217;, &#8216;filename.jpg&#8217;]) and
+clean out any nastiness from it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">clean_listy_filepath</span><span class="p">([</span><span class="s">u&#39;/dir1/&#39;</span><span class="p">,</span> <span class="s">u&#39;foo/../nasty&#39;</span><span class="p">,</span> <span class="s">u&#39;linooks.jpg&#39;</span><span class="p">])</span>
+<span class="go">[u&#39;dir1&#39;, u&#39;foo_.._nasty&#39;, u&#39;linooks.jpg&#39;]</span>
+</pre></div>
+</div>
+<p>Args:
+- listy_filepath: a list of filepath components, mediagoblin</p>
+<blockquote>
+<div>storage API style.</div></blockquote>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A cleaned list of unicode objects.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.storage.storage_system_from_config">
+<tt class="descclassname">mediagoblin.storage.</tt><tt class="descname">storage_system_from_config</tt><big>(</big><em>config_section</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage.html#storage_system_from_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.storage_system_from_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility for setting up a storage system from a config section.</p>
+<p>Note that a special argument may be passed in to
+the config_section which is &#8220;storage_class&#8221; which will provide an
+import path to a storage system.  This defaults to
+&#8220;mediagoblin.storage:BasicFileStorage&#8221; if otherwise undefined.</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><ul class="first last simple">
+<li>config_section: dictionary of config parameters</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd>An instantiated storage system.</dd>
+<dt>Example:</dt>
+<dd><dl class="first last docutils">
+<dt>storage_system_from_config(</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>{&#8216;base_url&#8217;: &#8216;/media/&#8217;,</dt>
+<dd>&#8216;base_dir&#8217;: &#8216;/var/whatever/media/&#8217;})</dd>
+</dl>
+</div></blockquote>
+<dl class="last docutils">
+<dt>Will return:</dt>
+<dd><dl class="first last docutils">
+<dt>BasicFileStorage(</dt>
+<dd>base_url=&#8217;/media/&#8217;,
+base_dir=&#8217;/var/whatever/media&#8217;)</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.storage.cloudfiles">
+<span id="cloudfiles-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">cloudfiles</span></tt> Module<a class="headerlink" href="#module-mediagoblin.storage.cloudfiles" title="Permalink to this headline">¶</a></h2>
+<p>Make it so that <tt class="docutils literal"><span class="pre">import</span> <span class="pre">cloudfiles</span></tt> does not pick THIS file, but the
+python-cloudfiles one.</p>
+<p><a class="reference external" href="http://docs.python.org/whatsnew/2.5.html#pep-328-absolute-and-relative-imports">http://docs.python.org/whatsnew/2.5.html#pep-328-absolute-and-relative-imports</a></p>
+<dl class="class">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.storage.cloudfiles.</tt><tt class="descname">CloudFilesStorage</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.StorageInterface" title="mediagoblin.storage.StorageInterface"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.StorageInterface</span></tt></a></p>
+<p>OpenStack/Rackspace Cloud&#8217;s Swift/CloudFiles support</p>
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage.delete_file">
+<tt class="descname">delete_file</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorage.delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage.delete_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage.file_exists">
+<tt class="descname">file_exists</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorage.file_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage.file_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage.file_url">
+<tt class="descname">file_url</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorage.file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage.file_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage.get_file">
+<tt class="descname">get_file</tt><big>(</big><em>filepath</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorage.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage.get_file" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li>Doesn&#8217;t care about the &#8220;mode&#8221; argument</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorage.local_storage">
+<tt class="descname">local_storage</tt><em class="property"> = False</em><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorage.local_storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper">
+<em class="property">class </em><tt class="descclassname">mediagoblin.storage.cloudfiles.</tt><tt class="descname">CloudFilesStorageObjectWrapper</tt><big>(</big><em>storage_object</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorageObjectWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for python-cloudfiles&#8217;s cloudfiles.storage_object.Object
+used to circumvent the mystic <cite>medium.jpg</cite> corruption issue, where
+we had both python-cloudfiles and PIL doing buffering on both
+ends and that breaking things.</p>
+<p>This wrapper currently meets mediagoblin&#8217;s needs for a public_store
+file-like object.</p>
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorageObjectWrapper.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.read">
+<tt class="descname">read</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorageObjectWrapper.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.write">
+<tt class="descname">write</tt><big>(</big><em>data</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/cloudfiles.html#CloudFilesStorageObjectWrapper.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.cloudfiles.CloudFilesStorageObjectWrapper.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>write data to the cloudfiles storage object</p>
+<p>The original motivation for this wrapper is to ensure
+that buffered writing to a cloudfiles storage object does not overwrite
+any preexisting data.</p>
+<p>Currently this method does not support any write modes except &#8220;append&#8221;.
+However if we should need it it would be easy implement.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.storage.filestorage">
+<span id="filestorage-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">filestorage</span></tt> Module<a class="headerlink" href="#module-mediagoblin.storage.filestorage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.storage.filestorage.</tt><tt class="descname">BasicFileStorage</tt><big>(</big><em>base_dir</em>, <em>base_url=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.StorageInterface" title="mediagoblin.storage.StorageInterface"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.StorageInterface</span></tt></a></p>
+<p>Basic local filesystem implementation of storage API</p>
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.copy_local_to_storage">
+<tt class="descname">copy_local_to_storage</tt><big>(</big><em>filename</em>, <em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.copy_local_to_storage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.copy_local_to_storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy this file from locally to the storage system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.delete_file">
+<tt class="descname">delete_file</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.delete_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.file_exists">
+<tt class="descname">file_exists</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.file_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.file_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.file_url">
+<tt class="descname">file_url</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.file_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.get_file">
+<tt class="descname">get_file</tt><big>(</big><em>filepath</em>, <em>mode='r'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.get_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.get_local_path">
+<tt class="descname">get_local_path</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/filestorage.html#BasicFileStorage.get_local_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.get_local_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.storage.filestorage.BasicFileStorage.local_storage">
+<tt class="descname">local_storage</tt><em class="property"> = True</em><a class="headerlink" href="#mediagoblin.storage.filestorage.BasicFileStorage.local_storage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.storage.mountstorage">
+<span id="mountstorage-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mountstorage</span></tt> Module<a class="headerlink" href="#module-mediagoblin.storage.mountstorage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.storage.mountstorage.MountStorage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.storage.mountstorage.</tt><tt class="descname">MountStorage</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.storage.StorageInterface" title="mediagoblin.storage.StorageInterface"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.storage.StorageInterface</span></tt></a></p>
+<p>Experimental &#8220;Mount&#8221; virtual Storage Interface</p>
+<p>This isn&#8217;t an interface to some real storage, instead it&#8217;s a
+redirecting interface, that redirects requests to other
+&#8220;StorageInterface&#8221;s.</p>
+<p>For example, say you have the paths:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>[&#8216;user_data&#8217;, &#8216;cwebber&#8217;, &#8216;avatar.jpg&#8217;]</li>
+<li>[&#8216;user_data&#8217;, &#8216;elrond&#8217;, &#8216;avatar.jpg&#8217;]</li>
+<li>[&#8216;media_entries&#8217;, &#8216;34352f304c3f4d0ad8ad0f043522b6f2&#8217;, &#8216;thumb.jpg&#8217;]</li>
+</ol>
+</div></blockquote>
+<p>You could mount media_entries under CloudFileStorage and user_data
+under BasicFileStorage.  Then 1 would be passed to
+BasicFileStorage under the path [&#8216;cwebber&#8217;, &#8216;avatar.jpg&#8217;] and 3
+would be passed to CloudFileStorage under
+[&#8216;34352f304c3f4d0ad8ad0f043522b6f2&#8217;, &#8216;thumb.jpg&#8217;].</p>
+<p>In other words, this is kind of like mounting /home/ and /etc/
+under different filesystems on your operating system... but with
+mediagoblin filestorages :)</p>
+<p>To set this up, you currently need to call the mount() method with
+the target path and a backend, that shall be available under that
+target path.  You have to mount things in a sensible order,
+especially you can&#8217;t mount [&#8220;a&#8221;, &#8220;b&#8221;] before [&#8220;a&#8221;].</p>
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.copy_locally">
+<tt class="descname">copy_locally</tt><big>(</big><em>filepath</em>, <em>dest_path</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.copy_locally"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.copy_locally" title="Permalink to this definition">¶</a></dt>
+<dd><p>Need to override copy_locally, because the local_storage
+attribute is not correct.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.delete_file">
+<tt class="descname">delete_file</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.delete_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.file_exists">
+<tt class="descname">file_exists</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.file_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.file_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.file_url">
+<tt class="descname">file_url</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.file_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.file_url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.get_file">
+<tt class="descname">get_file</tt><big>(</big><em>filepath</em>, <em>mode='r'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.get_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.get_local_path">
+<tt class="descname">get_local_path</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.get_local_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.get_local_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.mount">
+<tt class="descname">mount</tt><big>(</big><em>dirpath</em>, <em>backend</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.mount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.mount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mount a new backend under dirpath</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.storage.mountstorage.MountStorage.resolve_to_backend">
+<tt class="descname">resolve_to_backend</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/storage/mountstorage.html#MountStorage.resolve_to_backend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.storage.mountstorage.MountStorage.resolve_to_backend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="webdav-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">webdav</span></tt> Module<a class="headerlink" href="#webdav-module" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">storage Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">storage</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.storage.cloudfiles"><tt class="docutils literal"><span class="pre">cloudfiles</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.storage.filestorage"><tt class="docutils literal"><span class="pre">filestorage</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.storage.mountstorage"><tt class="docutils literal"><span class="pre">mountstorage</span></tt> Module</a></li>
+<li><a class="reference internal" href="#webdav-module"><tt class="docutils literal"><span class="pre">webdav</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.storage.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

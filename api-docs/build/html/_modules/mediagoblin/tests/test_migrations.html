@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_migrations &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_migrations</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_raises</span>
+<span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">Connection</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tests.tools</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">install_fixtures_simple</span><span class="p">,</span> <span class="n">assert_db_meets_expected</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo.util</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">RegisterMigration</span><span class="p">,</span> <span class="n">MigrationManager</span><span class="p">,</span> <span class="n">ObjectId</span><span class="p">,</span>
+    <span class="n">MissingCurrentMigration</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo.migrations</span> <span class="kn">import</span> <span class="n">add_table_field</span>
+
+<span class="c"># This one will get filled with local migrations</span>
+<span class="n">TEST_MIGRATION_REGISTRY</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c"># this one won&#39;t get filled</span>
+<span class="n">TEST_EMPTY_MIGRATION_REGISTRY</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">MIGRATION_DB_NAME</span> <span class="o">=</span> <span class="s">u&#39;__mediagoblin_test_migrations__&#39;</span>
+
+
+<span class="c">######################</span>
+<span class="c"># Fake test migrations</span>
+<span class="c">######################</span>
+
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">TEST_MIGRATION_REGISTRY</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_add_magical_powers"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.creature_add_magical_powers">[docs]</a><span class="k">def</span> <span class="nf">creature_add_magical_powers</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add lists of magical powers.</span>
+
+<span class="sd">    This defaults to [], an empty list.  Since we haven&#39;t declared any</span>
+<span class="sd">    magical powers, all existing monsters, setting to an empty list is</span>
+<span class="sd">    fine.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">add_table_field</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s">&#39;creatures&#39;</span><span class="p">,</span> <span class="s">&#39;magical_powers&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">TEST_MIGRATION_REGISTRY</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_rename_num_legs_to_num_limbs"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.creature_rename_num_legs_to_num_limbs">[docs]</a><span class="k">def</span> <span class="nf">creature_rename_num_legs_to_num_limbs</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    It turns out we want to track how many limbs a creature has, not</span>
+<span class="sd">    just how many legs.  We don&#39;t care about the ambiguous distinction</span>
+<span class="sd">    between arms/legs currently.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># $rename not available till 1.7.2+, Debian Stable only includes</span>
+    <span class="c"># 1.4.4... we should do renames manually for now :(</span>
+
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;creatures&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;num_legs&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">document</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="c"># A lame manual renaming.</span>
+        <span class="n">document</span><span class="p">[</span><span class="s">&#39;num_limbs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;num_legs&#39;</span><span class="p">)</span>
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">TEST_MIGRATION_REGISTRY</span><span class="p">)</span>
+<div class="viewcode-block" id="creature_remove_is_demon"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.creature_remove_is_demon">[docs]</a><span class="k">def</span> <span class="nf">creature_remove_is_demon</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    It turns out we don&#39;t care much about whether creatures are demons</span>
+<span class="sd">    or not.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">database</span><span class="p">[</span><span class="s">&#39;creatures&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;$unset&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}},</span>
+        <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<span class="nd">@RegisterMigration</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">TEST_MIGRATION_REGISTRY</span><span class="p">)</span>
+<div class="viewcode-block" id="level_exits_dict_to_list"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.level_exits_dict_to_list">[docs]</a><span class="k">def</span> <span class="nf">level_exits_dict_to_list</span><span class="p">(</span><span class="n">database</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For the sake of the indexes we want to write, and because we</span>
+<span class="sd">    intend to add more flexible fields, we want to move level exits</span>
+<span class="sd">    from like:</span>
+
+<span class="sd">      {&#39;big_door&#39;: &#39;castle_level_id&#39;,</span>
+<span class="sd">       &#39;trapdoor&#39;: &#39;dungeon_level_id&#39;}</span>
+
+<span class="sd">    to like:</span>
+
+<span class="sd">      [{&#39;name&#39;: &#39;big_door&#39;,</span>
+<span class="sd">        &#39;exits_to&#39;: &#39;castle_level_id&#39;},</span>
+<span class="sd">       {&#39;name&#39;: &#39;trapdoor&#39;,</span>
+<span class="sd">        &#39;exits_to&#39;: &#39;dungeon_level_id&#39;}]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="s">&#39;levels&#39;</span><span class="p">]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$type&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}})</span>
+
+    <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">target</span><span class="p">:</span>
+        <span class="n">new_exits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">exit_name</span><span class="p">,</span> <span class="n">exits_to</span> <span class="ow">in</span> <span class="n">level</span><span class="p">[</span><span class="s">&#39;exits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_exits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">exit_name</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="n">exits_to</span><span class="p">})</span>
+
+        <span class="n">level</span><span class="p">[</span><span class="s">&#39;exits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_exits</span>
+        <span class="n">collection</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+
+</div>
+<span class="n">CENTIPEDE_OBJECTID</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">()</span>
+<span class="n">WOLF_OBJECTID</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">()</span>
+<span class="n">WIZARDSNAKE_OBJECTID</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">()</span>
+
+<span class="n">UNMIGRATED_DBDATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;creatures&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">CENTIPEDE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;centipede&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_legs&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WOLF_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wolf&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_legs&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+        <span class="c"># don&#39;t ask me what a wizardsnake is.</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WIZARDSNAKE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wizardsnake&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_legs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}],</span>
+    <span class="s">&#39;levels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;The Necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A complex full of pure deathzone.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;deathwell&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+                <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Evil Storm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{}},</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}}]}</span>
+
+
+<span class="n">EXPECTED_POST_MIGRATION_UNMIGRATED_DBDATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;creatures&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">CENTIPEDE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;centipede&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WOLF_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wolf&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+         <span class="c"># kept around namely to check that it *isn&#39;t* removed!</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WIZARDSNAKE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wizardsnake&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[]}],</span>
+    <span class="s">&#39;levels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;The Necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A complex full of pure deathzone.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;deathwell&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;portal&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Evil Storm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[]},</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;portal&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}]}]}</span>
+
+<span class="c"># We want to make sure that if we&#39;re at migration 3, migration 3</span>
+<span class="c"># doesn&#39;t get re-run.</span>
+
+<span class="n">SEMI_MIGRATED_DBDATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;creatures&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">CENTIPEDE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;centipede&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WOLF_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wolf&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+         <span class="c"># kept around namely to check that it *isn&#39;t* removed!</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&#39;ice_breath&#39;</span><span class="p">,</span> <span class="s">&#39;death_stare&#39;</span><span class="p">]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WIZARDSNAKE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wizardsnake&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&#39;death_rattle&#39;</span><span class="p">,</span> <span class="s">&#39;sneaky_stare&#39;</span><span class="p">,</span>
+                <span class="s">&#39;slithery_smoke&#39;</span><span class="p">,</span> <span class="s">&#39;treacherous_tremors&#39;</span><span class="p">],</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}],</span>
+    <span class="s">&#39;levels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;The Necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A complex full of pure deathzone.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;deathwell&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+                <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Evil Storm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{}},</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;portal&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}}]}</span>
+
+
+<span class="n">EXPECTED_POST_MIGRATION_SEMI_MIGRATED_DBDATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;creatures&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">CENTIPEDE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;centipede&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WOLF_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wolf&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+         <span class="c"># kept around namely to check that it *isn&#39;t* removed!</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&#39;ice_breath&#39;</span><span class="p">,</span> <span class="s">&#39;death_stare&#39;</span><span class="p">]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">WIZARDSNAKE_OBJECTID</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;wizardsnake&#39;</span><span class="p">,</span>
+         <span class="s">&#39;num_limbs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s">&#39;magical_powers&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&#39;death_rattle&#39;</span><span class="p">,</span> <span class="s">&#39;sneaky_stare&#39;</span><span class="p">,</span>
+                <span class="s">&#39;slithery_smoke&#39;</span><span class="p">,</span> <span class="s">&#39;treacherous_tremors&#39;</span><span class="p">],</span>
+         <span class="s">&#39;is_demon&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}],</span>
+    <span class="s">&#39;levels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;The Necroplex&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A complex full of pure deathzone.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;deathwell&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;portal&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">}]},</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;evilstorm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Evil Storm&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&#39;A storm full of pure evil.&#39;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[]},</span> <span class="c"># you can&#39;t escape the evilstorm</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="s">&#39;central_park&#39;</span><span class="p">,</span>
+         <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Central Park, NY, NY&#39;</span><span class="p">,</span>
+         <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="s">&quot;New York&#39;s friendly Central Park.&quot;</span><span class="p">,</span>
+         <span class="s">&#39;exits&#39;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;portal&#39;</span><span class="p">,</span>
+                 <span class="s">&#39;exits_to&#39;</span><span class="p">:</span> <span class="s">&#39;necroplex&#39;</span><span class="p">}]}]}</span>
+
+
+<div class="viewcode-block" id="TestMigrations"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations">[docs]</a><span class="k">class</span> <span class="nc">TestMigrations</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TestMigrations.setUp"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Set up the connection, drop an existing possible database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">Connection</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">MIGRATION_DB_NAME</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">Connection</span><span class="p">()[</span><span class="n">MIGRATION_DB_NAME</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">TEST_MIGRATION_REGISTRY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_migration_manager</span> <span class="o">=</span> <span class="n">MigrationManager</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">TEST_EMPTY_MIGRATION_REGISTRY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span> <span class="o">=</span> <span class="p">[]</span>
+</div>
+<div class="viewcode-block" id="TestMigrations.tearDown"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">MIGRATION_DB_NAME</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_record_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TestMigrations.test_migrations_registered_and_sorted"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_migrations_registered_and_sorted">[docs]</a>    <span class="k">def</span> <span class="nf">test_migrations_registered_and_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure that migrations get registered and are sorted right</span>
+<span class="sd">        in the migration manager</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">TEST_MIGRATION_REGISTRY</span> <span class="o">==</span> <span class="p">{</span>
+            <span class="mi">1</span><span class="p">:</span> <span class="n">creature_add_magical_powers</span><span class="p">,</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="n">creature_rename_num_legs_to_num_limbs</span><span class="p">,</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="n">creature_remove_is_demon</span><span class="p">,</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="n">level_exits_dict_to_list</span><span class="p">}</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">sorted_migrations</span> <span class="o">==</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">creature_add_magical_powers</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">creature_rename_num_legs_to_num_limbs</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">creature_remove_is_demon</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">level_exits_dict_to_list</span><span class="p">)]</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_migration_manager</span><span class="o">.</span><span class="n">sorted_migrations</span> <span class="o">==</span> <span class="p">[]</span>
+</div>
+<div class="viewcode-block" id="TestMigrations.test_run_full_migrations"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_run_full_migrations">[docs]</a>    <span class="k">def</span> <span class="nf">test_run_full_migrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure that running the full migration suite from 0 updates</span>
+<span class="sd">        everything</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">install_fixtures_simple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">UNMIGRATED_DBDATA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrate_new</span><span class="p">(</span><span class="n">post_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_record_migration</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span> <span class="o">==</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">creature_add_magical_powers</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">creature_rename_num_legs_to_num_limbs</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">creature_remove_is_demon</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">level_exits_dict_to_list</span><span class="p">)]</span>
+
+        <span class="n">assert_db_meets_expected</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">EXPECTED_POST_MIGRATION_UNMIGRATED_DBDATA</span><span class="p">)</span>
+
+        <span class="c"># Make sure the migration is recorded correctly</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+
+        <span class="c"># run twice!  It should do nothing the second time.</span>
+        <span class="c"># ------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrate_new</span><span class="p">(</span><span class="n">post_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_record_migration</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span> <span class="o">==</span> <span class="p">[]</span>
+        <span class="n">assert_db_meets_expected</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">EXPECTED_POST_MIGRATION_UNMIGRATED_DBDATA</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+
+</div>
+<div class="viewcode-block" id="TestMigrations.test_run_partial_migrations"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_run_partial_migrations">[docs]</a>    <span class="k">def</span> <span class="nf">test_run_partial_migrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure that running full migration suite from 3 only runs</span>
+<span class="sd">        last migration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="n">install_fixtures_simple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">SEMI_MIGRATED_DBDATA</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrate_new</span><span class="p">(</span><span class="n">post_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_record_migration</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_migrations</span> <span class="o">==</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">level_exits_dict_to_list</span><span class="p">)]</span>
+
+        <span class="n">assert_db_meets_expected</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">EXPECTED_POST_MIGRATION_SEMI_MIGRATED_DBDATA</span><span class="p">)</span>
+
+        <span class="c"># Make sure the migration is recorded correctly</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+</div>
+<div class="viewcode-block" id="TestMigrations.test_migrations_recorded_as_latest"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_migrations_recorded_as_latest">[docs]</a>    <span class="k">def</span> <span class="nf">test_migrations_recorded_as_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure that if we don&#39;t have a migration_status</span>
+<span class="sd">        pre-recorded it&#39;s marked as the latest</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">install_migration_version_if_missing</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span>
+</div>
+<div class="viewcode-block" id="TestMigrations.test_no_migrations_recorded_as_zero"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_no_migrations_recorded_as_zero">[docs]</a>    <span class="k">def</span> <span class="nf">test_no_migrations_recorded_as_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure that if we don&#39;t have a migration_status</span>
+<span class="sd">        but there *are* no migrations that it&#39;s marked as 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">empty_migration_manager</span><span class="o">.</span><span class="n">install_migration_version_if_missing</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_migration_manager</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="TestMigrations.test_migrations_to_run"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_migrations_to_run">[docs]</a>    <span class="k">def</span> <span class="nf">test_migrations_to_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure we get the right list of migrations to run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">creature_add_magical_powers</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">creature_rename_num_legs_to_num_limbs</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">creature_remove_is_demon</span><span class="p">),</span>
+            <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">level_exits_dict_to_list</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span>
+            <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">level_exits_dict_to_list</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">()</span> <span class="o">==</span> <span class="p">[]</span>
+
+</div>
+<div class="viewcode-block" id="TestMigrations.test_no_migrations_raises_exception"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_migrations.TestMigrations.test_no_migrations_raises_exception">[docs]</a>    <span class="k">def</span> <span class="nf">test_no_migrations_raises_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If we don&#39;t have the current migration set in the database,</span>
+<span class="sd">        this should error out.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">assert_raises</span><span class="p">(</span>
+            <span class="n">MissingCurrentMigration</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">migration_manager</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

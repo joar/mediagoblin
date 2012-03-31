@@ -1,0 +1,496 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tools-package">
+<h1>tools Package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-mediagoblin.tools.common">
+<span id="common-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">common</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.common" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.common.import_component">
+<tt class="descclassname">mediagoblin.tools.common.</tt><tt class="descname">import_component</tt><big>(</big><em>import_string</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/common.html#import_component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.common.import_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import a module component defined by STRING.  Probably a method,
+class, or global variable.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>import_string: a string that defines what to import.  Written
+in the format of &#8220;module1.module2:component&#8221;</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.exif">
+<span id="exif-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">exif</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.exif" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.exif.clean_exif">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">clean_exif</tt><big>(</big><em>exif</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#clean_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.clean_exif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean the result from anything the database cannot handle</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.exif.exif_fix_image_orientation">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">exif_fix_image_orientation</tt><big>(</big><em>im</em>, <em>exif_tags</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#exif_fix_image_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.exif_fix_image_orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate any EXIF orientation to raw orientation</p>
+<p>Cons:
+- REDUCES IMAGE QUALITY by recompressig it</p>
+<p>Pros:
+- Cures my neck pain</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.exif.exif_image_needs_rotation">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">exif_image_needs_rotation</tt><big>(</big><em>exif_tags</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#exif_image_needs_rotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.exif_image_needs_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if EXIF orientation requires rotation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.exif.extract_exif">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">extract_exif</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#extract_exif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.extract_exif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns EXIF tags found in file at <tt class="docutils literal"><span class="pre">filename</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.exif.get_gps_data">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">get_gps_data</tt><big>(</big><em>tags</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#get_gps_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.get_gps_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes EXIF data returned by EXIF.py</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.exif.get_useful">
+<tt class="descclassname">mediagoblin.tools.exif.</tt><tt class="descname">get_useful</tt><big>(</big><em>tags</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/exif.html#get_useful"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.exif.get_useful" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.files">
+<span id="files-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">files</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.files" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.files.delete_media_files">
+<tt class="descclassname">mediagoblin.tools.files.</tt><tt class="descname">delete_media_files</tt><big>(</big><em>media</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/files.html#delete_media_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.files.delete_media_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all files associated with a MediaEntry</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><ul class="first last simple">
+<li>media: A MediaEntry document</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.licenses">
+<span id="licenses-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">licenses</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.licenses" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.licenses.licenses_as_choices">
+<tt class="descclassname">mediagoblin.tools.licenses.</tt><tt class="descname">licenses_as_choices</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/licenses.html#licenses_as_choices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.licenses.licenses_as_choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.mail">
+<span id="mail-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mail</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.mail" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.tools.mail.FakeMhost">
+<em class="property">class </em><tt class="descclassname">mediagoblin.tools.mail.</tt><tt class="descname">FakeMhost</tt><a class="reference internal" href="_modules/mediagoblin/tools/mail.html#FakeMhost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.mail.FakeMhost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Just a fake mail host so we can capture and test messages
+from send_email</p>
+<dl class="method">
+<dt id="mediagoblin.tools.mail.FakeMhost.login">
+<tt class="descname">login</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/mail.html#FakeMhost.login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.mail.FakeMhost.login" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.tools.mail.FakeMhost.sendmail">
+<tt class="descname">sendmail</tt><big>(</big><em>from_addr</em>, <em>to_addrs</em>, <em>message</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/mail.html#FakeMhost.sendmail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.mail.FakeMhost.sendmail" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.mail.send_email">
+<tt class="descclassname">mediagoblin.tools.mail.</tt><tt class="descname">send_email</tt><big>(</big><em>from_addr</em>, <em>to_addrs</em>, <em>subject</em>, <em>message_body</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/mail.html#send_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.mail.send_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple email sending wrapper, use this so we can capture messages
+for unit testing purposes.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>from_addr: address you&#8217;re sending the email from</li>
+<li>to_addrs: list of recipient email addresses</li>
+<li>subject: subject of the email</li>
+<li>message_body: email body text</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.pagination">
+<span id="pagination-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">pagination</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.pagination" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.tools.pagination.Pagination">
+<em class="property">class </em><tt class="descclassname">mediagoblin.tools.pagination.</tt><tt class="descname">Pagination</tt><big>(</big><em>page</em>, <em>cursor</em>, <em>per_page=30</em>, <em>jump_to_id=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Pagination class for mongodb queries.</p>
+<p>Initialization through __init__(self, cursor, page=1, per_page=2),
+get actual data slice through __call__().</p>
+<dl class="method">
+<dt id="mediagoblin.tools.pagination.Pagination.get_page_url">
+<tt class="descname">get_page_url</tt><big>(</big><em>request</em>, <em>page_no</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.get_page_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.get_page_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a new page url based of the request, and the new page number.</p>
+<p>This is a nice wrapper around get_page_url_explicit()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.tools.pagination.Pagination.get_page_url_explicit">
+<tt class="descname">get_page_url_explicit</tt><big>(</big><em>base_url</em>, <em>get_params</em>, <em>page_no</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.get_page_url_explicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.get_page_url_explicit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a page url by adding a page= parameter to the base url</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.tools.pagination.Pagination.has_next">
+<tt class="descname">has_next</tt><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.has_next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.has_next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.tools.pagination.Pagination.has_prev">
+<tt class="descname">has_prev</tt><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.has_prev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.has_prev" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.tools.pagination.Pagination.iter_pages">
+<tt class="descname">iter_pages</tt><big>(</big><em>left_edge=2</em>, <em>left_current=2</em>, <em>right_current=5</em>, <em>right_edge=2</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.iter_pages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.iter_pages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.tools.pagination.Pagination.pages">
+<tt class="descname">pages</tt><a class="reference internal" href="_modules/mediagoblin/tools/pagination.html#Pagination.pages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.pagination.Pagination.pages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.request">
+<span id="request-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">request</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.request" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.request.setup_user_in_request">
+<tt class="descclassname">mediagoblin.tools.request.</tt><tt class="descname">setup_user_in_request</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/request.html#setup_user_in_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.request.setup_user_in_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Examine a request and tack on a request.user parameter if that&#8217;s
+appropriate.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.response">
+<span id="response-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">response</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.response" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.response.redirect">
+<tt class="descclassname">mediagoblin.tools.response.</tt><tt class="descname">redirect</tt><big>(</big><em>request</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/response.html#redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.response.redirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a HTTPFound(), takes a request and then urlgen params</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.response.render_404">
+<tt class="descclassname">mediagoblin.tools.response.</tt><tt class="descname">render_404</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/response.html#render_404"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.response.render_404" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render a 404.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.response.render_to_response">
+<tt class="descclassname">mediagoblin.tools.response.</tt><tt class="descname">render_to_response</tt><big>(</big><em>request</em>, <em>template</em>, <em>context</em>, <em>status=200</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/response.html#render_to_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.response.render_to_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Much like Django&#8217;s shortcut.render()</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.template">
+<span id="template-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">template</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.template" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.template.clear_test_template_context">
+<tt class="descclassname">mediagoblin.tools.template.</tt><tt class="descname">clear_test_template_context</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/template.html#clear_test_template_context"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.template.clear_test_template_context" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.template.get_jinja_env">
+<tt class="descclassname">mediagoblin.tools.template.</tt><tt class="descname">get_jinja_env</tt><big>(</big><em>template_loader</em>, <em>locale</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/template.html#get_jinja_env"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.template.get_jinja_env" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up the Jinja environment,</p>
+<p>(In the future we may have another system for providing theming;
+for now this is good enough.)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.template.gridify_cursor">
+<tt class="descclassname">mediagoblin.tools.template.</tt><tt class="descname">gridify_cursor</tt><big>(</big><em>this_cursor</em>, <em>num_cols=5</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/template.html#gridify_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.template.gridify_cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a list of lists where each sub-list&#8217;s length depends on
+the number of columns in the list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.template.gridify_list">
+<tt class="descclassname">mediagoblin.tools.template.</tt><tt class="descname">gridify_list</tt><big>(</big><em>this_list</em>, <em>num_cols=5</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/template.html#gridify_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.template.gridify_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a list of lists where each sub-list&#8217;s length depends on
+the number of columns in the list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.template.render_template">
+<tt class="descclassname">mediagoblin.tools.template.</tt><tt class="descname">render_template</tt><big>(</big><em>request</em>, <em>template_path</em>, <em>context</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/template.html#render_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.template.render_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render a template with context.</p>
+<p>Always inserts the request into the context, so you don&#8217;t have to.
+Also stores the context if we&#8217;re doing unit tests.  Helpful!</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.testing">
+<span id="testing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">testing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.testing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.testing.clear_test_buckets">
+<tt class="descclassname">mediagoblin.tools.testing.</tt><tt class="descname">clear_test_buckets</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/testing.html#clear_test_buckets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.testing.clear_test_buckets" title="Permalink to this definition">¶</a></dt>
+<dd><p>We store some things for testing purposes that should be cleared
+when we want a &#8220;clean slate&#8221; of information for our next round of
+tests.  Call this function to wipe all that stuff clean.</p>
+<p>Also wipes out some other things we might redefine during testing,
+like the jinja envs.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.text">
+<span id="text-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">text</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.text" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.text.clean_html">
+<tt class="descclassname">mediagoblin.tools.text.</tt><tt class="descname">clean_html</tt><big>(</big><em>html</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/text.html#clean_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.text.clean_html" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.text.cleaned_markdown_conversion">
+<tt class="descclassname">mediagoblin.tools.text.</tt><tt class="descname">cleaned_markdown_conversion</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/text.html#cleaned_markdown_conversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.text.cleaned_markdown_conversion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a block of text, run it through MarkDown, and clean its HTML.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.text.convert_to_tag_list_of_dicts">
+<tt class="descclassname">mediagoblin.tools.text.</tt><tt class="descname">convert_to_tag_list_of_dicts</tt><big>(</big><em>tag_string</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/text.html#convert_to_tag_list_of_dicts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.text.convert_to_tag_list_of_dicts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter input from incoming string containing user tags,</p>
+<p>Strips trailing, leading, and internal whitespace, and also converts
+the &#8220;tags&#8221; text into an array of tags</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.text.media_tags_as_string">
+<tt class="descclassname">mediagoblin.tools.text.</tt><tt class="descname">media_tags_as_string</tt><big>(</big><em>media_entry_tags</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/text.html#media_tags_as_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.text.media_tags_as_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string from a media item&#8217;s tags, stored as a list of dicts</p>
+<p>This is the opposite of convert_to_tag_list_of_dicts</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.text.tag_length_validator">
+<tt class="descclassname">mediagoblin.tools.text.</tt><tt class="descname">tag_length_validator</tt><big>(</big><em>form</em>, <em>field</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/text.html#tag_length_validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.text.tag_length_validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure tags do not exceed the maximum tag length.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.translate">
+<span id="translate-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">translate</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.translate" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.translate.fake_ugettext_passthrough">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">fake_ugettext_passthrough</tt><big>(</big><em>string</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#fake_ugettext_passthrough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.fake_ugettext_passthrough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fake a ugettext call for extraction&#8217;s sake ;)</p>
+<p>In wtforms there&#8217;s a separate way to define a method to translate
+things... so we just need to mark up the text so that it can be
+extracted, not so that it&#8217;s actually run through gettext.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.get_locale_from_request">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">get_locale_from_request</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#get_locale_from_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.get_locale_from_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Figure out what target language is most appropriate based on the
+request</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.lazy_pass_to_ngettext">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">lazy_pass_to_ngettext</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#lazy_pass_to_ngettext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.lazy_pass_to_ngettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lazily pass to ngettext.</p>
+<p>This is useful if you have to define a translation on a module
+level but you need it to not translate until the time that it&#8217;s
+used as a string.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.lazy_pass_to_ugettext">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">lazy_pass_to_ugettext</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#lazy_pass_to_ugettext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.lazy_pass_to_ugettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lazily pass to ugettext.</p>
+<p>This is useful if you have to define a translation on a module
+level but you need it to not translate until the time that it&#8217;s
+used as a string.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.locale_to_lower_lower">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">locale_to_lower_lower</tt><big>(</big><em>locale</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#locale_to_lower_lower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.locale_to_lower_lower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a locale, regardless of style, and format it like &#8220;en_US&#8221;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.locale_to_lower_upper">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">locale_to_lower_upper</tt><big>(</big><em>locale</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#locale_to_lower_upper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.locale_to_lower_upper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a locale, regardless of style, and format it like &#8220;en-us&#8221;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.pass_to_ngettext">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">pass_to_ngettext</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#pass_to_ngettext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.pass_to_ngettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass a translation on to the appropriate ngettext method.</p>
+<p>The reason we can&#8217;t have a global ngettext method is because
+mg_globals gets swapped out by the application per-request.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.pass_to_ugettext">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">pass_to_ugettext</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#pass_to_ugettext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.pass_to_ugettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass a translation on to the appropriate ugettext method.</p>
+<p>The reason we can&#8217;t have a global ugettext method is because
+mg_globals gets swapped out by the application per-request.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.tools.translate.setup_gettext">
+<tt class="descclassname">mediagoblin.tools.translate.</tt><tt class="descname">setup_gettext</tt><big>(</big><em>locale</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/translate.html#setup_gettext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.translate.setup_gettext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup the gettext instance based on this locale</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.tools.url">
+<span id="url-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">url</span></tt> Module<a class="headerlink" href="#module-mediagoblin.tools.url" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.tools.url.slugify">
+<tt class="descclassname">mediagoblin.tools.url.</tt><tt class="descname">slugify</tt><big>(</big><em>text</em>, <em>delim=u'-'</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/tools/url.html#slugify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.tools.url.slugify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an ASCII-only slug. Taken from <a class="reference external" href="http://flask.pocoo.org/snippets/5/">http://flask.pocoo.org/snippets/5/</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.tools.extlib.html">extlib Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.extlib.html#module-mediagoblin.tools.extlib.EXIF"><tt class="docutils literal"><span class="pre">EXIF</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">tools Package</a><ul>
+<li><a class="reference internal" href="#module-mediagoblin.tools.common"><tt class="docutils literal"><span class="pre">common</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.exif"><tt class="docutils literal"><span class="pre">exif</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.files"><tt class="docutils literal"><span class="pre">files</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.licenses"><tt class="docutils literal"><span class="pre">licenses</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.mail"><tt class="docutils literal"><span class="pre">mail</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.pagination"><tt class="docutils literal"><span class="pre">pagination</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.request"><tt class="docutils literal"><span class="pre">request</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.response"><tt class="docutils literal"><span class="pre">response</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.template"><tt class="docutils literal"><span class="pre">template</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.testing"><tt class="docutils literal"><span class="pre">testing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.text"><tt class="docutils literal"><span class="pre">text</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.translate"><tt class="docutils literal"><span class="pre">translate</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.tools.url"><tt class="docutils literal"><span class="pre">url</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.tools.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

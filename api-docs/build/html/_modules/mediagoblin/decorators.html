@@ -1,0 +1,234 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.decorators &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.decorators</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">exc</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.response</span> <span class="kn">import</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">render_404</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">ObjectId</span><span class="p">,</span> <span class="n">InvalidId</span>
+
+
+<span class="k">def</span> <span class="nf">_make_safe</span><span class="p">(</span><span class="n">decorator</span><span class="p">,</span> <span class="n">original</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Copy the function data from the old function to the decorator.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">decorator</span><span class="o">.</span><span class="n">__name__</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="n">decorator</span><span class="o">.</span><span class="n">__dict__</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">__dict__</span>
+    <span class="n">decorator</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">__doc__</span>
+    <span class="k">return</span> <span class="n">decorator</span>
+
+
+<div class="viewcode-block" id="require_active_login"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.decorators.require_active_login">[docs]</a><span class="k">def</span> <span class="nf">require_active_login</span><span class="p">(</span><span class="n">controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Require an active login from the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">new_controller_func</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">and</span> \
+                <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;status&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">u&#39;needs_email_verification&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;status&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s">u&#39;active&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">exc</span><span class="o">.</span><span class="n">HTTPFound</span><span class="p">(</span>
+                <span class="n">location</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">?next=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span><span class="s">&quot;mediagoblin.auth.login&quot;</span><span class="p">),</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">new_controller_func</span><span class="p">,</span> <span class="n">controller</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="user_may_delete_media"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.decorators.user_may_delete_media">[docs]</a><span class="k">def</span> <span class="nf">user_may_delete_media</span><span class="p">(</span><span class="n">controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Require user ownership of the MediaEntry to delete.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">uploader_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;media&#39;</span><span class="p">])})</span><span class="o">.</span><span class="n">uploader</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span> <span class="ow">or</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span> <span class="o">==</span> <span class="n">uploader_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">exc</span><span class="o">.</span><span class="n">HTTPForbidden</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">controller</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="uses_pagination"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.decorators.uses_pagination">[docs]</a><span class="k">def</span> <span class="nf">uses_pagination</span><span class="p">(</span><span class="n">controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check request GET &#39;page&#39; key for wrong values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">page</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;page&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">page</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">controller</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_user_media_entry"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.decorators.get_user_media_entry">[docs]</a><span class="k">def</span> <span class="nf">get_user_media_entry</span><span class="p">(</span><span class="n">controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pass in a MediaEntry based off of a url component</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]})</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;media&#39;</span><span class="p">],</span>
+             <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">,</span>
+             <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span>
+
+        <span class="c"># no media via slug?  Grab it via ObjectId</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">media</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">media</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;media&#39;</span><span class="p">]),</span>
+                     <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span>
+            <span class="k">except</span> <span class="n">InvalidId</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+            <span class="c"># Still no media?  Okay, 404.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">media</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">controller</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_media_entry_by_id"><a class="viewcode-back" href="../../mediagoblin.html#mediagoblin.decorators.get_media_entry_by_id">[docs]</a><span class="k">def</span> <span class="nf">get_media_entry_by_id</span><span class="p">(</span><span class="n">controller</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pass in a MediaEntry based off of a url component</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">media</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;media&#39;</span><span class="p">]),</span>
+                 <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span>
+        <span class="k">except</span> <span class="n">InvalidId</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="c"># Still no media?  Okay, 404.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">media</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_make_safe</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">controller</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

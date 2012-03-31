@@ -1,0 +1,198 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.gmg_commands &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.gmg_commands</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.common</span> <span class="kn">import</span> <span class="n">import_component</span>
+
+
+<span class="n">SUBCOMMAND_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;shell&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.shell:shell_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.shell:shell&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Run a shell with some tools pre-setup&#39;</span><span class="p">},</span>
+    <span class="s">&#39;migrate&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.migrate:migrate_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.migrate:migrate&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Apply all unapplied bulk migrations to the database&#39;</span><span class="p">},</span>
+    <span class="s">&#39;adduser&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:adduser_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:adduser&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Creates an user&#39;</span><span class="p">},</span>
+    <span class="s">&#39;makeadmin&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:makeadmin_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:makeadmin&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Changes a user</span><span class="se">\&#39;</span><span class="s">s password&#39;</span><span class="p">},</span>
+    <span class="s">&#39;changepw&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:changepw_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.users:changepw&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Makes admin an user&#39;</span><span class="p">},</span>
+    <span class="s">&#39;wipealldata&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.wipealldata:wipe_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.wipealldata:wipe&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Wipes **all** the data for this MediaGoblin instance&#39;</span><span class="p">},</span>
+    <span class="s">&#39;env_export&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.import_export:import_export_parse_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.import_export:env_export&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Exports the data for this MediaGoblin instance&#39;</span><span class="p">},</span>
+    <span class="s">&#39;env_import&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.import_export:import_export_parse_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.import_export:env_import&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Exports the data for this MediaGoblin instance&#39;</span><span class="p">},</span>
+    <span class="s">&#39;dbupdate&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.dbupdate:dbupdate_parse_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.dbupdate:dbupdate&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Set up or update the SQL database&#39;</span><span class="p">},</span>
+    <span class="s">&#39;convert_mongo_to_sql&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;setup&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.mongosql:mongosql_parser_setup&#39;</span><span class="p">,</span>
+        <span class="s">&#39;func&#39;</span><span class="p">:</span> <span class="s">&#39;mediagoblin.gmg_commands.mongosql:mongosql&#39;</span><span class="p">,</span>
+        <span class="s">&#39;help&#39;</span><span class="p">:</span> <span class="s">&#39;Convert Mongo DB data to SQL DB data&#39;</span><span class="p">},</span>
+    <span class="p">}</span>
+
+
+<div class="viewcode-block" id="main_cli"><a class="viewcode-back" href="../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.main_cli">[docs]</a><span class="k">def</span> <span class="nf">main_cli</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s">&#39;GNU MediaGoblin utilities.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;-cf&#39;</span><span class="p">,</span> <span class="s">&#39;--conf_file&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s">&quot;Config file used to set up environment.  &quot;</span>
+            <span class="s">&quot;Default to mediagoblin_local.ini if readable, &quot;</span>
+            <span class="s">&quot;otherwise mediagoblin.ini&quot;</span><span class="p">))</span>
+
+    <span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">help</span><span class="o">=</span><span class="s">&#39;sub-command help&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">command_name</span><span class="p">,</span> <span class="n">command_struct</span> <span class="ow">in</span> <span class="n">SUBCOMMAND_MAP</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s">&#39;help&#39;</span> <span class="ow">in</span> <span class="n">command_struct</span><span class="p">:</span>
+            <span class="n">subparser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+                <span class="n">command_name</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">command_struct</span><span class="p">[</span><span class="s">&#39;help&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subparser</span> <span class="o">=</span> <span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="n">command_name</span><span class="p">)</span>
+
+        <span class="n">setup_func</span> <span class="o">=</span> <span class="n">import_component</span><span class="p">(</span><span class="n">command_struct</span><span class="p">[</span><span class="s">&#39;setup&#39;</span><span class="p">])</span>
+        <span class="n">exec_func</span> <span class="o">=</span> <span class="n">import_component</span><span class="p">(</span><span class="n">command_struct</span><span class="p">[</span><span class="s">&#39;func&#39;</span><span class="p">])</span>
+
+        <span class="n">setup_func</span><span class="p">(</span><span class="n">subparser</span><span class="p">)</span>
+
+        <span class="n">subparser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">exec_func</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">conf_file</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;mediagoblin_local.ini&#39;</span><span class="p">)</span> \
+                <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="s">&#39;mediagoblin_local.ini&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">):</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">conf_file</span> <span class="o">=</span> <span class="s">&#39;mediagoblin_local.ini&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">conf_file</span> <span class="o">=</span> <span class="s">&#39;mediagoblin.ini&#39;</span>
+
+    <span class="n">args</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main_cli</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

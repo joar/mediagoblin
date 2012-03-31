@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_auth &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_auth</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_equal</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.auth</span> <span class="kn">import</span> <span class="n">lib</span> <span class="k">as</span> <span class="n">auth_lib</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tests.tools</span> <span class="kn">import</span> <span class="n">setup_fresh_app</span><span class="p">,</span> <span class="n">fixture_add_user</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">template</span><span class="p">,</span> <span class="n">mail</span>
+
+
+<span class="c">########################</span>
+<span class="c"># Test bcrypt auth funcs</span>
+<span class="c">########################</span>
+
+<div class="viewcode-block" id="test_bcrypt_check_password"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_auth.test_bcrypt_check_password">[docs]</a><span class="k">def</span> <span class="nf">test_bcrypt_check_password</span><span class="p">():</span>
+    <span class="c"># Check known &#39;lollerskates&#39; password against check function</span>
+    <span class="k">assert</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="s">&#39;lollerskates&#39;</span><span class="p">,</span>
+        <span class="s">&#39;$2a$12$PXU03zfrVCujBhVeICTwtOaHTUs5FFwsscvSSTJkqx/2RQ0Lhy/nO&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="s">&#39;notthepassword&#39;</span><span class="p">,</span>
+        <span class="s">&#39;$2a$12$PXU03zfrVCujBhVeICTwtOaHTUs5FFwsscvSSTJkqx/2RQ0Lhy/nO&#39;</span><span class="p">)</span>
+
+
+    <span class="c"># Same thing, but with extra fake salt.</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="s">&#39;notthepassword&#39;</span><span class="p">,</span>
+        <span class="s">&#39;$2a$12$ELVlnw3z1FMu6CEGs/L8XO8vl0BuWSlUHgh0rUrry9DUXGMUNWwl6&#39;</span><span class="p">,</span>
+        <span class="s">&#39;3&gt;&lt;7R45417&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="test_bcrypt_gen_password_hash"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_auth.test_bcrypt_gen_password_hash">[docs]</a><span class="k">def</span> <span class="nf">test_bcrypt_gen_password_hash</span><span class="p">():</span>
+    <span class="n">pw</span> <span class="o">=</span> <span class="s">&#39;youwillneverguessthis&#39;</span>
+
+    <span class="c"># Normal password hash generation, and check on that hash</span>
+    <span class="n">hashed_pw</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">pw</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="n">pw</span><span class="p">,</span> <span class="n">hashed_pw</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="s">&#39;notthepassword&#39;</span><span class="p">,</span> <span class="n">hashed_pw</span><span class="p">)</span>
+
+
+    <span class="c"># Same thing, extra salt.</span>
+    <span class="n">hashed_pw</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">pw</span><span class="p">,</span> <span class="s">&#39;3&gt;&lt;7R45417&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="n">pw</span><span class="p">,</span> <span class="n">hashed_pw</span><span class="p">,</span> <span class="s">&#39;3&gt;&lt;7R45417&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+        <span class="s">&#39;notthepassword&#39;</span><span class="p">,</span> <span class="n">hashed_pw</span><span class="p">,</span> <span class="s">&#39;3&gt;&lt;7R45417&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@setup_fresh_app</span>
+<span class="k">def</span> <span class="nf">test_register_views</span><span class="p">(</span><span class="n">test_app</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Massive test function that all our registration-related views all work.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Test doing a simple GET on the page</span>
+    <span class="c"># -----------------------------------</span>
+
+    <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/auth/register/&#39;</span><span class="p">)</span>
+    <span class="c"># Make sure it rendered with the appropriate template</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">)</span>
+
+    <span class="c"># Try to register without providing anything, should error</span>
+    <span class="c"># --------------------------------------------------------</span>
+
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/register/&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;register_form&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+
+    <span class="c"># Try to register with fields that are known to be invalid</span>
+    <span class="c"># --------------------------------------------------------</span>
+
+    <span class="c">## too short</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/register/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;l&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;o&#39;</span><span class="p">,</span>
+            <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;l&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;register_form&#39;</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s">u&#39;Field must be between 3 and 30 characters long.&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s">u&#39;Field must be between 6 and 30 characters long.&#39;</span><span class="p">]</span>
+
+    <span class="c">## bad form</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/register/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;@_@&#39;</span><span class="p">,</span>
+            <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;lollerskates&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;register_form&#39;</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s">u&#39;Invalid input.&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s">u&#39;Invalid email address.&#39;</span><span class="p">]</span>
+
+    <span class="c">## At this point there should be no users in the database ;)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find</span><span class="p">()</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+    <span class="c"># Successful register</span>
+    <span class="c"># -------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/register/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;iamsohappy&#39;</span><span class="p">,</span>
+            <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;happygrrl@example.org&#39;</span><span class="p">})</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+
+    <span class="c">## Did we redirect to the proper page?  Use the right template?</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/u/happygirl/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">)</span>
+
+    <span class="c">## Make sure user is in place</span>
+    <span class="n">new_user</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">new_user</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">u&#39;needs_email_verification&#39;</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="c">## Make sure user is logged in</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">][</span><span class="s">&#39;request&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">new_user</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+
+    <span class="c">## Make sure we get email confirmation, and try verifying</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;happygrrl@example.org&#39;</span>
+    <span class="n">email_context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/auth/verification_email.txt&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">])[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">get_params</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">])[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">path</span> <span class="o">==</span> <span class="s">u&#39;/auth/verify_email/&#39;</span>
+    <span class="n">parsed_get_params</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">get_params</span><span class="p">)</span>
+
+    <span class="c">### user should have these same parameters</span>
+    <span class="k">assert</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;userid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="nb">unicode</span><span class="p">(</span><span class="n">new_user</span><span class="o">.</span><span class="n">_id</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;token&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="n">new_user</span><span class="o">.</span><span class="n">verification_key</span><span class="p">]</span>
+
+    <span class="c">## Try verifying with bs verification key, shouldn&#39;t work</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s">&quot;/auth/verify_email/?userid=</span><span class="si">%s</span><span class="s">&amp;token=total_bs&quot;</span> <span class="o">%</span> <span class="nb">unicode</span><span class="p">(</span>
+            <span class="n">new_user</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">]</span>
+    <span class="c"># assert context[&#39;verification_successful&#39;] == True</span>
+    <span class="c"># TODO: Would be good to test messages here when we can do so...</span>
+    <span class="n">new_user</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">new_user</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">u&#39;needs_email_verification&#39;</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="c">## Verify the email activation works</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">?</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">get_params</span><span class="p">))</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">]</span>
+    <span class="c"># assert context[&#39;verification_successful&#39;] == True</span>
+    <span class="c"># TODO: Would be good to test messages here when we can do so...</span>
+    <span class="n">new_user</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">new_user</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">u&#39;active&#39;</span>
+    <span class="k">assert</span> <span class="n">new_user</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">==</span> <span class="bp">True</span>
+
+    <span class="c"># Uniqueness checks</span>
+    <span class="c"># -----------------</span>
+    <span class="c">## We shouldn&#39;t be able to register with that user twice</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/register/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;iamsohappy2&#39;</span><span class="p">,</span>
+            <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;happygrrl2@example.org&#39;</span><span class="p">})</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;register_form&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s">u&#39;Sorry, a user with that name already exists.&#39;</span><span class="p">]</span>
+
+    <span class="c">## TODO: Also check for double instances of an email address?</span>
+
+    <span class="c">### Oops, forgot the password</span>
+    <span class="c"># -------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/forgot_password/&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">})</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+
+    <span class="c">## Did we redirect to the proper page?  Use the right template?</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">)</span>
+
+    <span class="c">## Make sure link to change password is sent by email</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">mail</span><span class="o">.</span><span class="n">EMAIL_TEST_INBOX</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;happygrrl@example.org&#39;</span>
+    <span class="n">email_context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span>
+        <span class="s">&#39;mediagoblin/auth/fp_verification_email.txt&#39;</span><span class="p">]</span>
+    <span class="c">#TODO - change the name of verification_url to something forgot-password-ish</span>
+    <span class="k">assert</span> <span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">])[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">get_params</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">email_context</span><span class="p">[</span><span class="s">&#39;verification_url&#39;</span><span class="p">])[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">path</span> <span class="o">==</span> <span class="s">u&#39;/auth/forgot_password/verify/&#39;</span>
+    <span class="n">parsed_get_params</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">get_params</span><span class="p">)</span>
+
+    <span class="c"># user should have matching parameters</span>
+    <span class="n">new_user</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">&#39;happygirl&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;userid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="nb">unicode</span><span class="p">(</span><span class="n">new_user</span><span class="o">.</span><span class="n">_id</span><span class="p">)]</span>
+    <span class="k">assert</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;token&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="n">new_user</span><span class="o">.</span><span class="n">fp_verification_key</span><span class="p">]</span>
+
+    <span class="c">### The forgotten password token should be set to expire in ~ 10 days</span>
+    <span class="c"># A few ticks have expired so there are only 9 full days left...</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">new_user</span><span class="o">.</span><span class="n">fp_token_expire</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span><span class="o">.</span><span class="n">days</span> <span class="o">==</span> <span class="mi">9</span>
+
+    <span class="c">## Try using a bs password-changing verification key, shouldn&#39;t work</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s">&quot;/auth/forgot_password/verify/?userid=</span><span class="si">%s</span><span class="s">&amp;token=total_bs&quot;</span> <span class="o">%</span> <span class="nb">unicode</span><span class="p">(</span>
+            <span class="n">new_user</span><span class="o">.</span><span class="n">_id</span><span class="p">),</span> <span class="n">status</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="s">&#39;404 Not Found&#39;</span><span class="p">)</span>
+
+    <span class="c">## Try using an expired token to change password, shouldn&#39;t work</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">real_token_expiration</span> <span class="o">=</span> <span class="n">new_user</span><span class="o">.</span><span class="n">fp_token_expire</span>
+    <span class="n">new_user</span><span class="o">.</span><span class="n">fp_token_expire</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">new_user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">?</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">get_params</span><span class="p">),</span> <span class="n">status</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+    <span class="n">assert_equal</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="s">&#39;404 Not Found&#39;</span><span class="p">)</span>
+    <span class="n">new_user</span><span class="o">.</span><span class="n">fp_token_expire</span> <span class="o">=</span> <span class="n">real_token_expiration</span>
+    <span class="n">new_user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+    <span class="c">## Verify step 1 of password-change works -- can see form to change password</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">?</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">get_params</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;mediagoblin/auth/change_fp.html&#39;</span><span class="p">)</span>
+
+    <span class="c">## Verify step 2.1 of password-change works -- report success to user</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/forgot_password/verify/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;userid&#39;</span><span class="p">:</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;userid&#39;</span><span class="p">],</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;iamveryveryhappy&#39;</span><span class="p">,</span>
+            <span class="s">&#39;token&#39;</span><span class="p">:</span> <span class="n">parsed_get_params</span><span class="p">[</span><span class="s">&#39;token&#39;</span><span class="p">]})</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">)</span>
+
+    <span class="c">## Verify step 2.2 of password-change works -- login w/ new password success</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;happygirl&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;iamveryveryhappy&#39;</span><span class="p">})</span>
+
+    <span class="c"># User should be redirected</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/root.html&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@setup_fresh_app</span>
+<span class="k">def</span> <span class="nf">test_authentication_views</span><span class="p">(</span><span class="n">test_app</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Test logging in and logging out</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Make a new user</span>
+    <span class="n">test_user</span> <span class="o">=</span> <span class="n">fixture_add_user</span><span class="p">(</span><span class="n">active_user</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c"># Get login</span>
+    <span class="c"># ---------</span>
+    <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/auth/login/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">)</span>
+
+    <span class="c"># Failed login - blank form</span>
+    <span class="c"># -------------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">&#39;/auth/login/&#39;</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;login_form&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+
+    <span class="c"># Failed login - blank user</span>
+    <span class="c"># -------------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">u&#39;toast&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;login_form&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+
+    <span class="c"># Failed login - blank password</span>
+    <span class="c"># -----------------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;chris&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">]</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;login_form&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">errors</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;This field is required.&#39;</span><span class="p">]</span>
+
+    <span class="c"># Failed login - bad user</span>
+    <span class="c"># -----------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;steve&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;toast&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;login_failed&#39;</span><span class="p">]</span>
+
+    <span class="c"># Failed login - bad password</span>
+    <span class="c"># ---------------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;chris&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;jam&#39;</span><span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;login_failed&#39;</span><span class="p">]</span>
+
+    <span class="c"># Successful login</span>
+    <span class="c"># ----------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;chris&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;toast&#39;</span><span class="p">})</span>
+
+    <span class="c"># User should be redirected</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/root.html&#39;</span><span class="p">)</span>
+
+    <span class="c"># Make sure user is in the session</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/root.html&#39;</span><span class="p">]</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">session</span>
+    <span class="k">assert</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">test_user</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+
+    <span class="c"># Successful logout</span>
+    <span class="c"># -----------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/auth/logout/&#39;</span><span class="p">)</span>
+
+    <span class="c"># Should be redirected to index page</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span>
+        <span class="s">&#39;mediagoblin/root.html&#39;</span><span class="p">)</span>
+
+    <span class="c"># Make sure the user is not in the session</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/root.html&#39;</span><span class="p">]</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">session</span>
+    <span class="k">assert</span> <span class="n">session</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;user_id&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="c"># User is redirected to custom URL if POST[&#39;next&#39;] is set</span>
+    <span class="c"># -------------------------------------------------------</span>
+    <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;chris&#39;</span><span class="p">,</span>
+            <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;toast&#39;</span><span class="p">,</span>
+            <span class="s">&#39;next&#39;</span> <span class="p">:</span> <span class="s">&#39;/u/chris/&#39;</span><span class="p">})</span>
+    <span class="n">assert_equal</span><span class="p">(</span>
+        <span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+        <span class="s">&#39;/u/chris/&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

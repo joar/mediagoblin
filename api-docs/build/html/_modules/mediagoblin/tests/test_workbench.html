@@ -1,0 +1,190 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_workbench &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_workbench</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_raises</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">workbench</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tests.test_storage</span> <span class="kn">import</span> <span class="n">get_tmp_filestorage</span>
+
+
+<div class="viewcode-block" id="TestWorkbench"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench">[docs]</a><span class="k">class</span> <span class="nc">TestWorkbench</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TestWorkbench.setUp"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span> <span class="o">=</span> <span class="n">workbench</span><span class="o">.</span><span class="n">WorkbenchManager</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s">u&#39;mgoblin_workbench_testing&#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="TestWorkbench.test_create_workbench"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench.test_create_workbench">[docs]</a>    <span class="k">def</span> <span class="nf">test_create_workbench</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">workbench</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">workbench</span><span class="o">.</span><span class="n">dir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">base_workbench_dir</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestWorkbench.test_joinpath"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench.test_joinpath">[docs]</a>    <span class="k">def</span> <span class="nf">test_joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">this_workbench</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+        <span class="n">tmpname</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s">&#39;temp.txt&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">tmpname</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">this_workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="s">&#39;temp.txt&#39;</span><span class="p">)</span>
+        <span class="n">this_workbench</span><span class="o">.</span><span class="n">destroy_self</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="TestWorkbench.test_destroy_workbench"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench.test_destroy_workbench">[docs]</a>    <span class="k">def</span> <span class="nf">test_destroy_workbench</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># kill a workbench</span>
+        <span class="n">this_workbench</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+        <span class="n">tmpfile_name</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s">&#39;temp.txt&#39;</span><span class="p">)</span>
+        <span class="n">tmpfile</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">tmpfile_name</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">tmpfile</span><span class="p">:</span>
+            <span class="n">tmpfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;lollerskates&#39;</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpfile_name</span><span class="p">)</span>
+
+        <span class="n">wb_dir</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">dir</span>
+        <span class="n">this_workbench</span><span class="o">.</span><span class="n">destroy_self</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tmpfile_name</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">wb_dir</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestWorkbench.test_localized_file"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_workbench.TestWorkbench.test_localized_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_localized_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+        <span class="n">this_workbench</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+        
+        <span class="c"># Write a brand new file</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;ourfile.txt&#39;</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+            <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Our file&#39;</span><span class="p">)</span>
+
+        <span class="c"># with a local file storage</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span><span class="n">this_storage</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">)</span>
+
+        <span class="c"># with a fake remote file storage</span>
+        <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">(</span><span class="n">fake_remote</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c"># ... write a brand new file, again ;)</span>
+        <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+            <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Our file&#39;</span><span class="p">)</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span><span class="n">this_storage</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">this_workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="s">&#39;ourfile.txt&#39;</span><span class="p">)</span>
+        
+        <span class="c"># fake remote file storage, filename_if_copying set</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+            <span class="n">this_storage</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;thisfile&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">this_workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="s">&#39;thisfile.txt&#39;</span><span class="p">)</span>
+
+        <span class="c"># fake remote file storage, filename_if_copying set,</span>
+        <span class="c"># keep_extension_if_copying set to false</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">this_workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+            <span class="n">this_storage</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;thisfile.text&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">this_workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="s">&#39;thisfile.text&#39;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

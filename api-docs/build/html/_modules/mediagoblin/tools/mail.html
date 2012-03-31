@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tools.mail &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tools.mail</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">smtplib</span>
+<span class="kn">from</span> <span class="nn">email.MIMEText</span> <span class="kn">import</span> <span class="n">MIMEText</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">common</span>
+
+<span class="c">### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="c">### Special email test stuff begins HERE</span>
+<span class="c">### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="c"># We have two &quot;test inboxes&quot; here:</span>
+<span class="c">#</span>
+<span class="c"># EMAIL_TEST_INBOX:</span>
+<span class="c"># ----------------</span>
+<span class="c">#   If you&#39;re writing test views, you&#39;ll probably want to check this.</span>
+<span class="c">#   It contains a list of MIMEText messages.</span>
+<span class="c">#</span>
+<span class="c"># EMAIL_TEST_MBOX_INBOX:</span>
+<span class="c"># ----------------------</span>
+<span class="c">#   This collects the messages from the FakeMhost inbox.  It&#39;s reslly</span>
+<span class="c">#   just here for testing the send_email method itself.</span>
+<span class="c">#</span>
+<span class="c">#   Anyway this contains:</span>
+<span class="c">#    - from</span>
+<span class="c">#    - to: a list of email recipient addresses</span>
+<span class="c">#    - message: not just the body, but the whole message, including</span>
+<span class="c">#      headers, etc.</span>
+<span class="c">#</span>
+<span class="c"># ***IMPORTANT!***</span>
+<span class="c"># ----------------</span>
+<span class="c"># Before running tests that call functions which send email, you should</span>
+<span class="c"># always call _clear_test_inboxes() to &quot;wipe&quot; the inboxes clean.</span>
+
+<span class="n">EMAIL_TEST_INBOX</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">EMAIL_TEST_MBOX_INBOX</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<div class="viewcode-block" id="FakeMhost"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.mail.FakeMhost">[docs]</a><span class="k">class</span> <span class="nc">FakeMhost</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Just a fake mail host so we can capture and test messages</span>
+<span class="sd">    from send_email</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FakeMhost.login"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.mail.FakeMhost.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="FakeMhost.sendmail"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.mail.FakeMhost.sendmail">[docs]</a>    <span class="k">def</span> <span class="nf">sendmail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_addr</span><span class="p">,</span> <span class="n">to_addrs</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="n">EMAIL_TEST_MBOX_INBOX</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;from&#39;</span><span class="p">:</span> <span class="n">from_addr</span><span class="p">,</span>
+             <span class="s">&#39;to&#39;</span><span class="p">:</span> <span class="n">to_addrs</span><span class="p">,</span>
+             <span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">})</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_clear_test_inboxes</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">EMAIL_TEST_INBOX</span>
+    <span class="k">global</span> <span class="n">EMAIL_TEST_MBOX_INBOX</span>
+    <span class="n">EMAIL_TEST_INBOX</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">EMAIL_TEST_MBOX_INBOX</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="c">### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="c">### &lt;/Special email test stuff&gt;</span>
+<span class="c">### ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<div class="viewcode-block" id="send_email"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.mail.send_email">[docs]</a><span class="k">def</span> <span class="nf">send_email</span><span class="p">(</span><span class="n">from_addr</span><span class="p">,</span> <span class="n">to_addrs</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">message_body</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple email sending wrapper, use this so we can capture messages</span>
+<span class="sd">    for unit testing purposes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - from_addr: address you&#39;re sending the email from</span>
+<span class="sd">     - to_addrs: list of recipient email addresses</span>
+<span class="sd">     - subject: subject of the email</span>
+<span class="sd">     - message_body: email body text</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">common</span><span class="o">.</span><span class="n">TESTS_ENABLED</span> <span class="ow">or</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_debug_mode&#39;</span><span class="p">]:</span>
+        <span class="n">mhost</span> <span class="o">=</span> <span class="n">FakeMhost</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_debug_mode&#39;</span><span class="p">]:</span>
+        <span class="n">mhost</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_host&#39;</span><span class="p">],</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_port&#39;</span><span class="p">])</span>
+
+        <span class="c"># SMTP.__init__ Issues SMTP.connect implicitly if host</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_host&#39;</span><span class="p">]:</span>  <span class="c"># e.g. host = &#39;&#39;</span>
+            <span class="n">mhost</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>  <span class="c"># We SMTP.connect explicitly</span>
+
+    <span class="k">if</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_user&#39;</span><span class="p">]</span> \
+            <span class="ow">or</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_pass&#39;</span><span class="p">]:</span>
+        <span class="n">mhost</span><span class="o">.</span><span class="n">login</span><span class="p">(</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_user&#39;</span><span class="p">],</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_smtp_pass&#39;</span><span class="p">])</span>
+
+    <span class="n">message</span> <span class="o">=</span> <span class="n">MIMEText</span><span class="p">(</span><span class="n">message_body</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">),</span> <span class="s">&#39;plain&#39;</span><span class="p">,</span> <span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">message</span><span class="p">[</span><span class="s">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+    <span class="n">message</span><span class="p">[</span><span class="s">&#39;From&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">from_addr</span>
+    <span class="n">message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">to_addrs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">common</span><span class="o">.</span><span class="n">TESTS_ENABLED</span><span class="p">:</span>
+        <span class="n">EMAIL_TEST_INBOX</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_debug_mode&#39;</span><span class="p">]:</span>
+        <span class="k">print</span> <span class="s">u&quot;===== Email =====&quot;</span>
+        <span class="k">print</span> <span class="s">u&quot;From address: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;From&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">u&quot;To addresses: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;To&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">u&quot;Subject: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span><span class="p">[</span><span class="s">&#39;Subject&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">u&quot;-- Body: --&quot;</span>
+        <span class="k">print</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mhost</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="n">from_addr</span><span class="p">,</span> <span class="n">to_addrs</span><span class="p">,</span> <span class="n">message</span><span class="o">.</span><span class="n">as_string</span><span class="p">())</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>media_types Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="media-types-package">
+<h1>media_types Package<a class="headerlink" href="#media-types-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">media_types</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.media_types"></span><dl class="exception">
+<dt id="mediagoblin.media_types.FileTypeNotSupported">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">FileTypeNotSupported</tt><a class="reference internal" href="_modules/mediagoblin/media_types.html#FileTypeNotSupported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.FileTypeNotSupported" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.media_types.InvalidFileType">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">InvalidFileType</tt><a class="reference internal" href="_modules/mediagoblin/media_types.html#InvalidFileType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.InvalidFileType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.get_media_manager">
+<tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">get_media_manager</tt><big>(</big><em>_media_type</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types.html#get_media_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.get_media_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the MEDIA_MANAGER based on a media type string</p>
+<dl class="docutils">
+<dt>Example::</dt>
+<dd>get_media_type(&#8216;mediagoblin.media_types.image&#8217;)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.get_media_managers">
+<tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">get_media_managers</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types.html#get_media_managers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.get_media_managers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator, yields all enabled media managers</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.get_media_type_and_manager">
+<tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">get_media_type_and_manager</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types.html#get_media_type_and_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.get_media_type_and_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to find the media type based on the file name, extension
+specifically. This is used as a speedup, the sniffing functionality
+then falls back on more in-depth bitsniffing of the source file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.get_media_types">
+<tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">get_media_types</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types.html#get_media_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.get_media_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator, yields the available media types</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.sniff_media">
+<tt class="descclassname">mediagoblin.media_types.</tt><tt class="descname">sniff_media</tt><big>(</big><em>media</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types.html#sniff_media"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.sniff_media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate through the enabled media types and find those suited
+for a certain file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.media_types.ascii.html">ascii Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.ascii.html#id1"><tt class="docutils literal"><span class="pre">ascii</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.asciitoimage"><tt class="docutils literal"><span class="pre">asciitoimage</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.media_types.audio.html">audio Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#id1"><tt class="docutils literal"><span class="pre">audio</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.audioprocessing"><tt class="docutils literal"><span class="pre">audioprocessing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.spectrogram"><tt class="docutils literal"><span class="pre">spectrogram</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.media_types.image.html">image Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.image.html#id1"><tt class="docutils literal"><span class="pre">image</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.media_types.video.html">video Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.video.html#id1"><tt class="docutils literal"><span class="pre">video</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">media_types Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">media_types</span></tt> Package</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.media_types.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

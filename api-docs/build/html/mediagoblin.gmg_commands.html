@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gmg_commands Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="gmg-commands-package">
+<h1>gmg_commands Package<a class="headerlink" href="#gmg-commands-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">gmg_commands</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.gmg_commands"></span><dl class="function">
+<dt id="mediagoblin.gmg_commands.main_cli">
+<tt class="descclassname">mediagoblin.gmg_commands.</tt><tt class="descname">main_cli</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands.html#main_cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.main_cli" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.dbupdate">
+<span id="dbupdate-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">dbupdate</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.dbupdate" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.gmg_commands.dbupdate.DatabaseData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.gmg_commands.dbupdate.</tt><tt class="descname">DatabaseData</tt><big>(</big><em>name</em>, <em>models</em>, <em>migrations</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/dbupdate.html#DatabaseData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.dbupdate.DatabaseData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.gmg_commands.dbupdate.DatabaseData.make_migration_manager">
+<tt class="descname">make_migration_manager</tt><big>(</big><em>session</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/dbupdate.html#DatabaseData.make_migration_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.dbupdate.DatabaseData.make_migration_manager" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.dbupdate.dbupdate">
+<tt class="descclassname">mediagoblin.gmg_commands.dbupdate.</tt><tt class="descname">dbupdate</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/dbupdate.html#dbupdate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.dbupdate.dbupdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize or migrate the database as specified by the config file.</p>
+<p>Will also initialize or migrate all extensions (media types, and
+in the future, plugins)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.dbupdate.dbupdate_parse_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.dbupdate.</tt><tt class="descname">dbupdate_parse_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/dbupdate.html#dbupdate_parse_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.dbupdate.dbupdate_parse_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.dbupdate.gather_database_data">
+<tt class="descclassname">mediagoblin.gmg_commands.dbupdate.</tt><tt class="descname">gather_database_data</tt><big>(</big><em>media_types</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/dbupdate.html#gather_database_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.dbupdate.gather_database_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather all database data relevant to the extensions we have
+installed so we can do migrations and table initialization.</p>
+<p>Returns a list of DatabaseData objects.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.import_export">
+<span id="import-export-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">import_export</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.import_export" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.import_export.env_export">
+<tt class="descclassname">mediagoblin.gmg_commands.import_export.</tt><tt class="descname">env_export</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/import_export.html#env_export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.import_export.env_export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export database and media files to a tar archive</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.import_export.env_import">
+<tt class="descclassname">mediagoblin.gmg_commands.import_export.</tt><tt class="descname">env_import</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/import_export.html#env_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.import_export.env_import" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore mongo database and media files from a tar archive</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.import_export.import_export_parse_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.import_export.</tt><tt class="descname">import_export_parse_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/import_export.html#import_export_parse_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.import_export.import_export_parse_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.migrate">
+<span id="migrate-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrate</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.migrate" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.migrate.migrate">
+<tt class="descclassname">mediagoblin.gmg_commands.migrate.</tt><tt class="descname">migrate</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/migrate.html#migrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.migrate.migrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.migrate.migrate_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.migrate.</tt><tt class="descname">migrate_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/migrate.html#migrate_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.migrate.migrate_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.migrate.run_migrate">
+<tt class="descclassname">mediagoblin.gmg_commands.migrate.</tt><tt class="descname">run_migrate</tt><big>(</big><em>conf_file</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/migrate.html#run_migrate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.migrate.run_migrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.mongosql">
+<span id="mongosql-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mongosql</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.mongosql" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.mongosql.mongosql">
+<tt class="descclassname">mediagoblin.gmg_commands.mongosql.</tt><tt class="descname">mongosql</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/mongosql.html#mongosql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.mongosql.mongosql" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.mongosql.mongosql_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.mongosql.</tt><tt class="descname">mongosql_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/mongosql.html#mongosql_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.mongosql.mongosql_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.shell">
+<span id="shell-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">shell</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.shell" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.shell.ipython_shell">
+<tt class="descclassname">mediagoblin.gmg_commands.shell.</tt><tt class="descname">ipython_shell</tt><big>(</big><em>**user_namespace</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/shell.html#ipython_shell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.shell.ipython_shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a shell for the user using ipython.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.shell.py_shell">
+<tt class="descclassname">mediagoblin.gmg_commands.shell.</tt><tt class="descname">py_shell</tt><big>(</big><em>**user_namespace</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/shell.html#py_shell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.shell.py_shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a shell using normal python shell.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.shell.shell">
+<tt class="descclassname">mediagoblin.gmg_commands.shell.</tt><tt class="descname">shell</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/shell.html#shell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.shell.shell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a shell for the user
+either a normal Python shell
+or an IPython one</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.shell.shell_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.shell.</tt><tt class="descname">shell_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/shell.html#shell_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.shell.shell_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.users">
+<span id="users-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">users</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.users" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.adduser">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">adduser</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#adduser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.adduser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.adduser_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">adduser_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#adduser_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.adduser_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.changepw">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">changepw</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#changepw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.changepw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.changepw_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">changepw_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#changepw_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.changepw_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.makeadmin">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">makeadmin</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#makeadmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.makeadmin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.users.makeadmin_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.users.</tt><tt class="descname">makeadmin_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/users.html#makeadmin_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.users.makeadmin_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.util">
+<span id="util-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.util" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.util.prompt_if_not_set">
+<tt class="descclassname">mediagoblin.gmg_commands.util.</tt><tt class="descname">prompt_if_not_set</tt><big>(</big><em>variable</em>, <em>text</em>, <em>password=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/util.html#prompt_if_not_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.util.prompt_if_not_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the variable is None and prompt for a value if it is</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.util.setup_app">
+<tt class="descclassname">mediagoblin.gmg_commands.util.</tt><tt class="descname">setup_app</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/util.html#setup_app"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.util.setup_app" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup the application after reading the mediagoblin config files</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.gmg_commands.wipealldata">
+<span id="wipealldata-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">wipealldata</span></tt> Module<a class="headerlink" href="#module-mediagoblin.gmg_commands.wipealldata" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.wipealldata.wipe">
+<tt class="descclassname">mediagoblin.gmg_commands.wipealldata.</tt><tt class="descname">wipe</tt><big>(</big><em>args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/wipealldata.html#wipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.wipealldata.wipe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.gmg_commands.wipealldata.wipe_parser_setup">
+<tt class="descclassname">mediagoblin.gmg_commands.wipealldata.</tt><tt class="descname">wipe_parser_setup</tt><big>(</big><em>subparser</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/gmg_commands/wipealldata.html#wipe_parser_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.gmg_commands.wipealldata.wipe_parser_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gmg_commands Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">gmg_commands</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.dbupdate"><tt class="docutils literal"><span class="pre">dbupdate</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.import_export"><tt class="docutils literal"><span class="pre">import_export</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.migrate"><tt class="docutils literal"><span class="pre">migrate</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.mongosql"><tt class="docutils literal"><span class="pre">mongosql</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.shell"><tt class="docutils literal"><span class="pre">shell</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.users"><tt class="docutils literal"><span class="pre">users</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.gmg_commands.wipealldata"><tt class="docutils literal"><span class="pre">wipealldata</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.gmg_commands.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.init.config &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.init" href="../init.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../init.html" accesskey="U">mediagoblin.init</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.init.config</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+
+<span class="kn">from</span> <span class="nn">configobj</span> <span class="kn">import</span> <span class="n">ConfigObj</span><span class="p">,</span> <span class="n">flatten_errors</span>
+<span class="kn">from</span> <span class="nn">validate</span> <span class="kn">import</span> <span class="n">Validator</span>
+
+
+<span class="n">CONFIG_SPEC_PATH</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin&#39;</span><span class="p">,</span> <span class="s">&#39;config_spec.ini&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_setup_defaults</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">config_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Setup DEFAULTS in a config object from an (absolute) config_path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;DEFAULT&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">config</span><span class="p">[</span><span class="s">&#39;DEFAULT&#39;</span><span class="p">][</span><span class="s">&#39;here&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">[</span><span class="s">&#39;DEFAULT&#39;</span><span class="p">][</span><span class="s">&#39;__file__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config_path</span>
+
+
+<div class="viewcode-block" id="read_mediagoblin_config"><a class="viewcode-back" href="../../../mediagoblin.init.html#mediagoblin.init.config.read_mediagoblin_config">[docs]</a><span class="k">def</span> <span class="nf">read_mediagoblin_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="n">config_spec</span><span class="o">=</span><span class="n">CONFIG_SPEC_PATH</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read a config object from config_path.</span>
+
+<span class="sd">    Does automatic value transformation based on the config_spec.</span>
+<span class="sd">    Also provides %(__file__)s and %(here)s values of this file and</span>
+<span class="sd">    its directory respectively similar to paste deploy.</span>
+
+<span class="sd">    This function doesn&#39;t itself raise any exceptions if validation</span>
+<span class="sd">    fails, you&#39;ll have to do something</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - config_path: path to the config file</span>
+<span class="sd">     - config_spec: config file that provides defaults and value types</span>
+<span class="sd">       for validation / conversion.  Defaults to mediagoblin/config_spec.ini</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A tuple like: (config, validation_result)</span>
+<span class="sd">      ... where &#39;conf&#39; is the parsed config object and &#39;validation_result&#39;</span>
+<span class="sd">      is the information from the validation process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+
+    <span class="n">config_spec</span> <span class="o">=</span> <span class="n">ConfigObj</span><span class="p">(</span>
+        <span class="n">config_spec</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;UTF8&#39;</span><span class="p">,</span> <span class="n">list_values</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">_inspec</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">_setup_defaults</span><span class="p">(</span><span class="n">config_spec</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ConfigObj</span><span class="p">(</span>
+        <span class="n">config_path</span><span class="p">,</span>
+        <span class="n">configspec</span><span class="o">=</span><span class="n">config_spec</span><span class="p">,</span>
+        <span class="n">interpolation</span><span class="o">=</span><span class="s">&#39;ConfigParser&#39;</span><span class="p">)</span>
+
+    <span class="n">_setup_defaults</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span>
+
+    <span class="c"># For now the validator just works with the default functions,</span>
+    <span class="c"># but in the future if we want to add additional validation/configuration</span>
+    <span class="c"># functions we&#39;d add them to validator.functions here.</span>
+    <span class="c">#</span>
+    <span class="c"># See also:</span>
+    <span class="c">#   http://www.voidspace.org.uk/python/validate.html#adding-functions</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">Validator</span><span class="p">()</span>
+    <span class="n">validation_result</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">validator</span><span class="p">,</span> <span class="n">preserve_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">config</span><span class="p">,</span> <span class="n">validation_result</span>
+
+</div>
+<span class="n">REPORT_HEADER</span> <span class="o">=</span> <span class="s">u&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">There were validation problems loading this config file:</span>
+<span class="s">--------------------------------------------------------</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="generate_validation_report"><a class="viewcode-back" href="../../../mediagoblin.init.html#mediagoblin.init.config.generate_validation_report">[docs]</a><span class="k">def</span> <span class="nf">generate_validation_report</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">validation_result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a report if necessary of problems while validating.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      Either a string describing for a user the problems validating</span>
+<span class="sd">      this config or None if there are no problems.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Organize the report</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">flatten_errors</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">validation_result</span><span class="p">):</span>
+        <span class="c"># each entry is a tuple</span>
+        <span class="n">section_list</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">entry</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">section_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">section_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">u&#39;[missing section]&#39;</span><span class="p">)</span>
+
+        <span class="n">section_string</span> <span class="o">=</span> <span class="s">u&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">section_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">error</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="c"># We don&#39;t care about missing values for now.</span>
+            <span class="k">continue</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">u&quot;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">section_string</span><span class="p">,</span> <span class="n">error</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">report</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">REPORT_HEADER</span> <span class="o">+</span> <span class="s">u&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../init.html" >mediagoblin.init</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

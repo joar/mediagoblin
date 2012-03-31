@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.db.mongo.util &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.db.mongo.util</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for database operations.</span>
+
+<span class="sd">Some note on migration and indexing tools:</span>
+
+<span class="sd">We store information about what the state of the database is in the</span>
+<span class="sd">&#39;mediagoblin&#39; document of the &#39;app_metadata&#39; collection.  Keys in that</span>
+<span class="sd">document relevant to here:</span>
+
+<span class="sd"> - &#39;migration_number&#39;: The integer representing the current state of</span>
+<span class="sd">   the migrations</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c"># Imports that other modules might use</span>
+<span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">ASCENDING</span><span class="p">,</span> <span class="n">DESCENDING</span>
+<span class="kn">from</span> <span class="nn">pymongo.errors</span> <span class="kn">import</span> <span class="n">InvalidId</span>
+<span class="kn">from</span> <span class="nn">mongokit</span> <span class="kn">import</span> <span class="n">ObjectId</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo.indexes</span> <span class="kn">import</span> <span class="n">ACTIVE_INDEXES</span><span class="p">,</span> <span class="n">DEPRECATED_INDEXES</span>
+
+
+<span class="c">################</span>
+<span class="c"># Indexing tools</span>
+<span class="c">################</span>
+
+
+<div class="viewcode-block" id="add_new_indexes"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.add_new_indexes">[docs]</a><span class="k">def</span> <span class="nf">add_new_indexes</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">active_indexes</span><span class="o">=</span><span class="n">ACTIVE_INDEXES</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add any new indexes to the database.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - database: pymongo or mongokit database instance.</span>
+<span class="sd">     - active_indexes: indexes to possibly add in the pattern of:</span>
+<span class="sd">       {&#39;collection_name&#39;: {</span>
+<span class="sd">            &#39;identifier&#39;: {</span>
+<span class="sd">                &#39;index&#39;: [index_foo_goes_here],</span>
+<span class="sd">                &#39;unique&#39;: True}}</span>
+<span class="sd">       where &#39;index&#39; is the index to add and all other options are</span>
+<span class="sd">       arguments for collection.create_index.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A list of indexes added in form (&#39;collection&#39;, &#39;index_name&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indexes_added</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">indexes</span> <span class="ow">in</span> <span class="n">active_indexes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="n">collection_indexes</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">index_information</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">index_data</span> <span class="ow">in</span> <span class="n">indexes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">index_name</span> <span class="ow">in</span> <span class="n">collection_indexes</span><span class="p">:</span>
+                <span class="c"># Get a copy actually so we don&#39;t modify the actual</span>
+                <span class="c"># structure</span>
+                <span class="n">index_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">index_data</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">index_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">)</span>
+                <span class="n">collection</span><span class="o">.</span><span class="n">create_index</span><span class="p">(</span>
+                    <span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span> <span class="o">**</span><span class="n">index_data</span><span class="p">)</span>
+
+                <span class="n">indexes_added</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">index_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">indexes_added</span>
+
+</div>
+<div class="viewcode-block" id="remove_deprecated_indexes"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.remove_deprecated_indexes">[docs]</a><span class="k">def</span> <span class="nf">remove_deprecated_indexes</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">deprecated_indexes</span><span class="o">=</span><span class="n">DEPRECATED_INDEXES</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove any deprecated indexes from the database.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - database: pymongo or mongokit database instance.</span>
+<span class="sd">     - deprecated_indexes: the indexes to deprecate in the pattern of:</span>
+<span class="sd">       {&#39;collection_name&#39;: {</span>
+<span class="sd">            &#39;identifier&#39;: {</span>
+<span class="sd">                &#39;index&#39;: [index_foo_goes_here],</span>
+<span class="sd">                &#39;unique&#39;: True}}</span>
+
+<span class="sd">       (... although we really only need the &#39;identifier&#39; here, as the</span>
+<span class="sd">       rest of the information isn&#39;t used in this case.  But it&#39;s kept</span>
+<span class="sd">       around so we can remember what it was)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A list of indexes removed in form (&#39;collection&#39;, &#39;index_name&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indexes_removed</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">indexes</span> <span class="ow">in</span> <span class="n">deprecated_indexes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">database</span><span class="p">[</span><span class="n">collection_name</span><span class="p">]</span>
+        <span class="n">collection_indexes</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">index_information</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">index_data</span> <span class="ow">in</span> <span class="n">indexes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">index_name</span> <span class="ow">in</span> <span class="n">collection_indexes</span><span class="p">:</span>
+                <span class="n">collection</span><span class="o">.</span><span class="n">drop_index</span><span class="p">(</span><span class="n">index_name</span><span class="p">)</span>
+
+                <span class="n">indexes_removed</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">index_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">indexes_removed</span>
+
+
+<span class="c">#################</span>
+<span class="c"># Migration tools</span>
+<span class="c">#################</span>
+
+<span class="c"># The default migration registry...</span>
+<span class="c">#</span>
+<span class="c"># Don&#39;t set this yourself!  RegisterMigration will automatically fill</span>
+<span class="c"># this with stuff via decorating methods in migrations.py</span>
+</div>
+<div class="viewcode-block" id="MissingCurrentMigration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MissingCurrentMigration">[docs]</a><span class="k">class</span> <span class="nc">MissingCurrentMigration</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<span class="n">MIGRATIONS</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+<div class="viewcode-block" id="RegisterMigration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.RegisterMigration">[docs]</a><span class="k">class</span> <span class="nc">RegisterMigration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tool for registering migrations</span>
+
+<span class="sd">    Call like:</span>
+
+<span class="sd">    @RegisterMigration(33)</span>
+<span class="sd">    def update_dwarves(database):</span>
+<span class="sd">        [...]</span>
+
+<span class="sd">    This will register your migration with the default migration</span>
+<span class="sd">    registry.  Alternately, to specify a very specific</span>
+<span class="sd">    migration_registry, you can pass in that as the second argument.</span>
+
+<span class="sd">    Note, the number of your migration should NEVER be 0 or less than</span>
+<span class="sd">    0.  0 is the default &quot;no migrations&quot; state!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_registry</span><span class="o">=</span><span class="n">MIGRATIONS</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">migration_number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;Migration number must be &gt; 0!&quot;</span>
+        <span class="k">assert</span> <span class="n">migration_number</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">migration_registry</span><span class="p">,</span> \
+            <span class="s">&quot;Duplicate migration numbers detected!  That&#39;s not allowed!&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_number</span> <span class="o">=</span> <span class="n">migration_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span> <span class="o">=</span> <span class="n">migration_registry</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">migration_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">migration</span>
+        <span class="k">return</span> <span class="n">migration</span>
+
+</div>
+<div class="viewcode-block" id="MigrationManager"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager">[docs]</a><span class="k">class</span> <span class="nc">MigrationManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Migration handling tool.</span>
+
+<span class="sd">    Takes information about a database, lets you update the database</span>
+<span class="sd">    to the latest migrations, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">migration_registry</span><span class="o">=</span><span class="n">MIGRATIONS</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">         - database: database we&#39;re going to migrate</span>
+<span class="sd">         - migration_registry: where we should find all migrations to</span>
+<span class="sd">           run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="n">database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span> <span class="o">=</span> <span class="n">migration_registry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_ensure_current_migration_record</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If there isn&#39;t a database[u&#39;app_metadata&#39;] mediagoblin entry</span>
+<span class="sd">        with the &#39;current_migration&#39;, throw an error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MissingCurrentMigration</span><span class="p">(</span>
+                <span class="s">&quot;Tried to call function which requires &quot;</span>
+                <span class="s">&quot;&#39;current_migration&#39; set in database&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MigrationManager.sorted_migrations"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.sorted_migrations">[docs]</a>    <span class="k">def</span> <span class="nf">sorted_migrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sort migrations if necessary and store in self._sorted_migrations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">migration_registry</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+                <span class="c"># sort on the key... the migration number</span>
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">migration_tuple</span><span class="p">:</span> <span class="n">migration_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_migrations</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.latest_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.latest_migration">[docs]</a>    <span class="k">def</span> <span class="nf">latest_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a migration number for the latest migration, or 0 if</span>
+<span class="sd">        there are no migrations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If no migrations have been set, we start at 0.</span>
+            <span class="k">return</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.set_current_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.set_current_migration">[docs]</a>    <span class="k">def</span> <span class="nf">set_current_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">migration_number</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the migration in the database to migration_number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Add the mediagoblin migration if necessary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">[</span><span class="s">u&#39;app_metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">u&#39;_id&#39;</span><span class="p">:</span> <span class="s">u&#39;mediagoblin&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">u&#39;$set&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">u&#39;current_migration&#39;</span><span class="p">:</span> <span class="n">migration_number</span><span class="p">}},</span>
+            <span class="n">upsert</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.install_migration_version_if_missing"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.install_migration_version_if_missing">[docs]</a>    <span class="k">def</span> <span class="nf">install_migration_version_if_missing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the migration to the latest version if no migration</span>
+<span class="sd">        version at all is set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mgoblin_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">[</span><span class="s">u&#39;app_metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">u&#39;_id&#39;</span><span class="p">:</span> <span class="s">u&#39;mediagoblin&#39;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mgoblin_metadata</span><span class="p">:</span>
+            <span class="n">latest_migration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_migration</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="n">latest_migration</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.database_current_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.database_current_migration">[docs]</a>    <span class="k">def</span> <span class="nf">database_current_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the current migration in the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mgoblin_metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">[</span><span class="s">u&#39;app_metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">u&#39;_id&#39;</span><span class="p">:</span> <span class="s">u&#39;mediagoblin&#39;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mgoblin_metadata</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mgoblin_metadata</span><span class="p">[</span><span class="s">u&#39;current_migration&#39;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.database_at_latest_migration"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.database_at_latest_migration">[docs]</a>    <span class="k">def</span> <span class="nf">database_at_latest_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See if the database is at the latest migration.</span>
+<span class="sd">        Returns a boolean.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_migration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">current_migration</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_migration</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.migrations_to_run"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.migrations_to_run">[docs]</a>    <span class="k">def</span> <span class="nf">migrations_to_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of migrations to run still, if any.</span>
+<span class="sd">        </span>
+<span class="sd">        Note that calling this will set your migration version to the</span>
+<span class="sd">        latest version if it isn&#39;t installed to anything yet!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_current_migration_record</span><span class="p">()</span>
+
+        <span class="n">db_current_migration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">database_current_migration</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorted_migrations</span>
+            <span class="k">if</span> <span class="n">migration_number</span> <span class="o">&gt;</span> <span class="n">db_current_migration</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="MigrationManager.migrate_new"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.MigrationManager.migrate_new">[docs]</a>    <span class="k">def</span> <span class="nf">migrate_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">post_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run all migrations.</span>
+
+<span class="sd">        Includes two optional args:</span>
+<span class="sd">         - pre_callback: if called, this is a callback on something to</span>
+<span class="sd">           run pre-migration.  Takes (migration_number, migration_func)</span>
+<span class="sd">           as arguments</span>
+<span class="sd">         - pre_callback: if called, this is a callback on something to</span>
+<span class="sd">           run post-migration.  Takes (migration_number, migration_func)</span>
+<span class="sd">           as arguments</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># If we aren&#39;t set to any version number, presume we&#39;re at the</span>
+        <span class="c"># latest (which means we&#39;ll do nothing here...)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">install_migration_version_if_missing</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">migrations_to_run</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pre_callback</span><span class="p">:</span>
+                <span class="n">pre_callback</span><span class="p">(</span><span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">)</span>
+            <span class="n">migration_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">database</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_current_migration</span><span class="p">(</span><span class="n">migration_number</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">post_callback</span><span class="p">:</span>
+                <span class="n">post_callback</span><span class="p">(</span><span class="n">migration_number</span><span class="p">,</span> <span class="n">migration_func</span><span class="p">)</span>
+
+
+<span class="c">##########################</span>
+<span class="c"># Random utility functions</span>
+<span class="c">##########################</span>
+
+</div></div>
+<div class="viewcode-block" id="atomic_update"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.atomic_update">[docs]</a><span class="k">def</span> <span class="nf">atomic_update</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">,</span> <span class="n">update_values</span><span class="p">):</span>
+    <span class="n">table</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="n">query_dict</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&quot;$set&quot;</span><span class="p">:</span> <span class="n">update_values</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="check_media_slug_used"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.check_media_slug_used">[docs]</a><span class="k">def</span> <span class="nf">check_media_slug_used</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">uploader_id</span><span class="p">,</span> <span class="n">slug</span><span class="p">,</span> <span class="n">ignore_m_id</span><span class="p">):</span>
+    <span class="n">query_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">uploader_id</span><span class="p">,</span> <span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="n">slug</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">ignore_m_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;$ne&#39;</span><span class="p">:</span> <span class="n">ignore_m_id</span><span class="p">}</span>
+    <span class="n">existing_user_slug_entries</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="n">query_dict</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">existing_user_slug_entries</span>
+
+</div>
+<div class="viewcode-block" id="media_entries_for_tag_slug"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.util.media_entries_for_tag_slug">[docs]</a><span class="k">def</span> <span class="nf">media_entries_for_tag_slug</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">tag_slug</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">u&#39;state&#39;</span><span class="p">:</span> <span class="s">u&#39;processed&#39;</span><span class="p">,</span>
+         <span class="s">u&#39;tags.slug&#39;</span><span class="p">:</span> <span class="n">tag_slug</span><span class="p">})</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

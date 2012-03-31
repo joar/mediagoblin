@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.storage &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.storage</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="kn">from</span> <span class="nn">werkzeug.utils</span> <span class="kn">import</span> <span class="n">secure_filename</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">common</span>
+
+<span class="c">########</span>
+<span class="c"># Errors</span>
+<span class="c">########</span>
+
+
+<div class="viewcode-block" id="Error"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.Error">[docs]</a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="InvalidFilepath"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.InvalidFilepath">[docs]</a><span class="k">class</span> <span class="nc">InvalidFilepath</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="NoWebServing"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.NoWebServing">[docs]</a><span class="k">class</span> <span class="nc">NoWebServing</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="NotImplementedError"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.NotImplementedError">[docs]</a><span class="k">class</span> <span class="nc">NotImplementedError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="c">###############################################</span>
+<span class="c"># Storage interface &amp; basic file implementation</span>
+<span class="c">###############################################</span>
+</div>
+<div class="viewcode-block" id="StorageInterface"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface">[docs]</a><span class="k">class</span> <span class="nc">StorageInterface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for the storage API.</span>
+
+<span class="sd">    This interface doesn&#39;t actually provide behavior, but it defines</span>
+<span class="sd">    what kind of storage patterns subclasses should provide.</span>
+
+<span class="sd">    It is important to note that the storage API idea of a &quot;filepath&quot;</span>
+<span class="sd">    is actually like [&#39;dir1&#39;, &#39;dir2&#39;, &#39;file.jpg&#39;], so keep that in</span>
+<span class="sd">    mind while reading method documentation.</span>
+
+<span class="sd">    You should set up your __init__ method with whatever keyword</span>
+<span class="sd">    arguments are appropriate to your storage system, but you should</span>
+<span class="sd">    also passively accept all extraneous keyword arguments like:</span>
+
+<span class="sd">      def __init__(self, **kwargs):</span>
+<span class="sd">          pass</span>
+
+<span class="sd">    See BasicFileStorage as a simple implementation of the</span>
+<span class="sd">    StorageInterface.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># Whether this file store is on the local filesystem.</span>
+    <span class="n">local_storage</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">__raise_not_implemented</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Raise a warning about some component not implemented by a</span>
+<span class="sd">        subclass of this interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s">&quot;This feature not implemented in this storage API implementation.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StorageInterface.file_exists"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.file_exists">[docs]</a>    <span class="k">def</span> <span class="nf">file_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a boolean asserting whether or not file at filepath</span>
+<span class="sd">        exists in our storage system.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">         True / False depending on whether file exists or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Subclasses should override this method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raise_not_implemented</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.get_file"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.get_file">[docs]</a>    <span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a file-like object for reading/writing from this filepath.</span>
+
+<span class="sd">        Should create directories, buckets, whatever, as necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Subclasses should override this method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raise_not_implemented</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.delete_file"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.delete_file">[docs]</a>    <span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete or dereference the file at filepath.</span>
+
+<span class="sd">        This might need to delete directories, buckets, whatever, for</span>
+<span class="sd">        cleanliness.  (Be sure to avoid race conditions on that though)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Subclasses should override this method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raise_not_implemented</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.file_url"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.file_url">[docs]</a>    <span class="k">def</span> <span class="nf">file_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the URL for this file.  This assumes our storage has been</span>
+<span class="sd">        mounted with some kind of URL which makes this possible.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Subclasses should override this method.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raise_not_implemented</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.get_unique_filepath"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.get_unique_filepath">[docs]</a>    <span class="k">def</span> <span class="nf">get_unique_filepath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If a filename at filepath already exists, generate a new name.</span>
+
+<span class="sd">        Eg, if the filename doesn&#39;t exist:</span>
+<span class="sd">        &gt;&gt;&gt; storage_handler.get_unique_filename([&#39;dir1&#39;, &#39;dir2&#39;, &#39;fname.jpg&#39;])</span>
+<span class="sd">        [u&#39;dir1&#39;, u&#39;dir2&#39;, u&#39;fname.jpg&#39;]</span>
+
+<span class="sd">        But if a file does exist, let&#39;s get one back with at uuid tacked on:</span>
+<span class="sd">        &gt;&gt;&gt; storage_handler.get_unique_filename([&#39;dir1&#39;, &#39;dir2&#39;, &#39;fname.jpg&#39;])</span>
+<span class="sd">        [u&#39;dir1&#39;, u&#39;dir2&#39;, u&#39;d02c3571-dd62-4479-9d62-9e3012dada29-fname.jpg&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Make sure we have a clean filepath to start with, since</span>
+        <span class="c"># we&#39;ll be possibly tacking on stuff to the filename.</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">clean_listy_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filepath</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">(),</span> <span class="n">filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">filepath</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.get_local_path"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.get_local_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_local_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If this is a local_storage implementation, give us a link to</span>
+<span class="sd">        the local filesystem reference to this file.</span>
+
+<span class="sd">        &gt;&gt;&gt; storage_handler.get_local_path([&#39;foo&#39;, &#39;bar&#39;, &#39;baz.jpg&#39;])</span>
+<span class="sd">        u&#39;/path/to/mounting/foo/bar/baz.jpg&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Subclasses should override this method, if applicable.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raise_not_implemented</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.copy_locally"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.copy_locally">[docs]</a>    <span class="k">def</span> <span class="nf">copy_locally</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy this file locally.</span>
+
+<span class="sd">        A basic working method for this is provided that should</span>
+<span class="sd">        function both for local_storage systems and remote storge</span>
+<span class="sd">        systems, but if more efficient systems for copying locally</span>
+<span class="sd">        apply to your system, override this method with something more</span>
+<span class="sd">        appropriate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_storage</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">get_local_path</span><span class="p">(</span><span class="n">filepath</span><span class="p">),</span> <span class="n">dest_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dest_file</span><span class="p">:</span>
+                    <span class="n">dest_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">source_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="StorageInterface.copy_local_to_storage"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.StorageInterface.copy_local_to_storage">[docs]</a>    <span class="k">def</span> <span class="nf">copy_local_to_storage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy this file from locally to the storage system.</span>
+
+<span class="sd">        This is kind of the opposite of copy_locally.  It&#39;s likely you</span>
+<span class="sd">        could override this method with something more appropriate to</span>
+<span class="sd">        your storage system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dest_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">source_file</span><span class="p">:</span>
+                <span class="n">dest_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">source_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+
+<span class="c">###########</span>
+<span class="c"># Utilities</span>
+<span class="c">###########</span>
+</div></div>
+<div class="viewcode-block" id="clean_listy_filepath"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.clean_listy_filepath">[docs]</a><span class="k">def</span> <span class="nf">clean_listy_filepath</span><span class="p">(</span><span class="n">listy_filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a listy filepath (like [&#39;dir1&#39;, &#39;dir2&#39;, &#39;filename.jpg&#39;]) and</span>
+<span class="sd">    clean out any nastiness from it.</span>
+
+
+<span class="sd">    &gt;&gt;&gt; clean_listy_filepath([u&#39;/dir1/&#39;, u&#39;foo/../nasty&#39;, u&#39;linooks.jpg&#39;])</span>
+<span class="sd">    [u&#39;dir1&#39;, u&#39;foo_.._nasty&#39;, u&#39;linooks.jpg&#39;]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - listy_filepath: a list of filepath components, mediagoblin</span>
+<span class="sd">      storage API style.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A cleaned list of unicode objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cleaned_filepath</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">unicode</span><span class="p">(</span><span class="n">secure_filename</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">listy_filepath</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s">u&#39;&#39;</span> <span class="ow">in</span> <span class="n">cleaned_filepath</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidFilepath</span><span class="p">(</span>
+            <span class="s">&quot;A filename component could not be resolved into a usable name.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cleaned_filepath</span>
+
+</div>
+<div class="viewcode-block" id="storage_system_from_config"><a class="viewcode-back" href="../../mediagoblin.storage.html#mediagoblin.storage.storage_system_from_config">[docs]</a><span class="k">def</span> <span class="nf">storage_system_from_config</span><span class="p">(</span><span class="n">config_section</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility for setting up a storage system from a config section.</span>
+
+<span class="sd">    Note that a special argument may be passed in to</span>
+<span class="sd">    the config_section which is &quot;storage_class&quot; which will provide an</span>
+<span class="sd">    import path to a storage system.  This defaults to</span>
+<span class="sd">    &quot;mediagoblin.storage:BasicFileStorage&quot; if otherwise undefined.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">     - config_section: dictionary of config parameters</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      An instantiated storage system.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">      storage_system_from_config(</span>
+<span class="sd">        {&#39;base_url&#39;: &#39;/media/&#39;,</span>
+<span class="sd">         &#39;base_dir&#39;: &#39;/var/whatever/media/&#39;})</span>
+
+<span class="sd">       Will return:</span>
+<span class="sd">         BasicFileStorage(</span>
+<span class="sd">           base_url=&#39;/media/&#39;,</span>
+<span class="sd">           base_dir=&#39;/var/whatever/media&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># This construct is needed, because dict(config) does</span>
+    <span class="c"># not replace the variables in the config items.</span>
+    <span class="n">config_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">config_section</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="s">&#39;storage_class&#39;</span> <span class="ow">in</span> <span class="n">config_params</span><span class="p">:</span>
+        <span class="n">storage_class</span> <span class="o">=</span> <span class="n">config_params</span><span class="p">[</span><span class="s">&#39;storage_class&#39;</span><span class="p">]</span>
+        <span class="n">config_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;storage_class&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">storage_class</span> <span class="o">=</span> <span class="s">&#39;mediagoblin.storage.filestorage:BasicFileStorage&#39;</span>
+
+    <span class="n">storage_class</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">import_component</span><span class="p">(</span><span class="n">storage_class</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">storage_class</span><span class="p">(</span><span class="o">**</span><span class="n">config_params</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,210 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>edit Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="edit-package">
+<h1>edit Package<a class="headerlink" href="#edit-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">edit</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.edit"></span></div>
+<div class="section" id="module-mediagoblin.edit.forms">
+<span id="forms-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">forms</span></tt> Module<a class="headerlink" href="#module-mediagoblin.edit.forms" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.edit.forms.EditAccountForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.edit.forms.</tt><tt class="descname">EditAccountForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/edit/forms.html#EditAccountForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.edit.forms.EditAccountForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditAccountForm.new_password">
+<tt class="descname">new_password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('New password', [&lt;wtforms.validators.Required object at 0x2ee7410&gt;, &lt;wtforms.validators.Length object at 0x2ee7850&gt;]), {'id': 'password'})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditAccountForm.new_password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditAccountForm.old_password">
+<tt class="descname">old_password</tt><em class="property"> = &lt;UnboundField(PasswordField, ('Old password', [&lt;wtforms.validators.Required object at 0x2ee7710&gt;]), {'description': 'Enter your old password to prove you own this account.'})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditAccountForm.old_password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.edit.forms.EditAttachmentsForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.edit.forms.</tt><tt class="descname">EditAttachmentsForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/edit/forms.html#EditAttachmentsForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.edit.forms.EditAttachmentsForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditAttachmentsForm.attachment_file">
+<tt class="descname">attachment_file</tt><em class="property"> = &lt;UnboundField(FileField, ('File',), {})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditAttachmentsForm.attachment_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditAttachmentsForm.attachment_name">
+<tt class="descname">attachment_name</tt><em class="property"> = &lt;UnboundField(TextField, ('Title',), {})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditAttachmentsForm.attachment_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.edit.forms.EditForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.edit.forms.</tt><tt class="descname">EditForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/edit/forms.html#EditForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.edit.forms.EditForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditForm.description">
+<tt class="descname">description</tt><em class="property"> = &lt;UnboundField(TextAreaField, ('Description of this work',), {'description': 'You can use\n                      &lt;a href=&quot;http://daringfireball.net/projects/markdown/basics&quot;&gt;\n                      Markdown&lt;/a&gt; for formatting.'})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditForm.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditForm.license">
+<tt class="descname">license</tt><em class="property"> = &lt;UnboundField(SelectField, ('License', [&lt;wtforms.validators.Optional object at 0x2ee7310&gt;]), {'choices': [('', 'All rights reserved'), ('http://creativecommons.org/licenses/by/3.0/', 'CC BY 3.0'), ('http://creativecommons.org/licenses/by-sa/3.0/', 'CC BY-SA 3.0'), ('http://creativecommons.org/licenses/by-nd/3.0/', 'CC BY-ND 3.0'), ('http://creativecommons.org/licenses/by-nc/3.0/', 'CC BY-NC 3.0'), ('http://creativecommons.org/licenses/by-nc-sa/3.0/', 'CC BY-NC-SA 3.0'), ('http://creativecommons.org/licenses/by-nc-nd/3.0/', 'CC BY-NC-ND 3.0'), ('http://creativecommons.org/publicdomain/zero/1.0/', 'CC0 1.0'), ('http://creativecommons.org/publicdomain/mark/1.0/', 'Public Domain')]})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditForm.license" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditForm.slug">
+<tt class="descname">slug</tt><em class="property"> = &lt;UnboundField(TextField, ('Slug', [&lt;wtforms.validators.Required object at 0x2ee7210&gt;]), {'description': &quot;The title part of this media's address. You usually don't need to change this.&quot;})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditForm.slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditForm.tags">
+<tt class="descname">tags</tt><em class="property"> = &lt;UnboundField(TextField, ('Tags', [&lt;function tag_length_validator at 0x354b1b8&gt;]), {'description': 'Separate tags by commas.'})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditForm.tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditForm.title">
+<tt class="descname">title</tt><em class="property"> = &lt;UnboundField(TextField, ('Title', [&lt;wtforms.validators.Length object at 0x3ad4050&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditForm.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.edit.forms.EditProfileForm">
+<em class="property">class </em><tt class="descclassname">mediagoblin.edit.forms.</tt><tt class="descname">EditProfileForm</tt><big>(</big><em>formdata=None</em>, <em>obj=None</em>, <em>prefix=''</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/edit/forms.html#EditProfileForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.edit.forms.EditProfileForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">wtforms.form.Form</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditProfileForm.bio">
+<tt class="descname">bio</tt><em class="property"> = &lt;UnboundField(TextAreaField, ('Bio', [&lt;wtforms.validators.Length object at 0x2ee7390&gt;]), {'description': 'You can use\n                      &lt;a href=&quot;http://daringfireball.net/projects/markdown/basics&quot;&gt;\n                      Markdown&lt;/a&gt; for formatting.'})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditProfileForm.bio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.edit.forms.EditProfileForm.url">
+<tt class="descname">url</tt><em class="property"> = &lt;UnboundField(TextField, ('Website', [&lt;wtforms.validators.Optional object at 0x2ee73d0&gt;, &lt;wtforms.validators.URL object at 0x2ee75d0&gt;]), {})&gt;</em><a class="headerlink" href="#mediagoblin.edit.forms.EditProfileForm.url" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.edit.lib">
+<span id="lib-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lib</span></tt> Module<a class="headerlink" href="#module-mediagoblin.edit.lib" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.edit.lib.may_edit_media">
+<tt class="descclassname">mediagoblin.edit.lib.</tt><tt class="descname">may_edit_media</tt><big>(</big><em>request</em>, <em>media</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/edit/lib.html#may_edit_media"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.edit.lib.may_edit_media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check, if the request&#8217;s user may edit the media details</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.edit.routing">
+<span id="routing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">routing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.edit.routing" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.edit.views">
+<span id="views-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">views</span></tt> Module<a class="headerlink" href="#module-mediagoblin.edit.views" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">edit Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">edit</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.edit.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.edit.lib"><tt class="docutils literal"><span class="pre">lib</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.edit.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.edit.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.edit.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_config &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_config</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.init</span> <span class="kn">import</span> <span class="n">config</span>
+
+
+<span class="n">CARROT_CONF_GOOD</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;fake_carrot_conf_good.ini&#39;</span><span class="p">)</span>
+<span class="n">CARROT_CONF_EMPTY</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;fake_carrot_conf_empty.ini&#39;</span><span class="p">)</span>
+<span class="n">CARROT_CONF_BAD</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;fake_carrot_conf_bad.ini&#39;</span><span class="p">)</span>
+<span class="n">FAKE_CONFIG_SPEC</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;fake_config_spec.ini&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_read_mediagoblin_config"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_config.test_read_mediagoblin_config">[docs]</a><span class="k">def</span> <span class="nf">test_read_mediagoblin_config</span><span class="p">():</span>
+    <span class="c"># An empty file</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_EMPTY</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;carrotcake&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;num_carrots&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;encouragement_phrase&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;celery&#39;</span><span class="p">][</span><span class="s">&#39;EAT_CELERY_WITH_CARROTS&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">True</span>
+
+    <span class="c"># A good file</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_GOOD</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;carrotcake&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">True</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;num_carrots&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">88</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;encouragement_phrase&#39;</span><span class="p">]</span> <span class="o">==</span> \
+        <span class="s">&quot;I&#39;d love it if you eat your carrots!&quot;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;blah_blah&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;blah!&quot;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;celery&#39;</span><span class="p">][</span><span class="s">&#39;EAT_CELERY_WITH_CARROTS&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span>
+
+    <span class="c"># A bad file</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_BAD</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+
+    <span class="c"># These should still open but will have errors that we&#39;ll test for</span>
+    <span class="c"># in test_generate_validation_report()</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;carrotcake&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;slobber&#39;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;num_carrots&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;GROSS&#39;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;encouragement_phrase&#39;</span><span class="p">]</span> <span class="o">==</span> \
+        <span class="s">&quot;586956856856&quot;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;carrotapp&#39;</span><span class="p">][</span><span class="s">&#39;blah_blah&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;blah!&quot;</span>
+    <span class="k">assert</span> <span class="n">this_conf</span><span class="p">[</span><span class="s">&#39;celery&#39;</span><span class="p">][</span><span class="s">&#39;EAT_CELERY_WITH_CARROTS&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;pants&quot;</span>
+
+</div>
+<div class="viewcode-block" id="test_generate_validation_report"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_config.test_generate_validation_report">[docs]</a><span class="k">def</span> <span class="nf">test_generate_validation_report</span><span class="p">():</span>
+    <span class="c"># Empty</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_EMPTY</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">generate_validation_report</span><span class="p">(</span><span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">report</span> <span class="ow">is</span> <span class="bp">None</span>
+
+    <span class="c"># Good</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_GOOD</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">generate_validation_report</span><span class="p">(</span><span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">report</span> <span class="ow">is</span> <span class="bp">None</span>
+
+    <span class="c"># Bad</span>
+    <span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read_mediagoblin_config</span><span class="p">(</span>
+        <span class="n">CARROT_CONF_BAD</span><span class="p">,</span> <span class="n">FAKE_CONFIG_SPEC</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">generate_validation_report</span><span class="p">(</span><span class="n">this_conf</span><span class="p">,</span> <span class="n">validation_results</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">report</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s">There were validation problems loading this config file:</span>
+<span class="s">--------------------------------------------------------&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">expected_warnings</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;carrotapp:carrotcake = the value &quot;slobber&quot; is of the wrong type.&#39;</span><span class="p">,</span>
+        <span class="s">&#39;carrotapp:num_carrots = the value &quot;GROSS&quot; is of the wrong type.&#39;</span><span class="p">,</span>
+        <span class="s">&#39;celery:EAT_CELERY_WITH_CARROTS = the value &quot;pants&quot; is of the wrong type.&#39;</span><span class="p">]</span>
+    <span class="n">warnings</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+    <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">expected_warnings</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">warnings</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

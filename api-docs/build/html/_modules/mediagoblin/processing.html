@@ -1,0 +1,221 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.processing &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.processing</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">atomic_update</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span> <span class="k">as</span> <span class="n">mgg</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.translate</span> <span class="kn">import</span> <span class="n">lazy_pass_to_ugettext</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_pub_filepath"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.create_pub_filepath">[docs]</a><span class="k">def</span> <span class="nf">create_pub_filepath</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">get_unique_filepath</span><span class="p">(</span>
+            <span class="p">[</span><span class="s">&#39;media_entries&#39;</span><span class="p">,</span>
+             <span class="nb">unicode</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">_id</span><span class="p">),</span>
+             <span class="n">filename</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="FilenameBuilder"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.FilenameBuilder">[docs]</a><span class="k">class</span> <span class="nc">FilenameBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Easily slice and dice filenames.</span>
+
+<span class="sd">    Initialize this class with an original file path, then use the fill()</span>
+<span class="sd">    method to create new filenames based on the original.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">MAX_FILENAME_LENGTH</span> <span class="o">=</span> <span class="mi">255</span>  <span class="c"># VFAT&#39;s maximum filename length</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a builder from an original file path.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FilenameBuilder.fill"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.FilenameBuilder.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmtstr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a new filename based on the original.</span>
+
+<span class="sd">        The fmtstr argument can include the following:</span>
+<span class="sd">        {basename} -- the original basename, with the extension removed</span>
+<span class="sd">        {ext} -- the original extension, always lowercase</span>
+
+<span class="sd">        If necessary, {basename} will be truncated so the filename does not</span>
+<span class="sd">        exceed this class&#39; MAX_FILENAME_LENGTH in length.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">basename_len</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_FILENAME_LENGTH</span> <span class="o">-</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">fmtstr</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basename</span><span class="p">[:</span><span class="n">basename_len</span><span class="p">],</span>
+                             <span class="n">ext</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="mark_entry_failed"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.mark_entry_failed">[docs]</a><span class="k">def</span> <span class="nf">mark_entry_failed</span><span class="p">(</span><span class="n">entry_id</span><span class="p">,</span> <span class="n">exc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mark a media entry as having failed in its conversion.</span>
+
+<span class="sd">    Uses the exception that was raised to mark more information.  If</span>
+<span class="sd">    the exception is a derivative of BaseProcessingFail then we can</span>
+<span class="sd">    store extra information that can be useful for users telling them</span>
+<span class="sd">    why their media failed to process.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">     - entry_id: The id of the media entry</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Was this a BaseProcessingFail?  In other words, was this a</span>
+    <span class="c"># type of error that we know how to handle?</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="n">BaseProcessingFail</span><span class="p">):</span>
+        <span class="c"># Looks like yes, so record information about that failure and any</span>
+        <span class="c"># metadata the user might have supplied.</span>
+        <span class="n">atomic_update</span><span class="p">(</span><span class="n">mgg</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">MediaEntry</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">entry_id</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">u&#39;state&#39;</span><span class="p">:</span> <span class="s">u&#39;failed&#39;</span><span class="p">,</span>
+             <span class="s">u&#39;fail_error&#39;</span><span class="p">:</span> <span class="n">exc</span><span class="o">.</span><span class="n">exception_path</span><span class="p">,</span>
+             <span class="s">u&#39;fail_metadata&#39;</span><span class="p">:</span> <span class="n">exc</span><span class="o">.</span><span class="n">metadata</span><span class="p">})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;No idea what happened here, but it failed: </span><span class="si">%r</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+        <span class="c"># Looks like no, so just mark it as failed and don&#39;t record a</span>
+        <span class="c"># failure_error (we&#39;ll assume it wasn&#39;t handled) and don&#39;t record</span>
+        <span class="c"># metadata (in fact overwrite it if somehow it had previous info</span>
+        <span class="c"># here)</span>
+        <span class="n">atomic_update</span><span class="p">(</span><span class="n">mgg</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">MediaEntry</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">entry_id</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">u&#39;state&#39;</span><span class="p">:</span> <span class="s">u&#39;failed&#39;</span><span class="p">,</span>
+             <span class="s">u&#39;fail_error&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+             <span class="s">u&#39;fail_metadata&#39;</span><span class="p">:</span> <span class="p">{}})</span>
+
+</div>
+<div class="viewcode-block" id="BaseProcessingFail"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.BaseProcessingFail">[docs]</a><span class="k">class</span> <span class="nc">BaseProcessingFail</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base exception that all other processing failure messages should</span>
+<span class="sd">    subclass from.</span>
+
+<span class="sd">    You shouldn&#39;t call this itself; instead you should subclass it</span>
+<span class="sd">    and provid the exception_path and general_message applicable to</span>
+<span class="sd">    this error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">general_message</span> <span class="o">=</span> <span class="s">u&#39;&#39;</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BaseProcessingFail.exception_path"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.BaseProcessingFail.exception_path">[docs]</a>    <span class="k">def</span> <span class="nf">exception_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">u&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__module__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+
+</div>
+<div class="viewcode-block" id="BadMediaFail"><a class="viewcode-back" href="../../mediagoblin.processing.html#mediagoblin.processing.BadMediaFail">[docs]</a><span class="k">class</span> <span class="nc">BadMediaFail</span><span class="p">(</span><span class="n">BaseProcessingFail</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Error that should be raised when an inappropriate file was given</span>
+<span class="sd">    for the media type specified.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">general_message</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s">u&#39;Invalid file given for media type.&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.video.processing &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.video.processing</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span> <span class="k">as</span> <span class="n">mgg</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.processing</span> <span class="kn">import</span> <span class="n">mark_entry_failed</span><span class="p">,</span> \
+    <span class="n">create_pub_filepath</span><span class="p">,</span> <span class="n">FilenameBuilder</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">transcoders</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="sniff_handler"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.processing.sniff_handler">[docs]</a><span class="k">def</span> <span class="nf">sniff_handler</span><span class="p">(</span><span class="n">media_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="n">transcoder</span> <span class="o">=</span> <span class="n">transcoders</span><span class="o">.</span><span class="n">VideoTranscoder</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">transcoder</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="n">media_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Discovered: {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Could not discover {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;media&#39;</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;is_video&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="process_video"><a class="viewcode-back" href="../../../../mediagoblin.media_types.video.html#mediagoblin.media_types.video.processing.process_video">[docs]</a><span class="k">def</span> <span class="nf">process_video</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process a video entry, transcode the queued media files (originals) and</span>
+<span class="sd">    create a thumbnail for the entry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">video_config</span> <span class="o">=</span> <span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media_type:mediagoblin.media_types.video&#39;</span><span class="p">]</span>
+
+    <span class="n">workbench</span> <span class="o">=</span> <span class="n">mgg</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+
+    <span class="n">queued_filepath</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">queued_media_file</span>
+    <span class="n">queued_filename</span> <span class="o">=</span> <span class="n">workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+        <span class="n">mgg</span><span class="o">.</span><span class="n">queue_store</span><span class="p">,</span> <span class="n">queued_filepath</span><span class="p">,</span>
+        <span class="s">&#39;source&#39;</span><span class="p">)</span>
+    <span class="n">name_builder</span> <span class="o">=</span> <span class="n">FilenameBuilder</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">)</span>
+
+    <span class="n">medium_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+        <span class="n">entry</span><span class="p">,</span> <span class="n">name_builder</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&#39;{basename}-640p.webm&#39;</span><span class="p">))</span>
+
+    <span class="n">thumbnail_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+        <span class="n">entry</span><span class="p">,</span> <span class="n">name_builder</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&#39;{basename}.thumbnail.jpg&#39;</span><span class="p">))</span>
+
+    <span class="c"># Create a temporary file for the video destination</span>
+    <span class="n">tmp_dst</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">tmp_dst</span><span class="p">:</span>
+        <span class="c"># Transcode queued file to a VP8/vorbis file that fits in a 640x640 square</span>
+        <span class="n">transcoder</span> <span class="o">=</span> <span class="n">transcoders</span><span class="o">.</span><span class="n">VideoTranscoder</span><span class="p">()</span>
+        <span class="n">transcoder</span><span class="o">.</span><span class="n">transcode</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">,</span> <span class="n">tmp_dst</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># Push transcoded video to public storage</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saving medium...&#39;</span><span class="p">)</span>
+        <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">medium_filepath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">tmp_dst</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saved medium&#39;</span><span class="p">)</span>
+
+        <span class="n">entry</span><span class="o">.</span><span class="n">media_files</span><span class="p">[</span><span class="s">&#39;webm_640&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">medium_filepath</span>
+
+        <span class="c"># Save the width and height of the transcoded video</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">media_data_init</span><span class="p">(</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">transcoder</span><span class="o">.</span><span class="n">dst_data</span><span class="o">.</span><span class="n">videowidth</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">transcoder</span><span class="o">.</span><span class="n">dst_data</span><span class="o">.</span><span class="n">videoheight</span><span class="p">)</span>
+
+    <span class="c"># Create a temporary file for the video thumbnail</span>
+    <span class="n">tmp_thumb</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s">&#39;.jpg&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tmp_thumb</span><span class="p">:</span>
+        <span class="c"># Create a thumbnail.jpg that fits in a 180x180 square</span>
+        <span class="n">transcoders</span><span class="o">.</span><span class="n">VideoThumbnailer</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">,</span> <span class="n">tmp_thumb</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c"># Push the thumbnail to public storage</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saving thumbnail...&#39;</span><span class="p">)</span>
+        <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">thumbnail_filepath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">tmp_thumb</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saved thumbnail&#39;</span><span class="p">)</span>
+
+        <span class="n">entry</span><span class="o">.</span><span class="n">media_files</span><span class="p">[</span><span class="s">&#39;thumb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thumbnail_filepath</span>
+
+    <span class="k">if</span> <span class="n">video_config</span><span class="p">[</span><span class="s">&#39;keep_original&#39;</span><span class="p">]:</span>
+        <span class="c"># Push original file to public storage</span>
+        <span class="n">queued_file</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">queued_file</span><span class="p">:</span>
+            <span class="n">original_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+                <span class="n">entry</span><span class="p">,</span>
+                <span class="n">queued_filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">with</span> <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">original_filepath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> \
+                    <span class="n">original_file</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saving original...&#39;</span><span class="p">)</span>
+                <span class="n">original_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">queued_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Saved original&#39;</span><span class="p">)</span>
+
+                <span class="n">entry</span><span class="o">.</span><span class="n">media_files</span><span class="p">[</span><span class="s">&#39;original&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_filepath</span>
+
+    <span class="n">mgg</span><span class="o">.</span><span class="n">queue_store</span><span class="o">.</span><span class="n">delete_file</span><span class="p">(</span><span class="n">queued_filepath</span><span class="p">)</span>
+
+    <span class="c"># Save the MediaEntry</span>
+    <span class="n">entry</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

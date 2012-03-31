@@ -1,0 +1,141 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_globals &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_globals</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_raises</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+
+<div class="viewcode-block" id="TestGlobals"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_globals.TestGlobals">[docs]</a><span class="k">class</span> <span class="nc">TestGlobals</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TestGlobals.setUp"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_globals.TestGlobals.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_connection</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">db_connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_database</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span>
+</div>
+<div class="viewcode-block" id="TestGlobals.tearDown"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_globals.TestGlobals.tearDown">[docs]</a>    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mg_globals</span><span class="o">.</span><span class="n">db_connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_connection</span>
+        <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_database</span>
+</div>
+<div class="viewcode-block" id="TestGlobals.test_setup_globals"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_globals.TestGlobals.test_setup_globals">[docs]</a>    <span class="k">def</span> <span class="nf">test_setup_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mg_globals</span><span class="o">.</span><span class="n">setup_globals</span><span class="p">(</span>
+            <span class="n">db_connection</span><span class="o">=</span><span class="s">&#39;my favorite db_connection!&#39;</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="s">&#39;my favorite database!&#39;</span><span class="p">,</span>
+            <span class="n">public_store</span><span class="o">=</span><span class="s">&#39;my favorite public_store!&#39;</span><span class="p">,</span>
+            <span class="n">queue_store</span><span class="o">=</span><span class="s">&#39;my favorite queue_store!&#39;</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">db_connection</span> <span class="o">==</span> <span class="s">&#39;my favorite db_connection!&#39;</span>
+        <span class="k">assert</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span> <span class="o">==</span> <span class="s">&#39;my favorite database!&#39;</span>
+        <span class="k">assert</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">public_store</span> <span class="o">==</span> <span class="s">&#39;my favorite public_store!&#39;</span>
+        <span class="k">assert</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">queue_store</span> <span class="o">==</span> <span class="s">&#39;my favorite queue_store!&#39;</span>
+
+        <span class="n">assert_raises</span><span class="p">(</span>
+            <span class="ne">AssertionError</span><span class="p">,</span>
+            <span class="n">mg_globals</span><span class="o">.</span><span class="n">setup_globals</span><span class="p">,</span>
+            <span class="n">no_such_global_foo</span> <span class="o">=</span> <span class="s">&quot;Dummy&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

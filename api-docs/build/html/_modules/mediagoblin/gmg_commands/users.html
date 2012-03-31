@@ -1,0 +1,199 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.gmg_commands.users &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.gmg_commands" href="../gmg_commands.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../gmg_commands.html" accesskey="U">mediagoblin.gmg_commands</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.gmg_commands.users</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.gmg_commands</span> <span class="kn">import</span> <span class="n">util</span> <span class="k">as</span> <span class="n">commands_util</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth</span> <span class="kn">import</span> <span class="n">lib</span> <span class="k">as</span> <span class="n">auth_lib</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+
+<div class="viewcode-block" id="adduser_parser_setup"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.adduser_parser_setup">[docs]</a><span class="k">def</span> <span class="nf">adduser_parser_setup</span><span class="p">(</span><span class="n">subparser</span><span class="p">):</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;--username&#39;</span><span class="p">,</span><span class="s">&#39;-u&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Username used to login&quot;</span><span class="p">)</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;--password&#39;</span><span class="p">,</span><span class="s">&#39;-p&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Your supersecret word to login, beware of storing it in bash history&quot;</span><span class="p">)</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;--email&#39;</span><span class="p">,</span><span class="s">&#39;-e&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Email to receive notifications&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="adduser"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.adduser">[docs]</a><span class="k">def</span> <span class="nf">adduser</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="c">#TODO: Lets trust admins this do not validate Emails :)</span>
+    <span class="n">commands_util</span><span class="o">.</span><span class="n">setup_app</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="n">args</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">commands_util</span><span class="o">.</span><span class="n">prompt_if_not_set</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="s">&quot;Username:&quot;</span><span class="p">)</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">commands_util</span><span class="o">.</span><span class="n">prompt_if_not_set</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="s">&quot;Password:&quot;</span><span class="p">,</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">commands_util</span><span class="o">.</span><span class="n">prompt_if_not_set</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="s">&quot;Email:&quot;</span><span class="p">)</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span>
+    <span class="n">users_with_username</span> <span class="o">=</span> \
+        <span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find</span><span class="p">({</span>
+            <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+        <span class="p">})</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">users_with_username</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">u&#39;Sorry, a user with that name already exists.&#39;</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Create the user</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="p">()</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">pw_hash</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s">u&#39;active&#39;</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">print</span> <span class="s">&quot;User created (and email marked as verified)&quot;</span>
+
+</div>
+<div class="viewcode-block" id="makeadmin_parser_setup"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.makeadmin_parser_setup">[docs]</a><span class="k">def</span> <span class="nf">makeadmin_parser_setup</span><span class="p">(</span><span class="n">subparser</span><span class="p">):</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;username&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Username to give admin level&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="makeadmin"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.makeadmin">[docs]</a><span class="k">def</span> <span class="nf">makeadmin</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">commands_util</span><span class="o">.</span><span class="n">setup_app</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">one</span><span class="p">({</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">())})</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="k">print</span> <span class="s">&#39;The user is now Admin&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;The user doesn</span><span class="se">\&#39;</span><span class="s">t exist&#39;</span>
+
+</div>
+<div class="viewcode-block" id="changepw_parser_setup"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.changepw_parser_setup">[docs]</a><span class="k">def</span> <span class="nf">changepw_parser_setup</span><span class="p">(</span><span class="n">subparser</span><span class="p">):</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;username&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Username used to login&quot;</span><span class="p">)</span>
+    <span class="n">subparser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s">&#39;password&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s">&quot;Your NEW supersecret word to login&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="changepw"><a class="viewcode-back" href="../../../mediagoblin.gmg_commands.html#mediagoblin.gmg_commands.users.changepw">[docs]</a><span class="k">def</span> <span class="nf">changepw</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">commands_util</span><span class="o">.</span><span class="n">setup_app</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">one</span><span class="p">({</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">())})</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">pw_hash</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="k">print</span> <span class="s">&#39;Password successfully changed&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;The user doesn</span><span class="se">\&#39;</span><span class="s">t exist&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../gmg_commands.html" >mediagoblin.gmg_commands</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

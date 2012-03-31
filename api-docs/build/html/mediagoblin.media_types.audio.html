@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>audio Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="audio-package">
+<h1>audio Package<a class="headerlink" href="#audio-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">audio</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.media_types.audio"></span></div>
+<div class="section" id="module-mediagoblin.media_types.audio.audioprocessing">
+<span id="audioprocessing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">audioprocessing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.audioprocessing" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="mediagoblin.media_types.audio.audioprocessing.AudioProcessingException">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">AudioProcessingException</tt><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#AudioProcessingException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.AudioProcessingException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.audioprocessing.AudioProcessor">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">AudioProcessor</tt><big>(</big><em>input_filename</em>, <em>fft_size</em>, <em>window_function=&lt;function hanning at 0x5bfbed8&gt;</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#AudioProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.AudioProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>The audio processor processes chunks of audio an calculates the spectrac centroid and the peak
+samples in that chunk of audio.</p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.AudioProcessor.peaks">
+<tt class="descname">peaks</tt><big>(</big><em>start_seek</em>, <em>end_seek</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#AudioProcessor.peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.AudioProcessor.peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>read all samples between start_seek and end_seek, then find the minimum and maximum peak
+in that range. Returns that pair in the order they were found. So if min was found first,
+it returns (min, max) else the other way around.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.AudioProcessor.read">
+<tt class="descname">read</tt><big>(</big><em>start</em>, <em>size</em>, <em>resize_if_less=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#AudioProcessor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.AudioProcessor.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>read size samples starting at start, if resize_if_less is True and less than size
+samples are read, resize the array to size and fill with zeros</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.AudioProcessor.spectral_centroid">
+<tt class="descname">spectral_centroid</tt><big>(</big><em>seek_point</em>, <em>spec_range=110.0</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#AudioProcessor.spectral_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.AudioProcessor.spectral_centroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>starting at seek_point read fft_size samples, and calculate the spectral centroid</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="mediagoblin.media_types.audio.audioprocessing.NoSpaceLeftException">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">NoSpaceLeftException</tt><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#NoSpaceLeftException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.NoSpaceLeftException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.audioprocessing.SpectrogramImage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">SpectrogramImage</tt><big>(</big><em>image_width</em>, <em>image_height</em>, <em>fft_size</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#SpectrogramImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.SpectrogramImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Given spectra from the AudioProcessor, this class will construct a wavefile image which
+can be saved as PNG.</p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.SpectrogramImage.draw_spectrum">
+<tt class="descname">draw_spectrum</tt><big>(</big><em>x</em>, <em>spectrum</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#SpectrogramImage.draw_spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.SpectrogramImage.draw_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.SpectrogramImage.save">
+<tt class="descname">save</tt><big>(</big><em>filename</em>, <em>quality=80</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#SpectrogramImage.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.SpectrogramImage.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.audioprocessing.TestAudioFile">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">TestAudioFile</tt><big>(</big><em>num_frames</em>, <em>has_broken_header=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#TestAudioFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.TestAudioFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A class that mimics audiolab.sndfile but generates noise instead of reading
+a wave file. Additionally it can be told to have a &#8220;broken&#8221; header and thus crashing
+in the middle of the file. Also useful for testing ultra-short files of 20 samples.</p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.TestAudioFile.read_frames">
+<tt class="descname">read_frames</tt><big>(</big><em>frames_to_read</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#TestAudioFile.read_frames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.TestAudioFile.read_frames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.TestAudioFile.seek">
+<tt class="descname">seek</tt><big>(</big><em>seekpoint</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#TestAudioFile.seek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.TestAudioFile.seek" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.audioprocessing.WaveformImage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">WaveformImage</tt><big>(</big><em>image_width</em>, <em>image_height</em>, <em>palette=1</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#WaveformImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.WaveformImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Given peaks and spectral centroids from the AudioProcessor, this class will construct
+a wavefile image which can be saved as PNG.</p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.WaveformImage.color_from_value">
+<tt class="descname">color_from_value</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#WaveformImage.color_from_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.WaveformImage.color_from_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>given a value between 0 and 1, return an (r,g,b) tuple</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.WaveformImage.draw_anti_aliased_pixels">
+<tt class="descname">draw_anti_aliased_pixels</tt><big>(</big><em>x</em>, <em>y1</em>, <em>y2</em>, <em>color</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#WaveformImage.draw_anti_aliased_pixels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.WaveformImage.draw_anti_aliased_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>vertical anti-aliasing at y1 and y2</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.WaveformImage.draw_peaks">
+<tt class="descname">draw_peaks</tt><big>(</big><em>x</em>, <em>peaks</em>, <em>spectral_centroid</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#WaveformImage.draw_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.WaveformImage.draw_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>draw 2 peaks at x using the spectral_centroid for color</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.audioprocessing.WaveformImage.save">
+<tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#WaveformImage.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.WaveformImage.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.convert_to_mp3">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">convert_to_mp3</tt><big>(</big><em>input_filename</em>, <em>output_filename</em>, <em>quality=70</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#convert_to_mp3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.convert_to_mp3" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts the incoming wave file to a mp3 file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.convert_to_ogg">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">convert_to_ogg</tt><big>(</big><em>input_filename</em>, <em>output_filename</em>, <em>quality=1</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#convert_to_ogg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.convert_to_ogg" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts the incoming wave file to n ogg file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.convert_to_pcm">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">convert_to_pcm</tt><big>(</big><em>input_filename</em>, <em>output_filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#convert_to_pcm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.convert_to_pcm" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts any audio file type to pcm audio</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.convert_using_ffmpeg">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">convert_using_ffmpeg</tt><big>(</big><em>input_filename</em>, <em>output_filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#convert_using_ffmpeg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.convert_using_ffmpeg" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts the incoming wave file to stereo pcm using fffmpeg</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.create_wave_images">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">create_wave_images</tt><big>(</big><em>input_filename</em>, <em>output_filename_w</em>, <em>output_filename_s</em>, <em>image_width</em>, <em>image_height</em>, <em>fft_size</em>, <em>progress_callback=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#create_wave_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.create_wave_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility function for creating both wavefile and spectrum images from an audio input file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.desaturate">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">desaturate</tt><big>(</big><em>rgb</em>, <em>amount</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#desaturate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.desaturate" title="Permalink to this definition">¶</a></dt>
+<dd><p>desaturate colors by amount
+amount == 0, no change
+amount == 1, grey</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.get_max_level">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">get_max_level</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#get_max_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.get_max_level" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.get_sound_type">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">get_sound_type</tt><big>(</big><em>input_filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#get_sound_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.get_sound_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.interpolate_colors">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">interpolate_colors</tt><big>(</big><em>colors</em>, <em>flat=False</em>, <em>num_colors=256</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#interpolate_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.interpolate_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>given a list of colors, create a larger list of colors interpolating
+the first one. If flatten is True a list of numers will be returned. If
+False, a list of (r,g,b) tuples. num_colors is the number of colors wanted
+in the final list</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.audioprocessing.stereofy_and_find_info">
+<tt class="descclassname">mediagoblin.media_types.audio.audioprocessing.</tt><tt class="descname">stereofy_and_find_info</tt><big>(</big><em>stereofy_executble_path</em>, <em>input_filename</em>, <em>output_filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/audioprocessing.html#stereofy_and_find_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.audioprocessing.stereofy_and_find_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>converts a pcm wave file to two channel, 16 bit integer</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.audio.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.media_types.audio.models">
+<span id="models-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.models" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.models.AudioData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.models.</tt><tt class="descname">AudioData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/models.html#AudioData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.models.AudioData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.audio.models.AudioData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.audio.models.AudioData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.audio.models.AudioData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.audio.models.AudioData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.audio.models.DATA_MODEL">
+<tt class="descclassname">mediagoblin.media_types.audio.models.</tt><tt class="descname">DATA_MODEL</tt><a class="headerlink" href="#mediagoblin.media_types.audio.models.DATA_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#mediagoblin.media_types.audio.models.AudioData" title="mediagoblin.media_types.audio.models.AudioData"><tt class="xref py py-class docutils literal"><span class="pre">AudioData</span></tt></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.audio.processing">
+<span id="processing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">processing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.processing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.processing.process_audio">
+<tt class="descclassname">mediagoblin.media_types.audio.processing.</tt><tt class="descname">process_audio</tt><big>(</big><em>entry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/processing.html#process_audio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.processing.process_audio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.processing.sniff_handler">
+<tt class="descclassname">mediagoblin.media_types.audio.processing.</tt><tt class="descname">sniff_handler</tt><big>(</big><em>media_file</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/processing.html#sniff_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.processing.sniff_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.audio.spectrogram">
+<span id="spectrogram-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">spectrogram</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.spectrogram" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="mediagoblin.media_types.audio.spectrogram.AudioProcessingException">
+<em class="property">exception </em><tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">AudioProcessingException</tt><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#AudioProcessingException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.AudioProcessingException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.spectrogram.AudioProcessor">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">AudioProcessor</tt><big>(</big><em>input_filename</em>, <em>fft_size</em>, <em>window_function=&lt;function hanning at 0x5bfbed8&gt;</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#AudioProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.AudioProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>The audio processor processes chunks of audio an calculates the spectrac centroid and the peak
+samples in that chunk of audio.</p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.spectrogram.AudioProcessor.peaks">
+<tt class="descname">peaks</tt><big>(</big><em>start_seek</em>, <em>end_seek</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#AudioProcessor.peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.AudioProcessor.peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>read all samples between start_seek and end_seek, then find the minimum and maximum peak
+in that range. Returns that pair in the order they were found. So if min was found first,
+it returns (min, max) else the other way around.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.spectrogram.AudioProcessor.read">
+<tt class="descname">read</tt><big>(</big><em>start</em>, <em>size</em>, <em>resize_if_less=False</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#AudioProcessor.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.AudioProcessor.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>read size samples starting at start, if resize_if_less is True and less than size
+samples are read, resize the array to size and fill with zeros</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.spectrogram.AudioProcessor.spectral_centroid">
+<tt class="descname">spectral_centroid</tt><big>(</big><em>seek_point</em>, <em>spec_range=110.0</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#AudioProcessor.spectral_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.AudioProcessor.spectral_centroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>starting at seek_point read fft_size samples, and calculate the spectral centroid</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.spectrogram.SpectrogramImage">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">SpectrogramImage</tt><big>(</big><em>image_size</em>, <em>fft_size</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#SpectrogramImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.SpectrogramImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.spectrogram.SpectrogramImage.draw_spectrum">
+<tt class="descname">draw_spectrum</tt><big>(</big><em>x</em>, <em>spectrum</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#SpectrogramImage.draw_spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.SpectrogramImage.draw_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.spectrogram.SpectrogramImage.save">
+<tt class="descname">save</tt><big>(</big><em>filename</em>, <em>quality=90</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#SpectrogramImage.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.SpectrogramImage.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.spectrogram.create_spectrogram_image">
+<tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">create_spectrogram_image</tt><big>(</big><em>source_filename</em>, <em>output_filename</em>, <em>image_size</em>, <em>fft_size</em>, <em>progress_callback=None</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#create_spectrogram_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.create_spectrogram_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.spectrogram.get_max_level">
+<tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">get_max_level</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#get_max_level"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.get_max_level" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.audio.spectrogram.interpolate_colors">
+<tt class="descclassname">mediagoblin.media_types.audio.spectrogram.</tt><tt class="descname">interpolate_colors</tt><big>(</big><em>colors</em>, <em>flat=False</em>, <em>num_colors=256</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/spectrogram.html#interpolate_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.spectrogram.interpolate_colors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.audio.transcoders">
+<span id="transcoders-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transcoders</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.audio.transcoders" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioThumbnailer">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.transcoders.</tt><tt class="descname">AudioThumbnailer</tt><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioThumbnailer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioThumbnailer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioThumbnailer.spectrogram">
+<tt class="descname">spectrogram</tt><big>(</big><em>src</em>, <em>dst</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioThumbnailer.spectrogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioThumbnailer.spectrogram" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioThumbnailer.thumbnail_spectrogram">
+<tt class="descname">thumbnail_spectrogram</tt><big>(</big><em>src</em>, <em>dst</em>, <em>thumb_size</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioThumbnailer.thumbnail_spectrogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioThumbnailer.thumbnail_spectrogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a spectrogram and creates a thumbnail from it</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioTranscoder">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.audio.transcoders.</tt><tt class="descname">AudioTranscoder</tt><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioTranscoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioTranscoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioTranscoder.discover">
+<tt class="descname">discover</tt><big>(</big><em>src</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioTranscoder.discover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioTranscoder.discover" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioTranscoder.halt">
+<tt class="descname">halt</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioTranscoder.halt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioTranscoder.halt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.audio.transcoders.AudioTranscoder.transcode">
+<tt class="descname">transcode</tt><big>(</big><em>src</em>, <em>dst</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/audio/transcoders.html#AudioTranscoder.transcode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.audio.transcoders.AudioTranscoder.transcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">audio Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">audio</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.audioprocessing"><tt class="docutils literal"><span class="pre">audioprocessing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.spectrogram"><tt class="docutils literal"><span class="pre">spectrogram</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.audio.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.media_types.audio.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

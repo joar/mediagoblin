@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.db.mongo.models &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.db.mongo.models</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">from</span> <span class="nn">mongokit</span> <span class="kn">import</span> <span class="n">Document</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo</span> <span class="kn">import</span> <span class="n">migrations</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mongo.util</span> <span class="kn">import</span> <span class="n">ASCENDING</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">,</span> <span class="n">ObjectId</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.pagination</span> <span class="kn">import</span> <span class="n">Pagination</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.mixin</span> <span class="kn">import</span> <span class="n">UserMixin</span><span class="p">,</span> <span class="n">MediaEntryMixin</span><span class="p">,</span> <span class="n">MediaCommentMixin</span>
+
+
+<div class="viewcode-block" id="MongoPK"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MongoPK">[docs]</a><span class="k">class</span> <span class="nc">MongoPK</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An alias for the _id primary key&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">cls</span><span class="p">):</span>
+       <span class="k">return</span> <span class="n">instance</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span>   
+    <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+       <span class="n">instance</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>  
+    <span class="k">def</span> <span class="nf">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+       <span class="k">del</span> <span class="n">instance</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span>
+
+
+<span class="c">###################</span>
+<span class="c"># Custom validators</span>
+<span class="c">###################</span>
+
+<span class="c">########</span>
+<span class="c"># Models</span>
+<span class="c">########</span>
+
+</div>
+<div class="viewcode-block" id="User"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Document</span><span class="p">,</span> <span class="n">UserMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A user of MediaGoblin.</span>
+
+<span class="sd">    Structure:</span>
+<span class="sd">     - username: The username of this user, should be unique to this instance.</span>
+<span class="sd">     - email: Email address of this user</span>
+<span class="sd">     - created: When the user was created</span>
+<span class="sd">     - plugin_data: a mapping of extra plugin information for this User.</span>
+<span class="sd">       Nothing uses this yet as we don&#39;t have plugins, but someday we</span>
+<span class="sd">       might... :)</span>
+<span class="sd">     - pw_hash: Hashed version of user&#39;s password.</span>
+<span class="sd">     - email_verified: Whether or not the user has verified their email or not.</span>
+<span class="sd">       Most parts of the site are disabled for users who haven&#39;t yet.</span>
+<span class="sd">     - status: whether or not the user is active, etc.  Currently only has two</span>
+<span class="sd">       values, &#39;needs_email_verification&#39; or &#39;active&#39;.  (In the future, maybe</span>
+<span class="sd">       we&#39;ll change this to a boolean with a key of &#39;active&#39; and have a</span>
+<span class="sd">       separate field for a reason the user&#39;s been disabled if that&#39;s</span>
+<span class="sd">       appropriate... email_verified is already separate, after all.)</span>
+<span class="sd">     - verification_key: If the user is awaiting email verification, the user</span>
+<span class="sd">       will have to provide this key (which will be encoded in the presented</span>
+<span class="sd">       URL) in order to confirm their email as active.</span>
+<span class="sd">     - is_admin: Whether or not this user is an administrator or not.</span>
+<span class="sd">     - url: this user&#39;s personal webpage/website, if appropriate.</span>
+<span class="sd">     - bio: biography of this user (plaintext, in markdown)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__collection__</span> <span class="o">=</span> <span class="s">&#39;users&#39;</span>
+    <span class="n">use_dot_notation</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">structure</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span>
+        <span class="s">&#39;plugin_data&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>  <span class="c"># plugins can dump stuff here.</span>
+        <span class="s">&#39;pw_hash&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;email_verified&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;verification_key&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;is_admin&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s">&#39;url&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;bio&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>      <span class="c"># May contain markdown</span>
+        <span class="s">&#39;fp_verification_key&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>  <span class="c"># forgotten password verification key</span>
+        <span class="s">&#39;fp_token_expire&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">required_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">,</span> <span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="s">&#39;pw_hash&#39;</span><span class="p">,</span> <span class="s">&#39;email&#39;</span><span class="p">]</span>
+
+    <span class="n">default_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">,</span>
+        <span class="s">&#39;email_verified&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">u&#39;needs_email_verification&#39;</span><span class="p">,</span>
+        <span class="s">&#39;is_admin&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">MongoPK</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="MediaEntry"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry">[docs]</a><span class="k">class</span> <span class="nc">MediaEntry</span><span class="p">(</span><span class="n">Document</span><span class="p">,</span> <span class="n">MediaEntryMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Record of a piece of media.</span>
+
+<span class="sd">    Structure:</span>
+<span class="sd">     - uploader: A reference to a User who uploaded this.</span>
+
+<span class="sd">     - title: Title of this work</span>
+
+<span class="sd">     - slug: A normalized &quot;slug&quot; which can be used as part of a URL to retrieve</span>
+<span class="sd">       this work, such as &#39;my-works-name-in-slug-form&#39; may be viewable by</span>
+<span class="sd">       &#39;http://mg.example.org/u/username/m/my-works-name-in-slug-form/&#39;</span>
+<span class="sd">       Note that since URLs are constructed this way, slugs must be unique</span>
+<span class="sd">       per-uploader.  (An index is provided to enforce that but code should be</span>
+<span class="sd">       written on the python side to ensure this as well.)</span>
+
+<span class="sd">     - created: Date and time of when this piece of work was uploaded.</span>
+
+<span class="sd">     - description: Uploader-set description of this work.  This can be marked</span>
+<span class="sd">       up with MarkDown for slight fanciness (links, boldness, italics,</span>
+<span class="sd">       paragraphs...)</span>
+
+<span class="sd">     - media_type: What type of media is this?  Currently we only support</span>
+<span class="sd">       &#39;image&#39; ;)</span>
+
+<span class="sd">     - media_data: Extra information that&#39;s media-format-dependent.</span>
+<span class="sd">       For example, images might contain some EXIF data that&#39;s not appropriate</span>
+<span class="sd">       to other formats.  You might store it like:</span>
+
+<span class="sd">         mediaentry.media_data[&#39;exif&#39;] = {</span>
+<span class="sd">             &#39;manufacturer&#39;: &#39;CASIO&#39;,</span>
+<span class="sd">             &#39;model&#39;: &#39;QV-4000&#39;,</span>
+<span class="sd">             &#39;exposure_time&#39;: .659}</span>
+
+<span class="sd">       Alternately for video you might store:</span>
+
+<span class="sd">         # play length in seconds</span>
+<span class="sd">         mediaentry.media_data[&#39;play_length&#39;] = 340</span>
+
+<span class="sd">       ... so what&#39;s appropriate here really depends on the media type.</span>
+
+<span class="sd">     - plugin_data: a mapping of extra plugin information for this User.</span>
+<span class="sd">       Nothing uses this yet as we don&#39;t have plugins, but someday we</span>
+<span class="sd">       might... :)</span>
+
+<span class="sd">     - tags: A list of tags.  Each tag is stored as a dictionary that has a key</span>
+<span class="sd">       for the actual name and the normalized name-as-slug, so ultimately this</span>
+<span class="sd">       looks like:</span>
+<span class="sd">         [{&#39;name&#39;: &#39;Gully Gardens&#39;,</span>
+<span class="sd">           &#39;slug&#39;: &#39;gully-gardens&#39;},</span>
+<span class="sd">          {&#39;name&#39;: &#39;Castle Adventure Time?!&quot;,</span>
+<span class="sd">           &#39;slug&#39;: &#39;castle-adventure-time&#39;}]</span>
+
+<span class="sd">     - state: What&#39;s the state of this file?  Active, inactive, disabled, etc...</span>
+<span class="sd">       But really for now there are only two states:</span>
+<span class="sd">        &quot;unprocessed&quot;: uploaded but needs to go through processing for display</span>
+<span class="sd">        &quot;processed&quot;: processed and able to be displayed</span>
+
+<span class="sd">     - license: URI for media&#39;s license.</span>
+
+<span class="sd">     - queued_media_file: storage interface style filepath describing a file</span>
+<span class="sd">       queued for processing.  This is stored in the mg_globals.queue_store</span>
+<span class="sd">       storage system.</span>
+
+<span class="sd">     - queued_task_id: celery task id.  Use this to fetch the task state.</span>
+
+<span class="sd">     - media_files: Files relevant to this that have actually been processed</span>
+<span class="sd">       and are available for various types of display.  Stored like:</span>
+<span class="sd">         {&#39;thumb&#39;: [&#39;dir1&#39;, &#39;dir2&#39;, &#39;pic.png&#39;}</span>
+
+<span class="sd">     - attachment_files: A list of &quot;attachment&quot; files, ones that aren&#39;t</span>
+<span class="sd">       critical to this piece of media but may be usefully relevant to people</span>
+<span class="sd">       viewing the work.  (currently unused.)</span>
+
+<span class="sd">     - fail_error: path to the exception raised</span>
+<span class="sd">     - fail_metadata:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__collection__</span> <span class="o">=</span> <span class="s">&#39;media_entries&#39;</span>
+    <span class="n">use_dot_notation</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">structure</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">,</span>
+        <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span>
+        <span class="s">&#39;description&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>  <span class="c"># May contain markdown/up</span>
+        <span class="s">&#39;media_type&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;media_data&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>  <span class="c"># extra data relevant to this media_type</span>
+        <span class="s">&#39;plugin_data&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>  <span class="c"># plugins can dump stuff here.</span>
+        <span class="s">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+        <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;license&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+
+        <span class="c"># For now let&#39;s assume there can only be one main file queued</span>
+        <span class="c"># at a time</span>
+        <span class="s">&#39;queued_media_file&#39;</span><span class="p">:</span> <span class="p">[</span><span class="nb">unicode</span><span class="p">],</span>
+        <span class="s">&#39;queued_task_id&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+
+        <span class="c"># A dictionary of logical names to filepaths</span>
+        <span class="s">&#39;media_files&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+
+        <span class="c"># The following should be lists of lists, in appropriate file</span>
+        <span class="c"># record form</span>
+        <span class="s">&#39;attachment_files&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+
+        <span class="c"># If things go badly in processing things, we&#39;ll store that</span>
+        <span class="c"># data here</span>
+        <span class="s">&#39;fail_error&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="s">&#39;fail_metadata&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">}</span>
+
+    <span class="n">required_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;uploader&#39;</span><span class="p">,</span> <span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="s">&#39;media_type&#39;</span><span class="p">,</span> <span class="s">&#39;slug&#39;</span><span class="p">]</span>
+
+    <span class="n">default_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">,</span>
+        <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">u&#39;unprocessed&#39;</span><span class="p">}</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">MongoPK</span><span class="p">()</span>
+
+<div class="viewcode-block" id="MediaEntry.media_data_init"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry.media_data_init">[docs]</a>    <span class="k">def</span> <span class="nf">media_data_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">media_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntry.get_comments"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry.get_comments">[docs]</a>    <span class="k">def</span> <span class="nf">get_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">ascending</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ASCENDING</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">DESCENDING</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaComment</span><span class="o">.</span><span class="n">find</span><span class="p">({</span>
+                <span class="s">&#39;media_entry&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntry.url_to_prev"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry.url_to_prev">[docs]</a>    <span class="k">def</span> <span class="nf">url_to_prev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">urlgen</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provide a url to the previous entry from this user, if there is one</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$gt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">},</span>
+                                          <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span>
+                                          <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+                                                    <span class="s">&#39;_id&#39;</span><span class="p">,</span> <span class="n">ASCENDING</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">media</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">media</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span><span class="n">urlgen</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntry.url_to_next"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry.url_to_next">[docs]</a>    <span class="k">def</span> <span class="nf">url_to_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">urlgen</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provide a url to the next entry from this user, if there is one</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$lt&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">},</span>
+                                          <span class="s">&#39;uploader&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span>
+                                          <span class="s">&#39;state&#39;</span><span class="p">:</span> <span class="s">&#39;processed&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+                                                    <span class="s">&#39;_id&#39;</span><span class="p">,</span> <span class="n">DESCENDING</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">media</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">media</span><span class="o">.</span><span class="n">url_for_self</span><span class="p">(</span><span class="n">urlgen</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MediaEntry.get_uploader"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaEntry.get_uploader">[docs]</a>    <span class="k">def</span> <span class="nf">get_uploader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">})</span>
+
+</div></div>
+<div class="viewcode-block" id="MediaComment"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaComment">[docs]</a><span class="k">class</span> <span class="nc">MediaComment</span><span class="p">(</span><span class="n">Document</span><span class="p">,</span> <span class="n">MediaCommentMixin</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A comment on a MediaEntry.</span>
+
+<span class="sd">    Structure:</span>
+<span class="sd">     - media_entry: The media entry this comment is attached to</span>
+<span class="sd">     - author: user who posted this comment</span>
+<span class="sd">     - created: when the comment was created</span>
+<span class="sd">     - content: plaintext (but markdown&#39;able) version of the comment&#39;s content.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__collection__</span> <span class="o">=</span> <span class="s">&#39;media_comments&#39;</span>
+    <span class="n">use_dot_notation</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">structure</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;media_entry&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">,</span>
+        <span class="s">&#39;author&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">,</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span>
+        <span class="s">&#39;content&#39;</span><span class="p">:</span> <span class="nb">unicode</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="n">required_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;media_entry&#39;</span><span class="p">,</span> <span class="s">&#39;author&#39;</span><span class="p">,</span> <span class="s">&#39;created&#39;</span><span class="p">,</span> <span class="s">&#39;content&#39;</span><span class="p">]</span>
+
+    <span class="n">default_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;created&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">}</span>
+
+<div class="viewcode-block" id="MediaComment.media_entry"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaComment.media_entry">[docs]</a>    <span class="k">def</span> <span class="nf">media_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;media_entry&#39;</span><span class="p">]})</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MediaComment.get_author"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.MediaComment.get_author">[docs]</a>    <span class="k">def</span> <span class="nf">get_author</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">]})</span>
+
+</div></div>
+<span class="n">REGISTER_MODELS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">MediaEntry</span><span class="p">,</span>
+    <span class="n">User</span><span class="p">,</span>
+    <span class="n">MediaComment</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="register_models"><a class="viewcode-back" href="../../../../mediagoblin.db.mongo.html#mediagoblin.db.mongo.models.register_models">[docs]</a><span class="k">def</span> <span class="nf">register_models</span><span class="p">(</span><span class="n">connection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Register all models in REGISTER_MODELS with this connection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">REGISTER_MODELS</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

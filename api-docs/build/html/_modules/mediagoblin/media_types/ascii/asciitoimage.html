@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.ascii.asciitoimage &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.ascii.asciitoimage</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">ImageFont</span>
+<span class="kn">import</span> <span class="nn">ImageDraw</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AsciiToImage"><a class="viewcode-back" href="../../../../mediagoblin.media_types.ascii.html#mediagoblin.media_types.ascii.asciitoimage.AsciiToImage">[docs]</a><span class="k">class</span> <span class="nc">AsciiToImage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Converter of ASCII art into image files, preserving whitespace</span>
+
+<span class="sd">    kwargs:</span>
+<span class="sd">    - font: Path to font file</span>
+<span class="sd">      default: fonts/Inconsolata.otf</span>
+<span class="sd">    - font_size: Font size, ``int``</span>
+<span class="sd">      default: 11</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c"># Font file path</span>
+    <span class="n">_font</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">_font_size</span> <span class="o">=</span> <span class="mi">11</span>
+
+    <span class="c"># ImageFont instance</span>
+    <span class="n">_if</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># ImageFont</span>
+    <span class="n">_if_dims</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># Image instance</span>
+    <span class="n">_im</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_font</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_font</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;mediagoblin.media_types.ascii&#39;</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;fonts&#39;</span><span class="p">,</span> <span class="s">&#39;Inconsolata.otf&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font_size&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_font_size</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;font_size&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_if</span> <span class="o">=</span> <span class="n">ImageFont</span><span class="o">.</span><span class="n">truetype</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_font</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_font_size</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;unic&#39;</span><span class="p">)</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Font set to {0}, size {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_font</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_font_size</span><span class="p">))</span>
+
+        <span class="c">#      ,-,-^-&#39;-^&#39;^-^&#39;^-&#39;^-.</span>
+        <span class="c">#     ( I am a wall socket )Oo,  ___</span>
+        <span class="c">#      `-.,.-.,.-.-.,.-.--&#39;     &#39;   `</span>
+        <span class="c"># Get the size, in pixels of the &#39;.&#39; character</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_if_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_if</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="c">#                               `---&#39;</span>
+
+<div class="viewcode-block" id="AsciiToImage.convert"><a class="viewcode-back" href="../../../../mediagoblin.media_types.ascii.html#mediagoblin.media_types.ascii.asciitoimage.AsciiToImage.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">destination</span><span class="p">):</span>
+        <span class="c"># TODO: Detect if text is a file-like, if so, act accordingly</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_image</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="c"># PIL&#39;s Image.save will handle both file-likes and paths</span>
+        <span class="k">if</span> <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">destination</span><span class="p">):</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Saved image in {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">destination</span><span class="p">))</span>
+</div>
+    <span class="k">def</span> <span class="nf">_create_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Write characters to a PIL image canvas.</span>
+
+<span class="sd">        TODO:</span>
+<span class="sd">        - Character set detection and decoding,</span>
+<span class="sd">          http://pypi.python.org/pypi/chardet</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Drawing image&#39;</span><span class="p">)</span>
+        <span class="c"># Convert the input from str to unicode</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+
+        <span class="c"># TODO: Account for alternative line endings</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">line_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+
+        <span class="c"># Calculate destination size based on text input and character size</span>
+        <span class="n">im_dims</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">line_lengths</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_if_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">line_lengths</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_if_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Destination image dimensions will be {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">im_dims</span><span class="p">))</span>
+
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+            <span class="s">&#39;RGBA&#39;</span><span class="p">,</span>
+            <span class="n">im_dims</span><span class="p">,</span>
+            <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+        <span class="n">char_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Writing line at {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">char_pos</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">_pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">line_length</span><span class="p">):</span>
+                <span class="n">char</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">_pos</span><span class="p">]</span>
+
+                <span class="n">px_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_px_pos</span><span class="p">(</span><span class="n">char_pos</span><span class="p">)</span>
+
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Writing character &quot;{0}&quot; at {1} (px pos {2})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">char</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">,</span> <span class="s">&#39;replace&#39;</span><span class="p">),</span>
+                        <span class="n">char_pos</span><span class="p">,</span>
+                        <span class="n">px_pos</span><span class="p">))</span>
+
+                <span class="n">draw</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                    <span class="n">px_pos</span><span class="p">,</span>
+                    <span class="n">char</span><span class="p">,</span>
+                    <span class="n">font</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_if</span><span class="p">,</span>
+                    <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+                <span class="n">char_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c"># Reset X position, increment Y position</span>
+            <span class="n">char_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">char_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">im</span>
+
+    <span class="k">def</span> <span class="nf">_px_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">char_pos</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Helper function to calculate the pixel position based on</span>
+<span class="sd">        character position and character dimensions</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">px_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">char_pos</span><span class="p">)),</span> <span class="n">char_pos</span><span class="p">):</span>
+                <span class="n">px_pos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">char_pos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_if_dims</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">px_pos</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tools.translate &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tools.translate</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">gettext</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">from</span> <span class="nn">babel.localedata</span> <span class="kn">import</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">babel.support</span> <span class="kn">import</span> <span class="n">LazyProxy</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+
+<span class="c">###################</span>
+<span class="c"># Translation tools</span>
+<span class="c">###################</span>
+
+
+<span class="n">TRANSLATIONS_PATH</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+    <span class="s">&#39;mediagoblin&#39;</span><span class="p">,</span> <span class="s">&#39;i18n&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="locale_to_lower_upper"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.locale_to_lower_upper">[docs]</a><span class="k">def</span> <span class="nf">locale_to_lower_upper</span><span class="p">(</span><span class="n">locale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a locale, regardless of style, and format it like &quot;en-us&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&#39;-&#39;</span> <span class="ow">in</span> <span class="n">locale</span><span class="p">:</span>
+        <span class="n">lang</span><span class="p">,</span> <span class="n">country</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">country</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="s">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">locale</span><span class="p">:</span>
+        <span class="n">lang</span><span class="p">,</span> <span class="n">country</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">country</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">locale</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="locale_to_lower_lower"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.locale_to_lower_lower">[docs]</a><span class="k">def</span> <span class="nf">locale_to_lower_lower</span><span class="p">(</span><span class="n">locale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a locale, regardless of style, and format it like &quot;en_US&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">locale</span><span class="p">:</span>
+        <span class="n">lang</span><span class="p">,</span> <span class="n">country</span> <span class="o">=</span> <span class="n">locale</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lang</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">country</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">locale</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_locale_from_request"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.get_locale_from_request">[docs]</a><span class="k">def</span> <span class="nf">get_locale_from_request</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Figure out what target language is most appropriate based on the</span>
+<span class="sd">    request</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">request_form</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+
+    <span class="k">if</span> <span class="n">request_form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;lang&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="n">request_form</span><span class="p">[</span><span class="s">&#39;lang&#39;</span><span class="p">])</span>
+
+    <span class="c"># Your routing can explicitly specify a target language</span>
+    <span class="n">matchdict</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">matchdict</span> <span class="ow">or</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">matchdict</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;locale&#39;</span><span class="p">):</span>
+        <span class="n">target_lang</span> <span class="o">=</span> <span class="n">matchdict</span><span class="p">[</span><span class="s">&#39;locale&#39;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;target_lang&#39;</span><span class="p">):</span>
+        <span class="n">target_lang</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;target_lang&#39;</span><span class="p">]</span>
+    <span class="c"># Pull the first acceptable language or English</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># WebOb recently changed how it handles determining best language.</span>
+        <span class="c"># Here&#39;s a compromise commit that handles either/or...</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">accept_language</span><span class="p">,</span> <span class="s">&quot;best_matches&quot;</span><span class="p">):</span>
+            <span class="n">accept_lang_matches</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">accept_language</span><span class="o">.</span><span class="n">best_matches</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">accept_lang_matches</span><span class="p">:</span>
+                <span class="n">target_lang</span> <span class="o">=</span> <span class="n">accept_lang_matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_lang</span> <span class="o">=</span> <span class="s">&#39;en&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_lang</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">accept</span><span class="o">.</span><span class="n">best_match</span><span class="p">(</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">accept_language</span><span class="p">,</span> <span class="s">&#39;en&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">locale_to_lower_upper</span><span class="p">(</span><span class="n">target_lang</span><span class="p">)</span>
+</div>
+<span class="n">SETUP_GETTEXTS</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="setup_gettext"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.setup_gettext">[docs]</a><span class="k">def</span> <span class="nf">setup_gettext</span><span class="p">(</span><span class="n">locale</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Setup the gettext instance based on this locale</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Later on when we have plugins we may want to enable the</span>
+    <span class="c"># multi-translations system they have so we can handle plugin</span>
+    <span class="c"># translations too</span>
+
+    <span class="c"># TODO: fallback nicely on translations from pt_PT to pt if not</span>
+    <span class="c"># available, etc.</span>
+    <span class="k">if</span> <span class="n">SETUP_GETTEXTS</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">locale</span><span class="p">):</span>
+        <span class="n">this_gettext</span> <span class="o">=</span> <span class="n">SETUP_GETTEXTS</span><span class="p">[</span><span class="n">locale</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">this_gettext</span> <span class="o">=</span> <span class="n">gettext</span><span class="o">.</span><span class="n">translation</span><span class="p">(</span>
+            <span class="s">&#39;mediagoblin&#39;</span><span class="p">,</span> <span class="n">TRANSLATIONS_PATH</span><span class="p">,</span> <span class="p">[</span><span class="n">locale</span><span class="p">],</span> <span class="n">fallback</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">locale</span><span class="p">):</span>
+            <span class="n">SETUP_GETTEXTS</span><span class="p">[</span><span class="n">locale</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_gettext</span>
+
+    <span class="n">mg_globals</span><span class="o">.</span><span class="n">setup_globals</span><span class="p">(</span>
+        <span class="n">translations</span><span class="o">=</span><span class="n">this_gettext</span><span class="p">)</span>
+
+
+<span class="c"># Force en to be setup before anything else so that</span>
+<span class="c"># mg_globals.translations is never None</span></div>
+<span class="n">setup_gettext</span><span class="p">(</span><span class="s">&#39;en&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="pass_to_ugettext"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.pass_to_ugettext">[docs]</a><span class="k">def</span> <span class="nf">pass_to_ugettext</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pass a translation on to the appropriate ugettext method.</span>
+
+<span class="sd">    The reason we can&#39;t have a global ugettext method is because</span>
+<span class="sd">    mg_globals gets swapped out by the application per-request.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">ugettext</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="lazy_pass_to_ugettext"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.lazy_pass_to_ugettext">[docs]</a><span class="k">def</span> <span class="nf">lazy_pass_to_ugettext</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lazily pass to ugettext.</span>
+
+<span class="sd">    This is useful if you have to define a translation on a module</span>
+<span class="sd">    level but you need it to not translate until the time that it&#39;s</span>
+<span class="sd">    used as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LazyProxy</span><span class="p">(</span><span class="n">pass_to_ugettext</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="pass_to_ngettext"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.pass_to_ngettext">[docs]</a><span class="k">def</span> <span class="nf">pass_to_ngettext</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pass a translation on to the appropriate ngettext method.</span>
+
+<span class="sd">    The reason we can&#39;t have a global ngettext method is because</span>
+<span class="sd">    mg_globals gets swapped out by the application per-request.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">translations</span><span class="o">.</span><span class="n">ngettext</span><span class="p">(</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="lazy_pass_to_ngettext"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.lazy_pass_to_ngettext">[docs]</a><span class="k">def</span> <span class="nf">lazy_pass_to_ngettext</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Lazily pass to ngettext.</span>
+
+<span class="sd">    This is useful if you have to define a translation on a module</span>
+<span class="sd">    level but you need it to not translate until the time that it&#39;s</span>
+<span class="sd">    used as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LazyProxy</span><span class="p">(</span><span class="n">pass_to_ngettext</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="fake_ugettext_passthrough"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.translate.fake_ugettext_passthrough">[docs]</a><span class="k">def</span> <span class="nf">fake_ugettext_passthrough</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fake a ugettext call for extraction&#39;s sake ;)</span>
+
+<span class="sd">    In wtforms there&#39;s a separate way to define a method to translate</span>
+<span class="sd">    things... so we just need to mark up the text so that it can be</span>
+<span class="sd">    extracted, not so that it&#39;s actually run through gettext.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

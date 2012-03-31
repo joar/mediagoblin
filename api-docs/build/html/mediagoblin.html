@@ -1,0 +1,581 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mediagoblin-package">
+<h1>mediagoblin Package<a class="headerlink" href="#mediagoblin-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">mediagoblin</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.__init__"></span></div>
+<div class="section" id="module-mediagoblin._version">
+<span id="version-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">_version</span></tt> Module<a class="headerlink" href="#module-mediagoblin._version" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.app">
+<span id="app-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">app</span></tt> Module<a class="headerlink" href="#module-mediagoblin.app" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.app.MediaGoblinApp">
+<em class="property">class </em><tt class="descclassname">mediagoblin.app.</tt><tt class="descname">MediaGoblinApp</tt><big>(</big><em>config_path</em>, <em>setup_celery=True</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/app.html#MediaGoblinApp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.app.MediaGoblinApp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>WSGI application of MediaGoblin</p>
+<p>... this is the heart of the program!</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.app.paste_app_factory">
+<tt class="descclassname">mediagoblin.app.</tt><tt class="descname">paste_app_factory</tt><big>(</big><em>global_config</em>, <em>**app_config</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/app.html#paste_app_factory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.app.paste_app_factory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.decorators">
+<span id="decorators-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">decorators</span></tt> Module<a class="headerlink" href="#module-mediagoblin.decorators" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.decorators.get_media_entry_by_id">
+<tt class="descclassname">mediagoblin.decorators.</tt><tt class="descname">get_media_entry_by_id</tt><big>(</big><em>controller</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/decorators.html#get_media_entry_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.decorators.get_media_entry_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass in a MediaEntry based off of a url component</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.decorators.get_user_media_entry">
+<tt class="descclassname">mediagoblin.decorators.</tt><tt class="descname">get_user_media_entry</tt><big>(</big><em>controller</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/decorators.html#get_user_media_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.decorators.get_user_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass in a MediaEntry based off of a url component</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.decorators.require_active_login">
+<tt class="descclassname">mediagoblin.decorators.</tt><tt class="descname">require_active_login</tt><big>(</big><em>controller</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/decorators.html#require_active_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.decorators.require_active_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Require an active login from the user.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.decorators.user_may_delete_media">
+<tt class="descclassname">mediagoblin.decorators.</tt><tt class="descname">user_may_delete_media</tt><big>(</big><em>controller</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/decorators.html#user_may_delete_media"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.decorators.user_may_delete_media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Require user ownership of the MediaEntry to delete.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.decorators.uses_pagination">
+<tt class="descclassname">mediagoblin.decorators.</tt><tt class="descname">uses_pagination</tt><big>(</big><em>controller</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/decorators.html#uses_pagination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.decorators.uses_pagination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check request GET &#8216;page&#8217; key for wrong values</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.errormiddleware">
+<span id="errormiddleware-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">errormiddleware</span></tt> Module<a class="headerlink" href="#module-mediagoblin.errormiddleware" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.errormiddleware.mgoblin_error_middleware">
+<tt class="descclassname">mediagoblin.errormiddleware.</tt><tt class="descname">mgoblin_error_middleware</tt><big>(</big><em>app</em>, <em>global_conf</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/errormiddleware.html#mgoblin_error_middleware"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.errormiddleware.mgoblin_error_middleware" title="Permalink to this definition">¶</a></dt>
+<dd><p>MediaGoblin wrapped error middleware.</p>
+<p>This is really just wrapping the error middleware from Paste.
+It should take all of Paste&#8217;s default options, so see:</p>
+<blockquote>
+<div><a class="reference external" href="http://pythonpaste.org/modules/exceptions.html">http://pythonpaste.org/modules/exceptions.html</a></div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.messages">
+<span id="messages-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">messages</span></tt> Module<a class="headerlink" href="#module-mediagoblin.messages" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.messages.add_message">
+<tt class="descclassname">mediagoblin.messages.</tt><tt class="descname">add_message</tt><big>(</big><em>request</em>, <em>level</em>, <em>text</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/messages.html#add_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.messages.add_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.messages.fetch_messages">
+<tt class="descclassname">mediagoblin.messages.</tt><tt class="descname">fetch_messages</tt><big>(</big><em>request</em>, <em>clear_from_session=True</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/messages.html#fetch_messages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.messages.fetch_messages" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.mg_globals">
+<span id="mg-globals-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mg_globals</span></tt> Module<a class="headerlink" href="#module-mediagoblin.mg_globals" title="Permalink to this headline">¶</a></h2>
+<p>In some places, we need to access the database, public_store, queue_store</p>
+<dl class="function">
+<dt id="mediagoblin.mg_globals.setup_globals">
+<tt class="descclassname">mediagoblin.mg_globals.</tt><tt class="descname">setup_globals</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/mg_globals.html#setup_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.mg_globals.setup_globals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a bunch of globals in this module.</p>
+<p>Takes the globals to setup as keyword arguments.  If globals are
+specified that aren&#8217;t set as variables above, then throw an error.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.routing">
+<span id="routing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">routing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.routing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.routing.get_mapper">
+<tt class="descclassname">mediagoblin.routing.</tt><tt class="descname">get_mapper</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/routing.html#get_mapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.routing.get_mapper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.staticdirect">
+<span id="staticdirect-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">staticdirect</span></tt> Module<a class="headerlink" href="#module-mediagoblin.staticdirect" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.staticdirect.MultiRemoteStaticDirect">
+<em class="property">class </em><tt class="descclassname">mediagoblin.staticdirect.</tt><tt class="descname">MultiRemoteStaticDirect</tt><big>(</big><em>remotepaths</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#MultiRemoteStaticDirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.MultiRemoteStaticDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.staticdirect.StaticDirect" title="mediagoblin.staticdirect.StaticDirect"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.staticdirect.StaticDirect</span></tt></a></p>
+<p>For whene separate sections of the static data is served under
+separate urls.</p>
+<dl class="method">
+<dt id="mediagoblin.staticdirect.MultiRemoteStaticDirect.get">
+<tt class="descname">get</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#MultiRemoteStaticDirect.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.MultiRemoteStaticDirect.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.staticdirect.RemoteStaticDirect">
+<em class="property">class </em><tt class="descclassname">mediagoblin.staticdirect.</tt><tt class="descname">RemoteStaticDirect</tt><big>(</big><em>remotepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#RemoteStaticDirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.RemoteStaticDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mediagoblin.staticdirect.StaticDirect" title="mediagoblin.staticdirect.StaticDirect"><tt class="xref py py-class docutils literal"><span class="pre">mediagoblin.staticdirect.StaticDirect</span></tt></a></p>
+<dl class="method">
+<dt id="mediagoblin.staticdirect.RemoteStaticDirect.get">
+<tt class="descname">get</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#RemoteStaticDirect.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.RemoteStaticDirect.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.staticdirect.StaticDirect">
+<em class="property">class </em><tt class="descclassname">mediagoblin.staticdirect.</tt><tt class="descname">StaticDirect</tt><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#StaticDirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.StaticDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="mediagoblin.staticdirect.StaticDirect.get">
+<tt class="descname">get</tt><big>(</big><em>filepath</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/staticdirect.html#StaticDirect.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.staticdirect.StaticDirect.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.views">
+<span id="views-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">views</span></tt> Module<a class="headerlink" href="#module-mediagoblin.views" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.views.simple_template_render">
+<tt class="descclassname">mediagoblin.views.</tt><tt class="descname">simple_template_render</tt><big>(</big><em>request</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/views.html#simple_template_render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.views.simple_template_render" title="Permalink to this definition">¶</a></dt>
+<dd><p>A view for absolutely simple template rendering.
+Just make sure &#8216;template&#8217; is in the matchdict!</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.workbench">
+<span id="workbench-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">workbench</span></tt> Module<a class="headerlink" href="#module-mediagoblin.workbench" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.workbench.Workbench">
+<em class="property">class </em><tt class="descclassname">mediagoblin.workbench.</tt><tt class="descname">Workbench</tt><big>(</big><em>dir</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#Workbench"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.Workbench" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Represent the directory for the workbench</p>
+<p>WARNING: DO NOT create Workbench objects on your own,
+let the WorkbenchManager do that for you!</p>
+<dl class="method">
+<dt id="mediagoblin.workbench.Workbench.destroy_self">
+<tt class="descname">destroy_self</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#Workbench.destroy_self"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.Workbench.destroy_self" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroy this workbench!  Deletes the directory and all its contents!</p>
+<p>WARNING: Does no checks for a sane value in self.dir!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.workbench.Workbench.joinpath">
+<tt class="descname">joinpath</tt><big>(</big><em>*args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#Workbench.joinpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.Workbench.joinpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.workbench.Workbench.localized_file">
+<tt class="descname">localized_file</tt><big>(</big><em>storage</em>, <em>filepath</em>, <em>filename_if_copying=None</em>, <em>keep_extension_if_copying=True</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#Workbench.localized_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.Workbench.localized_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Possibly localize the file from this storage system (for read-only
+purposes, modifications should be written to a new file.).</p>
+<p>If the file is already local, just return the absolute filename of that
+local file.  Otherwise, copy the file locally to the workbench, and
+return the absolute path of the new file.</p>
+<p>If it is copying locally, we might want to require a filename like
+&#8220;source.jpg&#8221; to ensure that we won&#8217;t conflict with other filenames in
+our workbench... if that&#8217;s the case, make sure filename_if_copying is
+set to something like &#8216;source.jpg&#8217;.  Relatedly, if you set
+keep_extension_if_copying, you don&#8217;t have to set an extension on
+filename_if_copying yourself, it&#8217;ll be set for you (assuming such an
+extension can be extacted from the filename in the filepath).</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>localized_filename</dd>
+<dt>Examples:</dt>
+<dd><div class="first highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wb_manager</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s">&#39;/our/workbench/subdir&#39;</span><span class="p">,</span> <span class="n">local_storage</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;foobar.jpg&#39;</span><span class="p">])</span>
+<span class="go">u&#39;/local/storage/path/to/foobar.jpg&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wb_manager</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s">&#39;/our/workbench/subdir&#39;</span><span class="p">,</span> <span class="n">remote_storage</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;foobar.jpg&#39;</span><span class="p">])</span>
+<span class="go">&#39;/our/workbench/subdir/foobar.jpg&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wb_manager</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s">&#39;/our/workbench/subdir&#39;</span><span class="p">,</span> <span class="n">remote_storage</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;foobar.jpg&#39;</span><span class="p">],</span> <span class="s">&#39;source.jpeg&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">&#39;/our/workbench/subdir/foobar.jpeg&#39;</span>
+</pre></div>
+</div>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">wb_manager</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s">&#39;/our/workbench/subdir&#39;</span><span class="p">,</span> <span class="n">remote_storage</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">,</span> <span class="s">&#39;to&#39;</span><span class="p">,</span> <span class="s">&#39;foobar.jpg&#39;</span><span class="p">],</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+<span class="go">&#39;/our/workbench/subdir/foobar.jpg&#39;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.workbench.WorkbenchManager">
+<em class="property">class </em><tt class="descclassname">mediagoblin.workbench.</tt><tt class="descname">WorkbenchManager</tt><big>(</big><em>base_workbench_dir</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#WorkbenchManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.WorkbenchManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A system for generating and destroying workbenches.</p>
+<p>Workbenches are actually just subdirectories of a temporary storage space
+for during the processing stage.</p>
+<dl class="method">
+<dt id="mediagoblin.workbench.WorkbenchManager.create_workbench">
+<tt class="descname">create_workbench</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/workbench.html#WorkbenchManager.create_workbench"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.workbench.WorkbenchManager.create_workbench" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and return the path to a new workbench (directory).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.auth.html">auth Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.auth.html#id1"><tt class="docutils literal"><span class="pre">auth</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.auth.html#module-mediagoblin.auth.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.auth.html#module-mediagoblin.auth.lib"><tt class="docutils literal"><span class="pre">lib</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.auth.html#module-mediagoblin.auth.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.auth.html#module-mediagoblin.auth.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.db.html">db Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.html#id1"><tt class="docutils literal"><span class="pre">db</span></tt> Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.db.html#database-abstraction-wrapper-layer">Database Abstraction/Wrapper Layer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.html#module-mediagoblin.db.mixin"><tt class="docutils literal"><span class="pre">mixin</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.html#module-mediagoblin.db.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.html#module-mediagoblin.db.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.db.mongo.html">mongo Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#id1"><tt class="docutils literal"><span class="pre">mongo</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.indexes"><tt class="docutils literal"><span class="pre">indexes</span></tt> Module</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="mediagoblin.db.mongo.html#to-add-new-indexes">To add new indexes</a></li>
+<li class="toctree-l5"><a class="reference internal" href="mediagoblin.db.mongo.html#to-remove-deprecated-indexes">To remove deprecated indexes</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#models-module"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.db.sql.html">sql Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#id1"><tt class="docutils literal"><span class="pre">sql</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.convert"><tt class="docutils literal"><span class="pre">convert</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.extratypes"><tt class="docutils literal"><span class="pre">extratypes</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.fake"><tt class="docutils literal"><span class="pre">fake</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.models_v0"><tt class="docutils literal"><span class="pre">models_v0</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.edit.html">edit Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.edit.html#id1"><tt class="docutils literal"><span class="pre">edit</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.edit.html#module-mediagoblin.edit.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.edit.html#module-mediagoblin.edit.lib"><tt class="docutils literal"><span class="pre">lib</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.edit.html#module-mediagoblin.edit.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.edit.html#module-mediagoblin.edit.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.gmg_commands.html">gmg_commands Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#id1"><tt class="docutils literal"><span class="pre">gmg_commands</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.dbupdate"><tt class="docutils literal"><span class="pre">dbupdate</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.import_export"><tt class="docutils literal"><span class="pre">import_export</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.migrate"><tt class="docutils literal"><span class="pre">migrate</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.mongosql"><tt class="docutils literal"><span class="pre">mongosql</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.shell"><tt class="docutils literal"><span class="pre">shell</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.users"><tt class="docutils literal"><span class="pre">users</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.gmg_commands.html#module-mediagoblin.gmg_commands.wipealldata"><tt class="docutils literal"><span class="pre">wipealldata</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.init.html">init Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.init.html#id1"><tt class="docutils literal"><span class="pre">init</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.init.html#module-mediagoblin.init.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.init.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.init.celery.html">celery Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.init.celery.html#id1"><tt class="docutils literal"><span class="pre">celery</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.init.celery.html#from-celery-module"><tt class="docutils literal"><span class="pre">from_celery</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.init.celery.html#from-tests-module"><tt class="docutils literal"><span class="pre">from_tests</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.listings.html">listings Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.listings.html#id1"><tt class="docutils literal"><span class="pre">listings</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.listings.html#module-mediagoblin.listings.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.listings.html#module-mediagoblin.listings.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.meddleware.html">meddleware Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.meddleware.html#id1"><tt class="docutils literal"><span class="pre">meddleware</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.meddleware.html#module-mediagoblin.meddleware.csrf"><tt class="docutils literal"><span class="pre">csrf</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.meddleware.html#module-mediagoblin.meddleware.noop"><tt class="docutils literal"><span class="pre">noop</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.media_types.html">media_types Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.html#id1"><tt class="docutils literal"><span class="pre">media_types</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.media_types.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.media_types.ascii.html">ascii Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.ascii.html#id1"><tt class="docutils literal"><span class="pre">ascii</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.asciitoimage"><tt class="docutils literal"><span class="pre">asciitoimage</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.ascii.html#module-mediagoblin.media_types.ascii.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.media_types.audio.html">audio Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#id1"><tt class="docutils literal"><span class="pre">audio</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.audioprocessing"><tt class="docutils literal"><span class="pre">audioprocessing</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.spectrogram"><tt class="docutils literal"><span class="pre">spectrogram</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.audio.html#module-mediagoblin.media_types.audio.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.media_types.image.html">image Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.image.html#id1"><tt class="docutils literal"><span class="pre">image</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.image.html#module-mediagoblin.media_types.image.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.media_types.video.html">video Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.video.html#id1"><tt class="docutils literal"><span class="pre">video</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.media_types.video.html#module-mediagoblin.media_types.video.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.processing.html">processing Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.processing.html#id1"><tt class="docutils literal"><span class="pre">processing</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.processing.html#module-mediagoblin.processing.task"><tt class="docutils literal"><span class="pre">task</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.pubsubhubbub.html">pubsubhubbub Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.pubsubhubbub.html#id1"><tt class="docutils literal"><span class="pre">pubsubhubbub</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.pubsubhubbub.html#module-mediagoblin.pubsubhubbub.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.pubsubhubbub.html#module-mediagoblin.pubsubhubbub.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.storage.html">storage Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.storage.html#id1"><tt class="docutils literal"><span class="pre">storage</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.storage.html#module-mediagoblin.storage.cloudfiles"><tt class="docutils literal"><span class="pre">cloudfiles</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.storage.html#module-mediagoblin.storage.filestorage"><tt class="docutils literal"><span class="pre">filestorage</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.storage.html#module-mediagoblin.storage.mountstorage"><tt class="docutils literal"><span class="pre">mountstorage</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.storage.html#webdav-module"><tt class="docutils literal"><span class="pre">webdav</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.submit.html">submit Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.submit.html#id1"><tt class="docutils literal"><span class="pre">submit</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.submit.html#module-mediagoblin.submit.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.submit.html#module-mediagoblin.submit.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.submit.html#module-mediagoblin.submit.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.tests.html">tests Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#id1"><tt class="docutils literal"><span class="pre">tests</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.fake_celery_module"><tt class="docutils literal"><span class="pre">fake_celery_module</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_auth"><tt class="docutils literal"><span class="pre">test_auth</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_cache"><tt class="docutils literal"><span class="pre">test_cache</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_celery_setup"><tt class="docutils literal"><span class="pre">test_celery_setup</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_config"><tt class="docutils literal"><span class="pre">test_config</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_csrf_middleware"><tt class="docutils literal"><span class="pre">test_csrf_middleware</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_edit"><tt class="docutils literal"><span class="pre">test_edit</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_exif"><tt class="docutils literal"><span class="pre">test_exif</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_globals"><tt class="docutils literal"><span class="pre">test_globals</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_messages"><tt class="docutils literal"><span class="pre">test_messages</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_migrations"><tt class="docutils literal"><span class="pre">test_migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_misc"><tt class="docutils literal"><span class="pre">test_misc</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_processing"><tt class="docutils literal"><span class="pre">test_processing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_sql_migrations"><tt class="docutils literal"><span class="pre">test_sql_migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_storage"><tt class="docutils literal"><span class="pre">test_storage</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_submission"><tt class="docutils literal"><span class="pre">test_submission</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_tags"><tt class="docutils literal"><span class="pre">test_tags</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_tests"><tt class="docutils literal"><span class="pre">test_tests</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_util"><tt class="docutils literal"><span class="pre">test_util</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.test_workbench"><tt class="docutils literal"><span class="pre">test_workbench</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tests.html#module-mediagoblin.tests.tools"><tt class="docutils literal"><span class="pre">tools</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.tools.html">tools Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.common"><tt class="docutils literal"><span class="pre">common</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.exif"><tt class="docutils literal"><span class="pre">exif</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.files"><tt class="docutils literal"><span class="pre">files</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.licenses"><tt class="docutils literal"><span class="pre">licenses</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.mail"><tt class="docutils literal"><span class="pre">mail</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.pagination"><tt class="docutils literal"><span class="pre">pagination</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.request"><tt class="docutils literal"><span class="pre">request</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.response"><tt class="docutils literal"><span class="pre">response</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.template"><tt class="docutils literal"><span class="pre">template</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.testing"><tt class="docutils literal"><span class="pre">testing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.text"><tt class="docutils literal"><span class="pre">text</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.translate"><tt class="docutils literal"><span class="pre">translate</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#module-mediagoblin.tools.url"><tt class="docutils literal"><span class="pre">url</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.tools.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.tools.extlib.html">extlib Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mediagoblin.tools.extlib.html#module-mediagoblin.tools.extlib.EXIF"><tt class="docutils literal"><span class="pre">EXIF</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.user_pages.html">user_pages Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.user_pages.html#id1"><tt class="docutils literal"><span class="pre">user_pages</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.user_pages.html#module-mediagoblin.user_pages.forms"><tt class="docutils literal"><span class="pre">forms</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.user_pages.html#module-mediagoblin.user_pages.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.user_pages.html#module-mediagoblin.user_pages.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.webfinger.html">webfinger Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.webfinger.html#id1"><tt class="docutils literal"><span class="pre">webfinger</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.webfinger.html#module-mediagoblin.webfinger.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.webfinger.html#module-mediagoblin.webfinger.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">mediagoblin Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">mediagoblin</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin._version"><tt class="docutils literal"><span class="pre">_version</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.app"><tt class="docutils literal"><span class="pre">app</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.decorators"><tt class="docutils literal"><span class="pre">decorators</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.errormiddleware"><tt class="docutils literal"><span class="pre">errormiddleware</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.messages"><tt class="docutils literal"><span class="pre">messages</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.mg_globals"><tt class="docutils literal"><span class="pre">mg_globals</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.routing"><tt class="docutils literal"><span class="pre">routing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.staticdirect"><tt class="docutils literal"><span class="pre">staticdirect</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.views"><tt class="docutils literal"><span class="pre">views</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.workbench"><tt class="docutils literal"><span class="pre">workbench</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

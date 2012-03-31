@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_storage &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_storage</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_raises</span>
+<span class="kn">from</span> <span class="nn">werkzeug.utils</span> <span class="kn">import</span> <span class="n">secure_filename</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">storage</span>
+
+
+<span class="c">################</span>
+<span class="c"># Test utilities</span>
+<span class="c">################</span>
+
+<div class="viewcode-block" id="test_clean_listy_filepath"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_clean_listy_filepath">[docs]</a><span class="k">def</span> <span class="nf">test_clean_listy_filepath</span><span class="p">():</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;dir1&#39;</span><span class="p">,</span> <span class="s">u&#39;dir2&#39;</span><span class="p">,</span> <span class="s">u&#39;linooks.jpg&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">storage</span><span class="o">.</span><span class="n">clean_listy_filepath</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;linooks.jpg&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">expected</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;dir1&#39;</span><span class="p">,</span> <span class="s">u&#39;foo_.._nasty&#39;</span><span class="p">,</span> <span class="s">u&#39;linooks.jpg&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">storage</span><span class="o">.</span><span class="n">clean_listy_filepath</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;/dir1/&#39;</span><span class="p">,</span> <span class="s">&#39;foo/../nasty&#39;</span><span class="p">,</span> <span class="s">&#39;linooks.jpg&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">expected</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="s">u&#39;etc&#39;</span><span class="p">,</span> <span class="s">u&#39;passwd&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">storage</span><span class="o">.</span><span class="n">clean_listy_filepath</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;../../../etc/&#39;</span><span class="p">,</span> <span class="s">&#39;passwd&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="n">expected</span>
+
+    <span class="n">assert_raises</span><span class="p">(</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">InvalidFilepath</span><span class="p">,</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">clean_listy_filepath</span><span class="p">,</span>
+        <span class="p">[</span><span class="s">&#39;../../&#39;</span><span class="p">,</span> <span class="s">&#39;linooks.jpg&#39;</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="FakeStorageSystem"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.FakeStorageSystem">[docs]</a><span class="k">class</span> <span class="nc">FakeStorageSystem</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">foobie</span><span class="p">,</span> <span class="n">blech</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">foobie</span> <span class="o">=</span> <span class="n">foobie</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blech</span> <span class="o">=</span> <span class="n">blech</span>
+</div>
+<div class="viewcode-block" id="FakeRemoteStorage"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.FakeRemoteStorage">[docs]</a><span class="k">class</span> <span class="nc">FakeRemoteStorage</span><span class="p">(</span><span class="n">storage</span><span class="o">.</span><span class="n">filestorage</span><span class="o">.</span><span class="n">BasicFileStorage</span><span class="p">):</span>
+    <span class="c"># Theoretically despite this, all the methods should work but it</span>
+    <span class="c"># should force copying to the workbench</span>
+    <span class="n">local_storage</span> <span class="o">=</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="FakeRemoteStorage.copy_local_to_storage"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.FakeRemoteStorage.copy_local_to_storage">[docs]</a>    <span class="k">def</span> <span class="nf">copy_local_to_storage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">storage</span><span class="o">.</span><span class="n">StorageInterface</span><span class="o">.</span><span class="n">copy_local_to_storage</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="test_storage_system_from_config"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_storage_system_from_config">[docs]</a><span class="k">def</span> <span class="nf">test_storage_system_from_config</span><span class="p">():</span>
+    <span class="n">this_storage</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">storage_system_from_config</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;base_url&#39;</span><span class="p">:</span> <span class="s">&#39;http://example.org/moodia/&#39;</span><span class="p">,</span>
+         <span class="s">&#39;base_dir&#39;</span><span class="p">:</span> <span class="s">&#39;/tmp/&#39;</span><span class="p">,</span>
+         <span class="s">&#39;garbage_arg&#39;</span><span class="p">:</span> <span class="s">&#39;garbage_arg&#39;</span><span class="p">,</span>
+         <span class="s">&#39;garbage_arg&#39;</span><span class="p">:</span> <span class="s">&#39;trash&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">base_url</span> <span class="o">==</span> <span class="s">&#39;http://example.org/moodia/&#39;</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">==</span> <span class="s">&#39;/tmp/&#39;</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">is</span> <span class="n">storage</span><span class="o">.</span><span class="n">filestorage</span><span class="o">.</span><span class="n">BasicFileStorage</span>
+
+    <span class="n">this_storage</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">storage_system_from_config</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;foobie&#39;</span><span class="p">:</span> <span class="s">&#39;eiboof&#39;</span><span class="p">,</span>
+         <span class="s">&#39;blech&#39;</span><span class="p">:</span> <span class="s">&#39;hcelb&#39;</span><span class="p">,</span>
+         <span class="s">&#39;garbage_arg&#39;</span><span class="p">:</span> <span class="s">&#39;garbage_arg&#39;</span><span class="p">,</span>
+         <span class="s">&#39;storage_class&#39;</span><span class="p">:</span>
+             <span class="s">&#39;mediagoblin.tests.test_storage:FakeStorageSystem&#39;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">foobie</span> <span class="o">==</span> <span class="s">&#39;eiboof&#39;</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">blech</span> <span class="o">==</span> <span class="s">&#39;hcelb&#39;</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">__class__</span> <span class="ow">is</span> <span class="n">FakeStorageSystem</span>
+
+
+<span class="c">##########################</span>
+<span class="c"># Basic file storage tests</span>
+<span class="c">##########################</span>
+</div>
+<div class="viewcode-block" id="get_tmp_filestorage"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.get_tmp_filestorage">[docs]</a><span class="k">def</span> <span class="nf">get_tmp_filestorage</span><span class="p">(</span><span class="n">mount_url</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fake_remote</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">fake_remote</span><span class="p">:</span>
+        <span class="n">this_storage</span> <span class="o">=</span> <span class="n">FakeRemoteStorage</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">mount_url</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">this_storage</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">filestorage</span><span class="o">.</span><span class="n">BasicFileStorage</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">mount_url</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage__resolve_filepath"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage__resolve_filepath">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage__resolve_filepath</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">([</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.jpg&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/filename.jpg&#39;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">([</span><span class="s">&#39;../../etc/&#39;</span><span class="p">,</span> <span class="s">&#39;passwd&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;etc/passwd&#39;</span><span class="p">)</span>
+
+    <span class="n">assert_raises</span><span class="p">(</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">InvalidFilepath</span><span class="p">,</span>
+        <span class="n">this_storage</span><span class="o">.</span><span class="n">_resolve_filepath</span><span class="p">,</span>
+        <span class="p">[</span><span class="s">&#39;../../&#39;</span><span class="p">,</span> <span class="s">&#39;etc&#39;</span><span class="p">,</span> <span class="s">&#39;passwd&#39;</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_file_exists"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_file_exists">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_file_exists</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">))</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ourfile</span><span class="p">:</span>
+        <span class="n">ourfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;I&#39;m having a lovely day!&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">file_exists</span><span class="p">([</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">file_exists</span><span class="p">([</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;thisfile.lol&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">file_exists</span><span class="p">([</span><span class="s">&#39;dnedir1&#39;</span><span class="p">,</span> <span class="s">&#39;dnedir2&#39;</span><span class="p">,</span> <span class="s">&#39;somefile.lol&#39;</span><span class="p">])</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_get_unique_filepath"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_get_unique_filepath">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_get_unique_filepath</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+    
+    <span class="c"># write something that exists</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">))</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ourfile</span><span class="p">:</span>
+        <span class="n">ourfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;I&#39;m having a lovely day!&quot;</span><span class="p">)</span>
+
+    <span class="c"># now we want something new, with the same name!</span>
+    <span class="n">new_filepath</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_unique_filepath</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">new_filepath</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="s">u&#39;dir1&#39;</span><span class="p">,</span> <span class="s">u&#39;dir2&#39;</span><span class="p">]</span>
+
+    <span class="n">new_filename</span> <span class="o">=</span> <span class="n">new_filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">new_filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;filename.txt&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_filename</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="s">&#39;filename.txt&#39;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">new_filename</span> <span class="o">==</span> <span class="n">secure_filename</span><span class="p">(</span><span class="n">new_filename</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_get_file"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_get_file">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_get_file</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+
+    <span class="c"># Write a brand new file</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;ourfile.txt&#39;</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;First file&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">our_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;First file&#39;</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">our_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;First file&#39;</span>
+
+    <span class="c"># Write to the same path but try to get a unique file.</span>
+    <span class="n">new_filepath</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_unique_filepath</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="o">*</span><span class="n">new_filepath</span><span class="p">))</span>
+
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">new_filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Second file&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">new_filepath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">our_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;Second file&#39;</span>
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="o">*</span><span class="n">new_filepath</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="o">*</span><span class="n">new_filepath</span><span class="p">),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">our_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;Second file&#39;</span>
+
+    <span class="c"># Read from an existing file</span>
+    <span class="n">manually_written_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;testydir&#39;</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;testydir/testyfile.txt&#39;</span><span class="p">),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">testyfile</span><span class="p">:</span>
+        <span class="n">testyfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;testy file!  so testy.&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">([</span><span class="s">&#39;testydir&#39;</span><span class="p">,</span> <span class="s">&#39;testyfile.txt&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">testyfile</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">testyfile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;testy file!  so testy.&#39;</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_delete_file"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_delete_file">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_delete_file</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">))</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;ourfile.txt&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Testing this file&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">))</span>
+
+    <span class="n">this_storage</span><span class="o">.</span><span class="n">delete_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/ourfile.txt&#39;</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_url_for_file"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_url_for_file">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_url_for_file</span><span class="p">():</span>
+    <span class="c"># Not supplying a base_url should actually just bork.</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+    <span class="n">assert_raises</span><span class="p">(</span>
+        <span class="n">storage</span><span class="o">.</span><span class="n">NoWebServing</span><span class="p">,</span>
+        <span class="n">this_storage</span><span class="o">.</span><span class="n">file_url</span><span class="p">,</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+
+    <span class="c"># base_url without domain</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">(</span><span class="s">&#39;/media/&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">file_url</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="s">&#39;/media/dir1/dir2/filename.txt&#39;</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">expected</span>
+
+    <span class="c"># base_url with domain</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">(</span>
+        <span class="s">&#39;http://media.example.org/ourmedia/&#39;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">file_url</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="s">&#39;http://media.example.org/ourmedia/dir1/dir2/filename.txt&#39;</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">expected</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_get_local_path"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_get_local_path">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_get_local_path</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+    
+    <span class="n">result</span> <span class="o">=</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_local_path</span><span class="p">(</span>
+        <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;filename.txt&#39;</span><span class="p">])</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/filename.txt&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="n">expected</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_is_local"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_is_local">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_is_local</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">local_storage</span> <span class="ow">is</span> <span class="bp">True</span>
+
+</div>
+<div class="viewcode-block" id="test_basic_storage_copy_locally"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_copy_locally">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_copy_locally</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+
+    <span class="n">dest_tmpdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;ourfile.txt&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">this_storage</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">our_file</span><span class="p">:</span>
+        <span class="n">our_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Testing this file&#39;</span><span class="p">)</span>
+
+    <span class="n">new_file_dest</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_tmpdir</span><span class="p">,</span> <span class="s">&#39;file2.txt&#39;</span><span class="p">)</span>
+
+    <span class="n">this_storage</span><span class="o">.</span><span class="n">copy_locally</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">new_file_dest</span><span class="p">)</span>
+    
+    <span class="k">assert</span> <span class="nb">file</span><span class="p">(</span><span class="n">new_file_dest</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;Testing this file&#39;</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_test_copy_local_to_storage_works</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span><span class="p">):</span>
+    <span class="n">local_filename</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mktemp</span><span class="p">()</span>
+    <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">local_filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmpfile</span><span class="p">:</span>
+        <span class="n">tmpfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;haha&#39;</span><span class="p">)</span>
+
+    <span class="n">this_storage</span><span class="o">.</span><span class="n">copy_local_to_storage</span><span class="p">(</span>
+        <span class="n">local_filename</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;dir1&#39;</span><span class="p">,</span> <span class="s">&#39;dir2&#39;</span><span class="p">,</span> <span class="s">&#39;copiedto.txt&#39;</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="nb">file</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="s">&#39;dir1/dir2/copiedto.txt&#39;</span><span class="p">),</span>
+        <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;haha&#39;</span>
+
+
+<div class="viewcode-block" id="test_basic_storage_copy_local_to_storage"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_basic_storage_copy_local_to_storage">[docs]</a><span class="k">def</span> <span class="nf">test_basic_storage_copy_local_to_storage</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">()</span>
+    <span class="n">_test_copy_local_to_storage_works</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="test_general_storage_copy_local_to_storage"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_storage.test_general_storage_copy_local_to_storage">[docs]</a><span class="k">def</span> <span class="nf">test_general_storage_copy_local_to_storage</span><span class="p">():</span>
+    <span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span> <span class="o">=</span> <span class="n">get_tmp_filestorage</span><span class="p">(</span><span class="n">fake_remote</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">_test_copy_local_to_storage_works</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">this_storage</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

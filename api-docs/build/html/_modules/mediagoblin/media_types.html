@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.translate</span> <span class="kn">import</span> <span class="n">lazy_pass_to_ugettext</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FileTypeNotSupported"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.FileTypeNotSupported">[docs]</a><span class="k">class</span> <span class="nc">FileTypeNotSupported</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="InvalidFileType"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.InvalidFileType">[docs]</a><span class="k">class</span> <span class="nc">InvalidFileType</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="sniff_media"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.sniff_media">[docs]</a><span class="k">def</span> <span class="nf">sniff_media</span><span class="p">(</span><span class="n">media</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Iterate through the enabled media types and find those suited</span>
+<span class="sd">    for a certain file.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">get_media_type_and_manager</span><span class="p">(</span><span class="n">media</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">FileTypeNotSupported</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;No media handler found by file extension. Doing it the expensive way...&#39;</span><span class="p">)</span>
+        <span class="c"># Create a temporary file for sniffers suchs as GStreamer-based</span>
+        <span class="c"># Audio video</span>
+        <span class="n">media_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span>
+        <span class="n">media_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">media</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">media</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">get_media_managers</span><span class="p">():</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Sniffing {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">media_type</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">manager</span><span class="p">[</span><span class="s">&#39;sniff_handler&#39;</span><span class="p">](</span><span class="n">media_file</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="p">):</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;{0} accepts the file&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">media_type</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">manager</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;{0} did not accept the file&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">media_type</span><span class="p">))</span>
+
+    <span class="k">raise</span> <span class="n">FileTypeNotSupported</span><span class="p">(</span>
+        <span class="c"># TODO: Provide information on which file types are supported</span>
+        <span class="n">_</span><span class="p">(</span><span class="s">u&#39;Sorry, I don</span><span class="se">\&#39;</span><span class="s">t support that file type :(&#39;</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="get_media_types"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.get_media_types">[docs]</a><span class="k">def</span> <span class="nf">get_media_types</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator, yields the available media types</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">media_type</span> <span class="ow">in</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;media_types&#39;</span><span class="p">]:</span>
+        <span class="k">yield</span> <span class="n">media_type</span>
+
+</div>
+<div class="viewcode-block" id="get_media_managers"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.get_media_managers">[docs]</a><span class="k">def</span> <span class="nf">get_media_managers</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Generator, yields all enabled media managers</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">media_type</span> <span class="ow">in</span> <span class="n">get_media_types</span><span class="p">():</span>
+        <span class="nb">__import__</span><span class="p">(</span><span class="n">media_type</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">media_type</span><span class="p">]</span><span class="o">.</span><span class="n">MEDIA_MANAGER</span>
+
+</div>
+<div class="viewcode-block" id="get_media_manager"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.get_media_manager">[docs]</a><span class="k">def</span> <span class="nf">get_media_manager</span><span class="p">(</span><span class="n">_media_type</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get the MEDIA_MANAGER based on a media type string</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        get_media_type(&#39;mediagoblin.media_types.image&#39;)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_media_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="k">for</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">get_media_managers</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">media_type</span> <span class="ow">in</span> <span class="n">_media_type</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">manager</span>
+
+    <span class="c"># Nope?  Then raise an error</span>
+    <span class="k">raise</span> <span class="n">FileTypeNotSupported</span><span class="p">(</span>
+        <span class="s">&quot;MediaManager not in enabled types.  Check media_types in config?&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_media_type_and_manager"><a class="viewcode-back" href="../../mediagoblin.media_types.html#mediagoblin.media_types.get_media_type_and_manager">[docs]</a><span class="k">def</span> <span class="nf">get_media_type_and_manager</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Try to find the media type based on the file name, extension</span>
+<span class="sd">    specifically. This is used as a speedup, the sniffing functionality</span>
+<span class="sd">    then falls back on more in-depth bitsniffing of the source file.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># Get the file extension</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">get_media_managers</span><span class="p">():</span>
+            <span class="c"># Omit the dot from the extension and match it against</span>
+            <span class="c"># the media manager</span>
+            <span class="k">if</span> <span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="ow">in</span> <span class="n">manager</span><span class="p">[</span><span class="s">&#39;accepted_extensions&#39;</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">media_type</span><span class="p">,</span> <span class="n">manager</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;File {0} has no file extension, let</span><span class="se">\&#39;</span><span class="s">s hope the sniffers get it.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">filename</span><span class="p">))</span>
+
+    <span class="k">raise</span> <span class="n">FileTypeNotSupported</span><span class="p">(</span>
+        <span class="n">_</span><span class="p">(</span><span class="s">u&#39;Sorry, I don</span><span class="se">\&#39;</span><span class="s">t support that file type :(&#39;</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

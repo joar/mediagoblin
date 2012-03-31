@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>video Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="video-package">
+<h1>video Package<a class="headerlink" href="#video-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">video</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.media_types.video"></span></div>
+<div class="section" id="module-mediagoblin.media_types.video.migrations">
+<span id="migrations-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">migrations</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.video.migrations" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.media_types.video.models">
+<span id="models-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">models</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.video.models" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.models.DATA_MODEL">
+<tt class="descclassname">mediagoblin.media_types.video.models.</tt><tt class="descname">DATA_MODEL</tt><a class="headerlink" href="#mediagoblin.media_types.video.models.DATA_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#mediagoblin.media_types.video.models.VideoData" title="mediagoblin.media_types.video.models.VideoData"><tt class="xref py py-class docutils literal"><span class="pre">VideoData</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.video.models.VideoData">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.video.models.</tt><tt class="descname">VideoData</tt><big>(</big><em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/models.html#VideoData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.models.VideoData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.ext.declarative.Base</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.models.VideoData.get_media_entry">
+<tt class="descname">get_media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.video.models.VideoData.get_media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.models.VideoData.height">
+<tt class="descname">height</tt><a class="headerlink" href="#mediagoblin.media_types.video.models.VideoData.height" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.models.VideoData.media_entry">
+<tt class="descname">media_entry</tt><a class="headerlink" href="#mediagoblin.media_types.video.models.VideoData.media_entry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.models.VideoData.width">
+<tt class="descname">width</tt><a class="headerlink" href="#mediagoblin.media_types.video.models.VideoData.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.video.processing">
+<span id="processing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">processing</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.video.processing" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="mediagoblin.media_types.video.processing.process_video">
+<tt class="descclassname">mediagoblin.media_types.video.processing.</tt><tt class="descname">process_video</tt><big>(</big><em>entry</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/processing.html#process_video"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.processing.process_video" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a video entry, transcode the queued media files (originals) and
+create a thumbnail for the entry.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.video.processing.sniff_handler">
+<tt class="descclassname">mediagoblin.media_types.video.processing.</tt><tt class="descname">sniff_handler</tt><big>(</big><em>media_file</em>, <em>**kw</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/processing.html#sniff_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.processing.sniff_handler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.media_types.video.transcoders">
+<span id="transcoders-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transcoders</span></tt> Module<a class="headerlink" href="#module-mediagoblin.media_types.video.transcoders" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.video.transcoders.</tt><tt class="descname">VideoThumbnailer</tt><big>(</big><em>source_path</em>, <em>dest_path</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoThumbnailer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_HALTING">
+<tt class="descname">STATE_HALTING</tt><em class="property"> = 1</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_HALTING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_NULL">
+<tt class="descname">STATE_NULL</tt><em class="property"> = 0</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_NULL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_PROCESSING">
+<tt class="descname">STATE_PROCESSING</tt><em class="property"> = 2</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.STATE_PROCESSING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler">
+<tt class="descname">buffer_probe_handler</tt><big>(</big><em>pad</em>, <em>buff</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoThumbnailer.buffer_probe_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Proxy function for buffer_probe_handler_real</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler_real">
+<tt class="descname">buffer_probe_handler_real</tt><big>(</big><em>pad</em>, <em>buff</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoThumbnailer.buffer_probe_handler_real"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probe_handler_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Capture buffers as gdk_pixbufs when told to.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probes">
+<tt class="descname">buffer_probes</tt><em class="property"> = {}</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.buffer_probes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoThumbnailer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.shutdown">
+<tt class="descname">shutdown</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoThumbnailer.shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tell gobject to call __halt when the mainloop is idle.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.state">
+<tt class="descname">state</tt><em class="property"> = 0</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.media_types.video.transcoders.VideoThumbnailer.thumbnail_pipeline">
+<tt class="descname">thumbnail_pipeline</tt><em class="property"> = None</em><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoThumbnailer.thumbnail_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.media_types.video.transcoders.VideoTranscoder">
+<em class="property">class </em><tt class="descclassname">mediagoblin.media_types.video.transcoders.</tt><tt class="descname">VideoTranscoder</tt><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoTranscoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoTranscoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Video transcoder</p>
+<p>Transcodes the SRC video file to a VP8 WebM video file at DST</p>
+<blockquote>
+<div><ul class="simple">
+<li>Does the same thing as VideoThumbnailer, but produces a WebM vp8
+and vorbis video file.</li>
+<li>The VideoTranscoder exceeds the VideoThumbnailer in the way
+that it was refined afterwards and therefore is done more
+correctly.</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoTranscoder.discover">
+<tt class="descname">discover</tt><big>(</big><em>src</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoTranscoder.discover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoTranscoder.discover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Discover properties about a media file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.media_types.video.transcoders.VideoTranscoder.transcode">
+<tt class="descname">transcode</tt><big>(</big><em>src</em>, <em>dst</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#VideoTranscoder.transcode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.VideoTranscoder.transcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transcode a video file into a &#8216;medium&#8217;-sized version.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mediagoblin.media_types.video.transcoders.pixbuf_to_pilbuf">
+<tt class="descclassname">mediagoblin.media_types.video.transcoders.</tt><tt class="descname">pixbuf_to_pilbuf</tt><big>(</big><em>buf</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/media_types/video/transcoders.html#pixbuf_to_pilbuf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.media_types.video.transcoders.pixbuf_to_pilbuf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">video Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">video</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.video.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.video.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.video.processing"><tt class="docutils literal"><span class="pre">processing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.media_types.video.transcoders"><tt class="docutils literal"><span class="pre">transcoders</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.media_types.video.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

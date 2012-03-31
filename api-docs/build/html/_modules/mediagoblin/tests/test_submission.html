@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tests.test_submission &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="mediagoblin.tests" href="../tests.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" accesskey="U">mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tests.test_submission</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">assert_equal</span><span class="p">,</span> <span class="n">assert_true</span><span class="p">,</span> <span class="n">assert_false</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tests.tools</span> <span class="kn">import</span> <span class="n">get_test_app</span><span class="p">,</span> \
+    <span class="n">fixture_add_user</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">template</span>
+
+
+<div class="viewcode-block" id="resource"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.resource">[docs]</a><span class="k">def</span> <span class="nf">resource</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span> <span class="s">&#39;test_submission/&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+
+</div>
+<span class="n">GOOD_JPG</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;good.jpg&#39;</span><span class="p">)</span>
+<span class="n">GOOD_PNG</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;good.png&#39;</span><span class="p">)</span>
+<span class="n">EVIL_FILE</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;evil&#39;</span><span class="p">)</span>
+<span class="n">EVIL_JPG</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;evil.jpg&#39;</span><span class="p">)</span>
+<span class="n">EVIL_PNG</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;evil.png&#39;</span><span class="p">)</span>
+<span class="n">BIG_BLUE</span> <span class="o">=</span> <span class="n">resource</span><span class="p">(</span><span class="s">&#39;bigblue.png&#39;</span><span class="p">)</span>
+
+<span class="n">GOOD_TAG_STRING</span> <span class="o">=</span> <span class="s">&#39;yin,yang&#39;</span>
+<span class="n">BAD_TAG_STRING</span> <span class="o">=</span> <span class="s">&#39;rage,&#39;</span> <span class="o">+</span> <span class="s">&#39;f&#39;</span> <span class="o">*</span> <span class="mi">26</span> <span class="o">+</span> <span class="s">&#39;u&#39;</span> <span class="o">*</span> <span class="mi">26</span>
+
+<span class="n">FORM_CONTEXT</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mediagoblin/submit/start.html&#39;</span><span class="p">,</span> <span class="s">&#39;submit_form&#39;</span><span class="p">]</span>
+<span class="n">REQUEST_CONTEXT</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">,</span> <span class="s">&#39;request&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="TestSubmission"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission">[docs]</a><span class="k">class</span> <span class="nc">TestSubmission</span><span class="p">:</span>
+<div class="viewcode-block" id="TestSubmission.setUp"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span> <span class="o">=</span> <span class="n">get_test_app</span><span class="p">()</span>
+
+        <span class="c"># TODO: Possibly abstract into a decorator like:</span>
+        <span class="c"># @as_authenticated_user(&#39;chris&#39;)</span>
+        <span class="n">test_user</span> <span class="o">=</span> <span class="n">fixture_add_user</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_user</span> <span class="o">=</span> <span class="n">test_user</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.login"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="s">&#39;/auth/login/&#39;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="s">u&#39;chris&#39;</span><span class="p">,</span>
+                <span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;toast&#39;</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.logout"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.logout">[docs]</a>    <span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/auth/logout/&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.do_post"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.do_post">[docs]</a>    <span class="k">def</span> <span class="nf">do_post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">context_keys</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;url&#39;</span><span class="p">,</span> <span class="s">&#39;/submit/&#39;</span><span class="p">)</span>
+        <span class="n">do_follow</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;do_follow&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_follow</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+        <span class="n">context_data</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">context_keys</span><span class="p">:</span>
+            <span class="n">context_data</span> <span class="o">=</span> <span class="n">context_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">response</span><span class="p">,</span> <span class="n">context_data</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.upload_data"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.upload_data">[docs]</a>    <span class="k">def</span> <span class="nf">upload_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;upload_files&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s">&#39;file&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">)]}</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.check_comments"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.check_comments">[docs]</a>    <span class="k">def</span> <span class="nf">check_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaComment</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&#39;media_entry&#39;</span><span class="p">:</span> <span class="n">media</span><span class="o">.</span><span class="n">_id</span><span class="p">})</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">comments</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_missing_fields"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_missing_fields">[docs]</a>    <span class="k">def</span> <span class="nf">test_missing_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Test blank form</span>
+        <span class="c"># ---------------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({},</span> <span class="o">*</span><span class="n">FORM_CONTEXT</span><span class="p">)</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="p">[</span><span class="s">u&#39;You must provide a file.&#39;</span><span class="p">])</span>
+
+        <span class="c"># Test blank file</span>
+        <span class="c"># ---------------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;test title&#39;</span><span class="p">},</span> <span class="o">*</span><span class="n">FORM_CONTEXT</span><span class="p">)</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="p">[</span><span class="s">u&#39;You must provide a file.&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.check_url"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.check_url">[docs]</a>    <span class="k">def</span> <span class="nf">check_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlsplit</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">location</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span> <span class="n">path</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.check_normal_upload"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.check_normal_upload">[docs]</a>    <span class="k">def</span> <span class="nf">check_normal_upload</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">},</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_url</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&#39;/u/{0}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="p">))</span>
+        <span class="n">assert_true</span><span class="p">(</span><span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span> <span class="ow">in</span> <span class="n">context</span><span class="p">)</span>
+        <span class="c"># Make sure the media view is at least reachable, logged in...</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;/u/{0}/m/{1}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+                                     <span class="n">title</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="c"># ... and logged out too.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_normal_jpg"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_normal_jpg">[docs]</a>    <span class="k">def</span> <span class="nf">test_normal_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_normal_upload</span><span class="p">(</span><span class="s">&#39;Normal upload 1&#39;</span><span class="p">,</span> <span class="n">GOOD_JPG</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_normal_png"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_normal_png">[docs]</a>    <span class="k">def</span> <span class="nf">test_normal_png</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_normal_upload</span><span class="p">(</span><span class="s">&#39;Normal upload 2&#39;</span><span class="p">,</span> <span class="n">GOOD_PNG</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.check_media"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.check_media">[docs]</a>    <span class="k">def</span> <span class="nf">check_media</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">find_data</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">find_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">assert_equal</span><span class="p">(</span><span class="n">media</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">count</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span>
+        <span class="k">return</span> <span class="n">media</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_tags"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_tags">[docs]</a>    <span class="k">def</span> <span class="nf">test_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Good tag string</span>
+        <span class="c"># --------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">,</span>
+                                          <span class="s">&#39;tags&#39;</span><span class="p">:</span> <span class="n">GOOD_TAG_STRING</span><span class="p">},</span>
+                                         <span class="o">*</span><span class="n">REQUEST_CONTEXT</span><span class="p">,</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">GOOD_JPG</span><span class="p">))</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_media</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">},</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">media</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span>
+                     <span class="p">[{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;yin&#39;</span><span class="p">,</span> <span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="s">u&#39;yin&#39;</span><span class="p">},</span>
+                      <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">u&#39;yang&#39;</span><span class="p">,</span> <span class="s">&#39;slug&#39;</span><span class="p">:</span> <span class="s">u&#39;yang&#39;</span><span class="p">}])</span>
+
+        <span class="c"># Test tags that are too long</span>
+        <span class="c"># ---------------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">,</span>
+                                       <span class="s">&#39;tags&#39;</span><span class="p">:</span> <span class="n">BAD_TAG_STRING</span><span class="p">},</span>
+                                      <span class="o">*</span><span class="n">FORM_CONTEXT</span><span class="p">,</span>
+                                      <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">GOOD_JPG</span><span class="p">))</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="p">[</span>
+                <span class="s">u&#39;Tags must be shorter than 50 characters.  &#39;</span> \
+                    <span class="s">&#39;Tags that are too long: &#39;</span> \
+                    <span class="s">&#39;ffffffffffffffffffffffffffuuuuuuuuuuuuuuuuuuuuuuuuuu&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_delete"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_delete">[docs]</a>    <span class="k">def</span> <span class="nf">test_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">},</span>
+                                         <span class="o">*</span><span class="n">REQUEST_CONTEXT</span><span class="p">,</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">GOOD_JPG</span><span class="p">))</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_media</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">},</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># Add a comment, so we can test for its deletion later.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_comments</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">comment_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+            <span class="s">&#39;mediagoblin.user_pages.media_post_comment&#39;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;comment_content&#39;</span><span class="p">:</span> <span class="s">&#39;i love this test&#39;</span><span class="p">},</span>
+                                <span class="n">url</span><span class="o">=</span><span class="n">comment_url</span><span class="p">,</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_comments</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># Do not confirm deletion</span>
+        <span class="c"># ---------------------------------------------------</span>
+        <span class="n">delete_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlgen</span><span class="p">(</span>
+            <span class="s">&#39;mediagoblin.user_pages.media_confirm_delete&#39;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span> <span class="n">media</span><span class="o">=</span><span class="n">media</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="c"># Empty data means don&#39;t confirm</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({},</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">delete_url</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_media</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Balanced Goblin&#39;</span><span class="p">},</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># Confirm deletion</span>
+        <span class="c"># ---------------------------------------------------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;confirm&#39;</span><span class="p">:</span> <span class="s">&#39;y&#39;</span><span class="p">},</span> <span class="o">*</span><span class="n">REQUEST_CONTEXT</span><span class="p">,</span>
+                                         <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">delete_url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_media</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">media</span><span class="o">.</span><span class="n">_id</span><span class="p">},</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_comments</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">media</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_evil_file"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_evil_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_evil_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Test non-suppoerted file with non-supported extension</span>
+        <span class="c"># -----------------------------------------------------</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Malicious Upload 1&#39;</span><span class="p">},</span>
+                                      <span class="o">*</span><span class="n">FORM_CONTEXT</span><span class="p">,</span>
+                                      <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">EVIL_FILE</span><span class="p">))</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">errors</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="s">&#39;Sorry, I don</span><span class="se">\&#39;</span><span class="s">t support that file type :(&#39;</span> <span class="o">==</span> \
+                <span class="nb">str</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_sniffing"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_sniffing">[docs]</a>    <span class="k">def</span> <span class="nf">test_sniffing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Test sniffing mechanism to assert that regular uploads work as intended</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">template</span><span class="o">.</span><span class="n">clear_test_template_context</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="s">&#39;/submit/&#39;</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;UNIQUE_TITLE_PLS_DONT_CREATE_OTHER_MEDIA_WITH_THIS_TITLE&#39;</span>
+                <span class="p">},</span> <span class="n">upload_files</span><span class="o">=</span><span class="p">[(</span>
+                    <span class="s">&#39;file&#39;</span><span class="p">,</span> <span class="n">GOOD_JPG</span><span class="p">)])</span>
+
+        <span class="n">response</span><span class="o">.</span><span class="n">follow</span><span class="p">()</span>
+
+        <span class="n">context</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">TEMPLATE_TEST_CONTEXT</span><span class="p">[</span><span class="s">&#39;mediagoblin/user_pages/user.html&#39;</span><span class="p">]</span>
+
+        <span class="n">request</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s">&#39;request&#39;</span><span class="p">]</span>
+
+        <span class="n">media</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span>
+            <span class="s">u&#39;title&#39;</span><span class="p">:</span> <span class="s">u&#39;UNIQUE_TITLE_PLS_DONT_CREATE_OTHER_MEDIA_WITH_THIS_TITLE&#39;</span><span class="p">})</span>
+
+        <span class="k">assert</span> <span class="n">media</span><span class="o">.</span><span class="n">media_type</span> <span class="o">==</span> <span class="s">&#39;mediagoblin.media_types.image&#39;</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.check_false_image"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.check_false_image">[docs]</a>    <span class="k">def</span> <span class="nf">check_false_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="c"># NOTE: The following 2 tests will ultimately fail, but they</span>
+        <span class="c">#   *will* pass the initial form submission step.  Instead,</span>
+        <span class="c">#   they&#39;ll be caught as failures during the processing step.</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">},</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_url</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&#39;/u/{0}/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_user</span><span class="o">.</span><span class="n">username</span><span class="p">))</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="o">.</span><span class="n">MediaEntry</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="n">title</span><span class="p">})</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="s">&#39;failed&#39;</span><span class="p">)</span>
+        <span class="n">assert_equal</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">fail_error</span><span class="p">,</span> <span class="s">u&#39;mediagoblin.processing:BadMediaFail&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_evil_jpg"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_evil_jpg">[docs]</a>    <span class="k">def</span> <span class="nf">test_evil_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Test non-supported file with .jpg extension</span>
+        <span class="c"># -------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_false_image</span><span class="p">(</span><span class="s">&#39;Malicious Upload 2&#39;</span><span class="p">,</span> <span class="n">EVIL_JPG</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_evil_png"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_evil_png">[docs]</a>    <span class="k">def</span> <span class="nf">test_evil_png</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Test non-supported file with .png extension</span>
+        <span class="c"># -------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_false_image</span><span class="p">(</span><span class="s">&#39;Malicious Upload 3&#39;</span><span class="p">,</span> <span class="n">EVIL_PNG</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestSubmission.test_processing"><a class="viewcode-back" href="../../../mediagoblin.tests.html#mediagoblin.tests.test_submission.TestSubmission.test_processing">[docs]</a>    <span class="k">def</span> <span class="nf">test_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;title&#39;</span><span class="p">:</span> <span class="s">&#39;Big Blue&#39;</span><span class="p">}</span>
+        <span class="n">response</span><span class="p">,</span> <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_post</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">REQUEST_CONTEXT</span><span class="p">,</span> <span class="n">do_follow</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                         <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upload_data</span><span class="p">(</span><span class="n">BIG_BLUE</span><span class="p">))</span>
+        <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_media</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">last_size</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">**</span> <span class="mi">3</span>  <span class="c"># Needs to be larger than bigblue.png</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">basename</span> <span class="ow">in</span> <span class="p">((</span><span class="s">&#39;original&#39;</span><span class="p">,</span> <span class="s">&#39;bigblue.png&#39;</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s">&#39;medium&#39;</span><span class="p">,</span> <span class="s">&#39;bigblue.medium.png&#39;</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s">&#39;thumb&#39;</span><span class="p">,</span> <span class="s">&#39;bigblue.thumbnail.png&#39;</span><span class="p">)):</span>
+            <span class="c"># Does the processed image have a good filename?</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s">&#39;mediagoblin.tests&#39;</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">&#39;test_user_dev/media/public&#39;</span><span class="p">,</span>
+                             <span class="o">*</span><span class="n">media</span><span class="p">[</span><span class="s">&#39;media_files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])))</span>
+            <span class="n">assert_true</span><span class="p">(</span><span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">basename</span><span class="p">))</span>
+            <span class="c"># Is it smaller than the last processed image we looked at?</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span>
+            <span class="n">assert_true</span><span class="p">(</span><span class="n">last_size</span> <span class="o">&gt;</span> <span class="n">size</span><span class="p">)</span>
+            <span class="n">last_size</span> <span class="o">=</span> <span class="n">size</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../tests.html" >mediagoblin.tests</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

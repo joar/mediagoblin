@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>db Package &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="db-package">
+<h1>db Package<a class="headerlink" href="#db-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">db</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-mediagoblin.db"></span><div class="section" id="database-abstraction-wrapper-layer">
+<h3>Database Abstraction/Wrapper Layer<a class="headerlink" href="#database-abstraction-wrapper-layer" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p><strong>NOTE from Chris Webber:</strong> I asked Elrond to explain why he put
+ASCENDING and DESCENDING in db/util.py when we could just import from
+pymongo.  Read beow for why, but note that nobody is actually doing
+this and there&#8217;s no proof that we&#8217;ll ever support more than
+MongoDB... it would be a huge amount of work to do so.</p>
+<p>If you really want to prove that possible, jump on IRC and talk to
+us about making such a branch.  In the meanwhile, it doesn&#8217;t hurt to
+have things as they are... if it ever makes it hard for us to
+actually do things, we might revisit or remove this.  But for more
+information, read below.</p>
+</div></blockquote>
+<p>This submodule is for most of the db specific stuff.</p>
+<p>There are two main ideas here:</p>
+<ol class="arabic">
+<li><p class="first">Open up a small possibility to replace mongo by another
+db.  This means, that all direct mongo accesses should
+happen in the db submodule.  While all the rest uses an
+API defined by this submodule.</p>
+<p>Currently this API happens to be basicly mongo.
+Which means, that the abstraction/wrapper layer is
+extremely thin.</p>
+</li>
+<li><p class="first">Give the rest of the app a simple and easy way to get most of
+their db needs. Which often means some simple import
+from db.util.</p>
+</li>
+</ol>
+<p>What does that mean?</p>
+<ul class="simple">
+<li>Never import mongo directly outside of this submodule.</li>
+<li>Inside this submodule you can do whatever is needed. The
+API border is exactly at the submodule layer. Nowhere
+else.</li>
+<li>helper functions can be moved in here. They become part
+of the db.* API</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-mediagoblin.db.mixin">
+<span id="mixin-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mixin</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.mixin" title="Permalink to this headline">¶</a></h2>
+<p>This module contains some Mixin classes for the db objects.</p>
+<p>A bunch of functions on the db objects are really more like
+&#8220;utility functions&#8221;: They could live outside the classes
+and be called &#8220;by hand&#8221; passing the appropiate reference.
+They usually only use the public API of the object and
+rarely use database related stuff.</p>
+<p>These functions now live here and get &#8220;mixed in&#8221; into the
+real objects.</p>
+<dl class="class">
+<dt id="mediagoblin.db.mixin.MediaCommentMixin">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mixin.</tt><tt class="descname">MediaCommentMixin</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaCommentMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaCommentMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.mixin.MediaCommentMixin.content_html">
+<tt class="descname">content_html</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaCommentMixin.content_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaCommentMixin.content_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>the actual html-rendered version of the comment displayed.
+Run through Markdown and the HTML cleaner.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mixin.</tt><tt class="descname">MediaEntryMixin</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.description_html">
+<tt class="descname">description_html</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.description_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.description_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rendered version of the description, run through
+Markdown and cleaned with our cleaning tool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.exif_display_iter">
+<tt class="descname">exif_display_iter</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.exif_display_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.exif_display_iter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.generate_slug">
+<tt class="descname">generate_slug</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.generate_slug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.generate_slug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.get_display_media">
+<tt class="descname">get_display_media</tt><big>(</big><em>media_map, fetch_order=[u'medium', u'original', u'thumb']</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.get_display_media"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.get_display_media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the best media for display.</p>
+<p>Args:
+- media_map: a dict like</p>
+<blockquote>
+<div>{u&#8217;image_size&#8217;: [u&#8217;dir1&#8217;, u&#8217;dir2&#8217;, u&#8217;image.jpg&#8217;]}</div></blockquote>
+<ul class="simple">
+<li>fetch_order: the order we should try fetching images in</li>
+</ul>
+<p>Returns:
+(media_size, media_path)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.get_fail_exception">
+<tt class="descname">get_fail_exception</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.get_fail_exception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.get_fail_exception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the exception that&#8217;s appropriate for this error</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.get_license_data">
+<tt class="descname">get_license_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.get_license_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.get_license_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return license dict for requested license</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.main_mediafile">
+<tt class="descname">main_mediafile</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.main_mediafile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.main_mediafile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.slug_or_id">
+<tt class="descname">slug_or_id</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.slug_or_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.slug_or_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.MediaEntryMixin.url_for_self">
+<tt class="descname">url_for_self</tt><big>(</big><em>urlgen</em>, <em>**extra_args</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#MediaEntryMixin.url_for_self"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.MediaEntryMixin.url_for_self" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an appropriate url for ourselves</p>
+<p>Use a slug if we have one, else use our &#8216;_id&#8217;.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mediagoblin.db.mixin.UserMixin">
+<em class="property">class </em><tt class="descclassname">mediagoblin.db.mixin.</tt><tt class="descname">UserMixin</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#UserMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.UserMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="attribute">
+<dt id="mediagoblin.db.mixin.UserMixin.bio_html">
+<tt class="descname">bio_html</tt><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#UserMixin.bio_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.UserMixin.bio_html" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mediagoblin.db.mixin.UserMixin.check_login">
+<tt class="descname">check_login</tt><big>(</big><em>password</em><big>)</big><a class="reference internal" href="_modules/mediagoblin/db/mixin.html#UserMixin.check_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mediagoblin.db.mixin.UserMixin.check_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>See if a user can login with this password</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mediagoblin.db.open">
+<span id="open-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">open</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.open" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mediagoblin.db.util">
+<span id="util-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Module<a class="headerlink" href="#module-mediagoblin.db.util" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.db.mongo.html">mongo Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#id1"><tt class="docutils literal"><span class="pre">mongo</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.indexes"><tt class="docutils literal"><span class="pre">indexes</span></tt> Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.db.mongo.html#to-add-new-indexes">To add new indexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mediagoblin.db.mongo.html#to-remove-deprecated-indexes">To remove deprecated indexes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#models-module"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.mongo.html#module-mediagoblin.db.mongo.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mediagoblin.db.sql.html">sql Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#id1"><tt class="docutils literal"><span class="pre">sql</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.base"><tt class="docutils literal"><span class="pre">base</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.convert"><tt class="docutils literal"><span class="pre">convert</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.extratypes"><tt class="docutils literal"><span class="pre">extratypes</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.fake"><tt class="docutils literal"><span class="pre">fake</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.migrations"><tt class="docutils literal"><span class="pre">migrations</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.models"><tt class="docutils literal"><span class="pre">models</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.models_v0"><tt class="docutils literal"><span class="pre">models_v0</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mediagoblin.db.sql.html#module-mediagoblin.db.sql.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">db Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">db</span></tt> Package</a><ul>
+<li><a class="reference internal" href="#database-abstraction-wrapper-layer">Database Abstraction/Wrapper Layer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mediagoblin.db.mixin"><tt class="docutils literal"><span class="pre">mixin</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.open"><tt class="docutils literal"><span class="pre">open</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-mediagoblin.db.util"><tt class="docutils literal"><span class="pre">util</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mediagoblin.db.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

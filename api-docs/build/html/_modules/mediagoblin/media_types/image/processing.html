@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.media_types.image.processing &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../../index.html" />
+    <link rel="up" title="mediagoblin.media_types" href="../../media_types.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" accesskey="U">mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.media_types.image.processing</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span> <span class="k">as</span> <span class="n">mgg</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.processing</span> <span class="kn">import</span> <span class="n">BadMediaFail</span><span class="p">,</span> \
+    <span class="n">create_pub_filepath</span><span class="p">,</span> <span class="n">FilenameBuilder</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.exif</span> <span class="kn">import</span> <span class="n">exif_fix_image_orientation</span><span class="p">,</span> \
+    <span class="n">extract_exif</span><span class="p">,</span> <span class="n">clean_exif</span><span class="p">,</span> <span class="n">get_gps_data</span><span class="p">,</span> <span class="n">get_useful</span><span class="p">,</span> \
+    <span class="n">exif_image_needs_rotation</span>
+
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="resize_image"><a class="viewcode-back" href="../../../../mediagoblin.media_types.image.html#mediagoblin.media_types.image.processing.resize_image">[docs]</a><span class="k">def</span> <span class="nf">resize_image</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">new_path</span><span class="p">,</span> <span class="n">exif_tags</span><span class="p">,</span> <span class="n">workdir</span><span class="p">,</span> <span class="n">new_size</span><span class="p">,</span>
+                 <span class="n">size_limits</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Store a resized version of an image and return its pathname.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    entry -- the entry for the image to resize</span>
+<span class="sd">    filename -- the filename of the original image being resized</span>
+<span class="sd">    new_path -- public file path for the new resized image</span>
+<span class="sd">    exif_tags -- EXIF data for the original image</span>
+<span class="sd">    workdir -- directory path for storing converted image files</span>
+<span class="sd">    new_size -- 2-tuple size for the resized image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">resized</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BadMediaFail</span><span class="p">()</span>
+    <span class="n">resized</span> <span class="o">=</span> <span class="n">exif_fix_image_orientation</span><span class="p">(</span><span class="n">resized</span><span class="p">,</span> <span class="n">exif_tags</span><span class="p">)</span>  <span class="c"># Fix orientation</span>
+    <span class="n">resized</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">(</span><span class="n">new_size</span><span class="p">,</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+
+    <span class="c"># Copy the new file to the conversion subdir, then remotely.</span>
+    <span class="n">tmp_resized_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">new_path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">with</span> <span class="nb">file</span><span class="p">(</span><span class="n">tmp_resized_filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">resized_file</span><span class="p">:</span>
+        <span class="n">resized</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">resized_file</span><span class="p">)</span>
+    <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">copy_local_to_storage</span><span class="p">(</span><span class="n">tmp_resized_filename</span><span class="p">,</span> <span class="n">new_path</span><span class="p">)</span>
+
+</div>
+<span class="n">SUPPORTED_FILETYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;png&#39;</span><span class="p">,</span> <span class="s">&#39;gif&#39;</span><span class="p">,</span> <span class="s">&#39;jpg&#39;</span><span class="p">,</span> <span class="s">&#39;jpeg&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="sniff_handler"><a class="viewcode-back" href="../../../../mediagoblin.media_types.image.html#mediagoblin.media_types.image.processing.sniff_handler">[docs]</a><span class="k">def</span> <span class="nf">sniff_handler</span><span class="p">(</span><span class="n">media_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;media&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>  <span class="c"># That&#39;s a double negative!</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">kw</span><span class="p">[</span><span class="s">&#39;media&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">clean_ext</span> <span class="o">=</span> <span class="n">ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>  <span class="c"># Strip the . from ext and make lowercase</span>
+
+        <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;name: {0}</span><span class="se">\n</span><span class="s">ext: {1}</span><span class="se">\n</span><span class="s">lower_ext: {2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">ext</span><span class="p">,</span>
+                <span class="n">clean_ext</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">clean_ext</span> <span class="ow">in</span> <span class="n">SUPPORTED_FILETYPES</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Found file extension in supported filetypes&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Media present, extension not found in {0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">SUPPORTED_FILETYPES</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;Need additional information (keyword argument </span><span class="se">\&#39;</span><span class="s">media</span><span class="se">\&#39;</span><span class="s">)&#39;</span>
+                     <span class="s">&#39; to be able to handle sniffing&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="process_image"><a class="viewcode-back" href="../../../../mediagoblin.media_types.image.html#mediagoblin.media_types.image.processing.process_image">[docs]</a><span class="k">def</span> <span class="nf">process_image</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Code to process an image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">workbench</span> <span class="o">=</span> <span class="n">mgg</span><span class="o">.</span><span class="n">workbench_manager</span><span class="o">.</span><span class="n">create_workbench</span><span class="p">()</span>
+    <span class="c"># Conversions subdirectory to avoid collisions</span>
+    <span class="n">conversions_subdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">workbench</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="s">&#39;conversions&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">conversions_subdir</span><span class="p">)</span>
+    <span class="n">queued_filepath</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">queued_media_file</span>
+    <span class="n">queued_filename</span> <span class="o">=</span> <span class="n">workbench</span><span class="o">.</span><span class="n">localized_file</span><span class="p">(</span>
+        <span class="n">mgg</span><span class="o">.</span><span class="n">queue_store</span><span class="p">,</span> <span class="n">queued_filepath</span><span class="p">,</span>
+        <span class="s">&#39;source&#39;</span><span class="p">)</span>
+    <span class="n">name_builder</span> <span class="o">=</span> <span class="n">FilenameBuilder</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">)</span>
+
+    <span class="c"># EXIF extraction</span>
+    <span class="n">exif_tags</span> <span class="o">=</span> <span class="n">extract_exif</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">)</span>
+    <span class="n">gps_data</span> <span class="o">=</span> <span class="n">get_gps_data</span><span class="p">(</span><span class="n">exif_tags</span><span class="p">)</span>
+
+    <span class="c"># Always create a small thumbnail</span>
+    <span class="n">thumb_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+        <span class="n">entry</span><span class="p">,</span> <span class="n">name_builder</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&#39;{basename}.thumbnail{ext}&#39;</span><span class="p">))</span>
+    <span class="n">resize_image</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">queued_filename</span><span class="p">,</span> <span class="n">thumb_filepath</span><span class="p">,</span>
+                <span class="n">exif_tags</span><span class="p">,</span> <span class="n">conversions_subdir</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:thumb&#39;</span><span class="p">][</span><span class="s">&#39;max_width&#39;</span><span class="p">],</span>
+                 <span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:thumb&#39;</span><span class="p">][</span><span class="s">&#39;max_height&#39;</span><span class="p">]))</span>
+
+    <span class="c"># If the size of the original file exceeds the specified size of a `medium`</span>
+    <span class="c"># file, a `.medium.jpg` files is created and later associated with the media</span>
+    <span class="c"># entry.</span>
+    <span class="n">medium</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">medium</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:medium&#39;</span><span class="p">][</span><span class="s">&#39;max_width&#39;</span><span class="p">]</span> \
+        <span class="ow">or</span> <span class="n">medium</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:medium&#39;</span><span class="p">][</span><span class="s">&#39;max_height&#39;</span><span class="p">]</span> \
+        <span class="ow">or</span> <span class="n">exif_image_needs_rotation</span><span class="p">(</span><span class="n">exif_tags</span><span class="p">):</span>
+        <span class="n">medium_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">,</span> <span class="n">name_builder</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&#39;{basename}.medium{ext}&#39;</span><span class="p">))</span>
+        <span class="n">resize_image</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">,</span> <span class="n">queued_filename</span><span class="p">,</span> <span class="n">medium_filepath</span><span class="p">,</span>
+            <span class="n">exif_tags</span><span class="p">,</span> <span class="n">conversions_subdir</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:medium&#39;</span><span class="p">][</span><span class="s">&#39;max_width&#39;</span><span class="p">],</span>
+             <span class="n">mgg</span><span class="o">.</span><span class="n">global_config</span><span class="p">[</span><span class="s">&#39;media:medium&#39;</span><span class="p">][</span><span class="s">&#39;max_height&#39;</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">medium_filepath</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># we have to re-read because unlike PIL, not everything reads</span>
+    <span class="c"># things in string representation :)</span>
+    <span class="n">queued_file</span> <span class="o">=</span> <span class="nb">file</span><span class="p">(</span><span class="n">queued_filename</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">queued_file</span><span class="p">:</span>
+        <span class="n">original_filepath</span> <span class="o">=</span> <span class="n">create_pub_filepath</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">,</span> <span class="n">name_builder</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="s">&#39;{basename}{ext}&#39;</span><span class="p">))</span>
+
+        <span class="k">with</span> <span class="n">mgg</span><span class="o">.</span><span class="n">public_store</span><span class="o">.</span><span class="n">get_file</span><span class="p">(</span><span class="n">original_filepath</span><span class="p">,</span> <span class="s">&#39;wb&#39;</span><span class="p">)</span> \
+            <span class="k">as</span> <span class="n">original_file</span><span class="p">:</span>
+            <span class="n">original_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">queued_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+    <span class="c"># Remove queued media file from storage and database</span>
+    <span class="n">mgg</span><span class="o">.</span><span class="n">queue_store</span><span class="o">.</span><span class="n">delete_file</span><span class="p">(</span><span class="n">queued_filepath</span><span class="p">)</span>
+    <span class="n">entry</span><span class="o">.</span><span class="n">queued_media_file</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c"># Insert media file information into database</span>
+    <span class="n">media_files_dict</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;media_files&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">media_files_dict</span><span class="p">[</span><span class="s">&#39;thumb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thumb_filepath</span>
+    <span class="n">media_files_dict</span><span class="p">[</span><span class="s">&#39;original&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_filepath</span>
+    <span class="k">if</span> <span class="n">medium_filepath</span><span class="p">:</span>
+        <span class="n">media_files_dict</span><span class="p">[</span><span class="s">&#39;medium&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">medium_filepath</span>
+
+    <span class="c"># Insert exif data into database</span>
+    <span class="n">exif_all</span> <span class="o">=</span> <span class="n">clean_exif</span><span class="p">(</span><span class="n">exif_tags</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exif_all</span><span class="p">):</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">media_data_init</span><span class="p">(</span><span class="n">exif_all</span><span class="o">=</span><span class="n">exif_all</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gps_data</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">gps_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">gps_data</span><span class="p">[</span><span class="s">&#39;gps_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">gps_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">entry</span><span class="o">.</span><span class="n">media_data_init</span><span class="p">(</span><span class="o">**</span><span class="n">gps_data</span><span class="p">)</span>
+
+    <span class="c"># clean up workbench</span>
+    <span class="n">workbench</span><span class="o">.</span><span class="n">destroy_self</span><span class="p">()</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">pprint</span>
+
+    <span class="n">pp</span> <span class="o">=</span> <span class="n">pprint</span><span class="o">.</span><span class="n">PrettyPrinter</span><span class="p">()</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">extract_exif</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">gps</span> <span class="o">=</span> <span class="n">get_gps_data</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="n">clean_exif</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">useful</span> <span class="o">=</span> <span class="n">get_useful</span><span class="p">(</span><span class="n">clean</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="n">pp</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span>
+        <span class="n">clean</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../media_types.html" >mediagoblin.media_types</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

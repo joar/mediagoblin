@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.db.mixin &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.db.mixin</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains some Mixin classes for the db objects.</span>
+
+<span class="sd">A bunch of functions on the db objects are really more like</span>
+<span class="sd">&quot;utility functions&quot;: They could live outside the classes</span>
+<span class="sd">and be called &quot;by hand&quot; passing the appropiate reference.</span>
+<span class="sd">They usually only use the public API of the object and</span>
+<span class="sd">rarely use database related stuff.</span>
+
+<span class="sd">These functions now live here and get &quot;mixed in&quot; into the</span>
+<span class="sd">real objects.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth</span> <span class="kn">import</span> <span class="n">lib</span> <span class="k">as</span> <span class="n">auth_lib</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools</span> <span class="kn">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">licenses</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.text</span> <span class="kn">import</span> <span class="n">cleaned_markdown_conversion</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.url</span> <span class="kn">import</span> <span class="n">slugify</span>
+
+
+<div class="viewcode-block" id="UserMixin"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.UserMixin">[docs]</a><span class="k">class</span> <span class="nc">UserMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="UserMixin.check_login"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.UserMixin.check_login">[docs]</a>    <span class="k">def</span> <span class="nf">check_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See if a user can login with this password</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_check_password</span><span class="p">(</span>
+            <span class="n">password</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pw_hash</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="UserMixin.bio_html"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.UserMixin.bio_html">[docs]</a>    <span class="k">def</span> <span class="nf">bio_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cleaned_markdown_conversion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bio</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="MediaEntryMixin"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin">[docs]</a><span class="k">class</span> <span class="nc">MediaEntryMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="MediaEntryMixin.generate_slug"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.generate_slug">[docs]</a>    <span class="k">def</span> <span class="nf">generate_slug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># import this here due to a cyclic import issue</span>
+        <span class="c"># (db.models -&gt; db.mixin -&gt; db.util -&gt; db.models)</span>
+        <span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">check_media_slug_used</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">slug</span> <span class="o">=</span> <span class="n">slugify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="n">duplicate</span> <span class="o">=</span> <span class="n">check_media_slug_used</span><span class="p">(</span><span class="n">mg_globals</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">slug</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">duplicate</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">slug</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">slug</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">slug</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MediaEntryMixin.description_html"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.description_html">[docs]</a>    <span class="k">def</span> <span class="nf">description_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rendered version of the description, run through</span>
+<span class="sd">        Markdown and cleaned with our cleaning tool.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cleaned_markdown_conversion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.get_display_media"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.get_display_media">[docs]</a>    <span class="k">def</span> <span class="nf">get_display_media</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">media_map</span><span class="p">,</span>
+                          <span class="n">fetch_order</span><span class="o">=</span><span class="n">common</span><span class="o">.</span><span class="n">DISPLAY_IMAGE_FETCHING_ORDER</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the best media for display.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        - media_map: a dict like</span>
+<span class="sd">          {u&#39;image_size&#39;: [u&#39;dir1&#39;, u&#39;dir2&#39;, u&#39;image.jpg&#39;]}</span>
+<span class="sd">        - fetch_order: the order we should try fetching images in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        (media_size, media_path)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">media_sizes</span> <span class="o">=</span> <span class="n">media_map</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">media_size</span> <span class="ow">in</span> <span class="n">common</span><span class="o">.</span><span class="n">DISPLAY_IMAGE_FETCHING_ORDER</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">media_size</span> <span class="ow">in</span> <span class="n">media_sizes</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">media_map</span><span class="p">[</span><span class="n">media_size</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.main_mediafile"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.main_mediafile">[docs]</a>    <span class="k">def</span> <span class="nf">main_mediafile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MediaEntryMixin.slug_or_id"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.slug_or_id">[docs]</a>    <span class="k">def</span> <span class="nf">slug_or_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slug</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.url_for_self"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.url_for_self">[docs]</a>    <span class="k">def</span> <span class="nf">url_for_self</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">urlgen</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an appropriate url for ourselves</span>
+
+<span class="sd">        Use a slug if we have one, else use our &#39;_id&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uploader</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_uploader</span>
+
+        <span class="k">return</span> <span class="n">urlgen</span><span class="p">(</span>
+            <span class="s">&#39;mediagoblin.user_pages.media_home&#39;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="n">uploader</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">media</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">slug_or_id</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">extra_args</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.get_fail_exception"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.get_fail_exception">[docs]</a>    <span class="k">def</span> <span class="nf">get_fail_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the exception that&#39;s appropriate for this error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="s">&#39;fail_error&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">common</span><span class="o">.</span><span class="n">import_component</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s">&#39;fail_error&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.get_license_data"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.get_license_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_license_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return license dict for requested license&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">licenses</span><span class="o">.</span><span class="n">SUPPORTED_LICENSES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">license</span> <span class="ow">or</span> <span class="s">&quot;&quot;</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="MediaEntryMixin.exif_display_iter"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaEntryMixin.exif_display_iter">[docs]</a>    <span class="k">def</span> <span class="nf">exif_display_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">mediagoblin.tools.exif</span> <span class="kn">import</span> <span class="n">USEFUL_TAGS</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">media_data</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">exif_all</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">media_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;exif_all&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">USEFUL_TAGS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">exif_all</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">exif_all</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+</div></div>
+<div class="viewcode-block" id="MediaCommentMixin"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaCommentMixin">[docs]</a><span class="k">class</span> <span class="nc">MediaCommentMixin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MediaCommentMixin.content_html"><a class="viewcode-back" href="../../../mediagoblin.db.html#mediagoblin.db.mixin.MediaCommentMixin.content_html">[docs]</a>    <span class="k">def</span> <span class="nf">content_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        the actual html-rendered version of the comment displayed.</span>
+<span class="sd">        Run through Markdown and the HTML cleaner.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cleaned_markdown_conversion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

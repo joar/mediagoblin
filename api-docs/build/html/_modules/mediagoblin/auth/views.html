@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.auth.views &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.auth.views</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">from</span> <span class="nn">webob</span> <span class="kn">import</span> <span class="n">exc</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">messages</span>
+<span class="kn">from</span> <span class="nn">mediagoblin</span> <span class="kn">import</span> <span class="n">mg_globals</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.response</span> <span class="kn">import</span> <span class="n">render_to_response</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">render_404</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.translate</span> <span class="kn">import</span> <span class="n">pass_to_ugettext</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.db.util</span> <span class="kn">import</span> <span class="n">ObjectId</span><span class="p">,</span> <span class="n">InvalidId</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth</span> <span class="kn">import</span> <span class="n">lib</span> <span class="k">as</span> <span class="n">auth_lib</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth</span> <span class="kn">import</span> <span class="n">forms</span> <span class="k">as</span> <span class="n">auth_forms</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.auth.lib</span> <span class="kn">import</span> <span class="n">send_verification_email</span><span class="p">,</span> \
+                                 <span class="n">send_fp_verification_email</span>
+
+
+<div class="viewcode-block" id="email_debug_message"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.email_debug_message">[docs]</a><span class="k">def</span> <span class="nf">email_debug_message</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the server is running in email debug mode (which is</span>
+<span class="sd">    the current default), give a debug message to the user</span>
+<span class="sd">    so that they have an idea where to find their email.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&#39;email_debug_mode&#39;</span><span class="p">]:</span>
+        <span class="c"># DEBUG message, no need to translate</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+            <span class="s">u&quot;This instance is running in email debug mode. &quot;</span>
+            <span class="s">u&quot;The email will be on the console of the server process.&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="register"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.register">[docs]</a><span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Your classic registration view!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Redirects to indexpage if registrations are disabled</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&quot;allow_registration&quot;</span><span class="p">]:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&#39;Sorry, registration is disabled on this instance.&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;index&quot;</span><span class="p">)</span>
+
+    <span class="n">register_form</span> <span class="o">=</span> <span class="n">auth_forms</span><span class="o">.</span><span class="n">RegistrationForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">register_form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+        <span class="c"># TODO: Make sure the user doesn&#39;t exist already</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="n">em_user</span><span class="p">,</span> <span class="n">em_dom</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;email&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;@&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">em_dom</span> <span class="o">=</span> <span class="n">em_dom</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">em_user</span> <span class="o">+</span> <span class="s">&quot;@&quot;</span> <span class="o">+</span> <span class="n">em_dom</span>
+        <span class="n">users_with_username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">})</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+        <span class="n">users_with_email</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="n">email</span><span class="p">})</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+        <span class="n">extra_validation_passes</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">users_with_username</span><span class="p">:</span>
+            <span class="n">register_form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">u&#39;Sorry, a user with that name already exists.&#39;</span><span class="p">))</span>
+            <span class="n">extra_validation_passes</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">users_with_email</span><span class="p">:</span>
+            <span class="n">register_form</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">u&#39;Sorry, a user with that email address already exists.&#39;</span><span class="p">))</span>
+            <span class="n">extra_validation_passes</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">extra_validation_passes</span><span class="p">:</span>
+            <span class="c"># Create the user</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="p">()</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">email</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">pw_hash</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">])</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">verification_key</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+            <span class="c"># log the user in</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c"># send verification email</span>
+            <span class="n">email_debug_message</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="n">send_verification_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+            <span class="c"># redirect the user to their homepage... there will be a</span>
+            <span class="c"># message waiting for them to verify their email</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/auth/register.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;register_form&#39;</span><span class="p">:</span> <span class="n">register_form</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="login"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.login">[docs]</a><span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MediaGoblin login view.</span>
+
+<span class="sd">    If you provide the POST with &#39;next&#39;, it&#39;ll redirect to that view.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">login_form</span> <span class="o">=</span> <span class="n">auth_forms</span><span class="o">.</span><span class="n">LoginForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+
+    <span class="n">login_failed</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">login_form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()})</span>
+
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">check_login</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]):</span>
+            <span class="c"># set up login in session</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">exc</span><span class="o">.</span><span class="n">HTTPFound</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;next&#39;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;index&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Prevent detecting who&#39;s on this system by testing login</span>
+            <span class="c"># attempt timings</span>
+            <span class="n">auth_lib</span><span class="o">.</span><span class="n">fake_login_attempt</span><span class="p">()</span>
+            <span class="n">login_failed</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/auth/login.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;login_form&#39;</span><span class="p">:</span> <span class="n">login_form</span><span class="p">,</span>
+         <span class="s">&#39;next&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;next&#39;</span><span class="p">),</span>
+         <span class="s">&#39;login_failed&#39;</span><span class="p">:</span> <span class="n">login_failed</span><span class="p">,</span>
+         <span class="s">&#39;allow_registration&#39;</span><span class="p">:</span> <span class="n">mg_globals</span><span class="o">.</span><span class="n">app_config</span><span class="p">[</span><span class="s">&quot;allow_registration&quot;</span><span class="p">]})</span>
+
+</div>
+<div class="viewcode-block" id="logout"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.logout">[docs]</a><span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="c"># Maybe deleting the user_id parameter would be enough?</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;index&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="verify_email"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.verify_email">[docs]</a><span class="k">def</span> <span class="nf">verify_email</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Email verification view</span>
+
+<span class="sd">    validates GET parameters against database and unlocks the user account, if</span>
+<span class="sd">    you are lucky :)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># If we don&#39;t have userid and token parameters, we can&#39;t do anything; 404</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;userid&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span> <span class="ow">or</span> <span class="ow">not</span> <span class="s">&#39;token&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+        <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;userid&#39;</span><span class="p">]))})</span>
+
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">verification_key</span> <span class="o">==</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s">&#39;token&#39;</span><span class="p">]):</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s">u&#39;active&#39;</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">email_verified</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">verification_key</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;Your email address has been verified. &quot;</span>
+              <span class="s">&quot;You may now login, edit your profile, and submit images!&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&#39;The verification key or user id is incorrect&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="resend_activation"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.resend_activation">[docs]</a><span class="k">def</span> <span class="nf">resend_activation</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The reactivation view</span>
+
+<span class="sd">    Resend the activation email.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&#39;You must be logged in so we know who to send the email to!&#39;</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.auth.login&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email_verified</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+            <span class="n">_</span><span class="p">(</span><span class="s">&quot;You&#39;ve already verified your email address!&quot;</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&quot;mediagoblin.user_pages.user_home&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">])</span>
+
+    <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">verification_key</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    
+    <span class="n">email_debug_message</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">send_verification_email</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+    <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+        <span class="n">_</span><span class="p">(</span><span class="s">&#39;Resent your verification email.&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="forgot_password"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.forgot_password">[docs]</a><span class="k">def</span> <span class="nf">forgot_password</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Forgot password view</span>
+
+<span class="sd">    Sends an email with an url to renew forgotten password</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fp_form</span> <span class="o">=</span> <span class="n">auth_forms</span><span class="o">.</span><span class="n">ForgotPassForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span>
+                                        <span class="n">username</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;username&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">fp_form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+
+        <span class="c"># &#39;$or&#39; not available till mongodb 1.5.3</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;username&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                <span class="p">{</span><span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]})</span>
+
+        <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">email_verified</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">&#39;active&#39;</span><span class="p">:</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">fp_verification_key</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">fp_token_expire</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> \
+                                          <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="n">send_fp_verification_email</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+                <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="n">messages</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;An email has been sent with instructions on how to &quot;</span>
+                      <span class="s">&quot;change your password.&quot;</span><span class="p">))</span>
+                <span class="n">email_debug_message</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># special case... we can&#39;t send the email because the</span>
+                <span class="c"># username is inactive / hasn&#39;t verified their email</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="n">messages</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                    <span class="n">_</span><span class="p">(</span><span class="s">&quot;Could not send password recovery email as &quot;</span>
+                      <span class="s">&quot;your username is inactive or your account&#39;s &quot;</span>
+                      <span class="s">&quot;email address has not been verified.&quot;</span><span class="p">))</span>
+
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.user_pages.user_home&#39;</span><span class="p">,</span>
+                    <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.auth.login&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find someone with that username or email.&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.auth.forgot_password&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">,</span>
+        <span class="s">&#39;mediagoblin/auth/forgot_password.html&#39;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s">&#39;fp_form&#39;</span><span class="p">:</span> <span class="n">fp_form</span><span class="p">})</span>
+
+</div>
+<div class="viewcode-block" id="verify_forgot_password"><a class="viewcode-back" href="../../../mediagoblin.auth.html#mediagoblin.auth.views.verify_forgot_password">[docs]</a><span class="k">def</span> <span class="nf">verify_forgot_password</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the forgot-password verification and possibly let the user</span>
+<span class="sd">    change their password because of it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># get form data variables, and specifically check for presence of token</span>
+    <span class="n">formdata</span> <span class="o">=</span> <span class="n">_process_for_token</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">formdata</span><span class="p">[</span><span class="s">&#39;has_userid_and_token&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">formdata_token</span> <span class="o">=</span> <span class="n">formdata</span><span class="p">[</span><span class="s">&#39;vars&#39;</span><span class="p">][</span><span class="s">&#39;token&#39;</span><span class="p">]</span>
+    <span class="n">formdata_userid</span> <span class="o">=</span> <span class="n">formdata</span><span class="p">[</span><span class="s">&#39;vars&#39;</span><span class="p">][</span><span class="s">&#39;userid&#39;</span><span class="p">]</span>
+    <span class="n">formdata_vars</span> <span class="o">=</span> <span class="n">formdata</span><span class="p">[</span><span class="s">&#39;vars&#39;</span><span class="p">]</span>
+
+    <span class="c"># check if it&#39;s a valid Id</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="nb">unicode</span><span class="p">(</span><span class="n">formdata_userid</span><span class="p">))})</span>
+    <span class="k">except</span> <span class="n">InvalidId</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="c"># check if we have a real user and correct token</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">user</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">fp_verification_key</span> <span class="ow">and</span>
+         <span class="n">user</span><span class="o">.</span><span class="n">fp_verification_key</span> <span class="o">==</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">formdata_token</span><span class="p">)</span> <span class="ow">and</span>
+         <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">user</span><span class="o">.</span><span class="n">fp_token_expire</span>
+         <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">email_verified</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s">&#39;active&#39;</span><span class="p">)):</span>
+
+        <span class="n">cp_form</span> <span class="o">=</span> <span class="n">auth_forms</span><span class="o">.</span><span class="n">ChangePassForm</span><span class="p">(</span><span class="n">formdata_vars</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span> <span class="ow">and</span> <span class="n">cp_form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">pw_hash</span> <span class="o">=</span> <span class="n">auth_lib</span><span class="o">.</span><span class="n">bcrypt_gen_password_hash</span><span class="p">(</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">])</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">fp_verification_key</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">fp_token_expire</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                <span class="n">_</span><span class="p">(</span><span class="s">&quot;You can now log in using your new password.&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;mediagoblin.auth.login&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">render_to_response</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="s">&#39;mediagoblin/auth/change_fp.html&#39;</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&#39;cp_form&#39;</span><span class="p">:</span> <span class="n">cp_form</span><span class="p">})</span>
+
+    <span class="c"># in case there is a valid id but no user whit that id in the db</span>
+    <span class="c"># or the token expired</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">render_404</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_process_for_token</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks for tokens in formdata without prior knowledge of request method</span>
+
+<span class="sd">    For now, returns whether the userid and token formdata variables exist, and</span>
+<span class="sd">    the formdata variables in a hash. Perhaps an object is warranted?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># retrieve the formdata variables</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;GET&#39;</span><span class="p">:</span>
+        <span class="n">formdata_vars</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">formdata_vars</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+
+    <span class="n">formdata</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;vars&#39;</span><span class="p">:</span> <span class="n">formdata_vars</span><span class="p">,</span>
+        <span class="s">&#39;has_userid_and_token&#39;</span><span class="p">:</span>
+            <span class="s">&#39;userid&#39;</span> <span class="ow">in</span> <span class="n">formdata_vars</span> <span class="ow">and</span> <span class="s">&#39;token&#39;</span> <span class="ow">in</span> <span class="n">formdata_vars</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">formdata</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

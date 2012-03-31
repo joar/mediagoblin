@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mediagoblin.tools.exif &mdash; GNU MediaGoblin 3.0-dev documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="GNU MediaGoblin 3.0-dev documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mediagoblin.tools.exif</h1><div class="highlight"><pre>
+<span class="c"># GNU MediaGoblin -- federated, autonomous media hosting</span>
+<span class="c"># Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.</span>
+<span class="c">#</span>
+<span class="c"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Affero General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU Affero General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Affero General Public License</span>
+<span class="c"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.extlib.EXIF</span> <span class="kn">import</span> <span class="n">process_file</span><span class="p">,</span> <span class="n">Ratio</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.processing</span> <span class="kn">import</span> <span class="n">BadMediaFail</span>
+<span class="kn">from</span> <span class="nn">mediagoblin.tools.translate</span> <span class="kn">import</span> <span class="n">pass_to_ugettext</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="c"># A list of tags that should be stored for faster access</span>
+<span class="n">USEFUL_TAGS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;Image Make&#39;</span><span class="p">,</span>
+    <span class="s">&#39;Image Model&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF FNumber&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF Flash&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF FocalLength&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF ExposureTime&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF ApertureValue&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF ExposureMode&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF ISOSpeedRatings&#39;</span><span class="p">,</span>
+    <span class="s">&#39;EXIF UserComment&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="exif_image_needs_rotation"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.exif_image_needs_rotation">[docs]</a><span class="k">def</span> <span class="nf">exif_image_needs_rotation</span><span class="p">(</span><span class="n">exif_tags</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if EXIF orientation requires rotation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&#39;Image Orientation&#39;</span> <span class="ow">in</span> <span class="n">exif_tags</span> \
+        <span class="ow">and</span> <span class="n">exif_tags</span><span class="p">[</span><span class="s">&#39;Image Orientation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="exif_fix_image_orientation"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.exif_fix_image_orientation">[docs]</a><span class="k">def</span> <span class="nf">exif_fix_image_orientation</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">exif_tags</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translate any EXIF orientation to raw orientation</span>
+
+<span class="sd">    Cons:</span>
+<span class="sd">    - REDUCES IMAGE QUALITY by recompressig it</span>
+
+<span class="sd">    Pros:</span>
+<span class="sd">    - Cures my neck pain</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Rotate image</span>
+    <span class="k">if</span> <span class="s">&#39;Image Orientation&#39;</span> <span class="ow">in</span> <span class="n">exif_tags</span><span class="p">:</span>
+        <span class="n">rotation_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">3</span><span class="p">:</span> <span class="mi">180</span><span class="p">,</span>
+            <span class="mi">6</span><span class="p">:</span> <span class="mi">270</span><span class="p">,</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="mi">90</span><span class="p">}</span>
+        <span class="n">orientation</span> <span class="o">=</span> <span class="n">exif_tags</span><span class="p">[</span><span class="s">&#39;Image Orientation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="ow">in</span> <span class="n">rotation_map</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span>
+                <span class="n">rotation_map</span><span class="p">[</span><span class="n">orientation</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">im</span>
+</div>
+<div class="viewcode-block" id="extract_exif"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.extract_exif">[docs]</a><span class="k">def</span> <span class="nf">extract_exif</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns EXIF tags found in file at ``filename``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exif_tags</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">exif_tags</span> <span class="o">=</span> <span class="n">process_file</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BadMediaFail</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s">&#39;Could not read the image file.&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">exif_tags</span>
+</div>
+<div class="viewcode-block" id="clean_exif"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.clean_exif">[docs]</a><span class="k">def</span> <span class="nf">clean_exif</span><span class="p">(</span><span class="n">exif</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Clean the result from anything the database cannot handle</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># Discard any JPEG thumbnail, for database compatibility</span>
+    <span class="c"># and that I cannot see a case when we would use it.</span>
+    <span class="c"># It takes up some space too.</span>
+    <span class="n">disabled_tags</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;Thumbnail JPEGInterchangeFormatLength&#39;</span><span class="p">,</span>
+        <span class="s">&#39;JPEGThumbnail&#39;</span><span class="p">,</span>
+        <span class="s">&#39;Thumbnail JPEGInterchangeFormat&#39;</span><span class="p">]</span>
+
+    <span class="n">clean_exif</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">exif</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">disabled_tags</span><span class="p">:</span>
+            <span class="n">clean_exif</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_ifd_tag_to_dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">clean_exif</span>
+</div>
+<span class="k">def</span> <span class="nf">_ifd_tag_to_dict</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;printable&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">printable</span><span class="p">,</span>
+        <span class="s">&#39;tag&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span>
+        <span class="s">&#39;field_type&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">field_type</span><span class="p">,</span>
+        <span class="s">&#39;field_offset&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">field_offset</span><span class="p">,</span>
+        <span class="s">&#39;field_length&#39;</span><span class="p">:</span> <span class="n">tag</span><span class="o">.</span><span class="n">field_length</span><span class="p">,</span>
+        <span class="s">&#39;values&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">tag</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tag</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Ratio</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">_ratio_to_list</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+
+<span class="k">def</span> <span class="nf">_ratio_to_list</span><span class="p">(</span><span class="n">ratio</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">ratio</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">ratio</span><span class="o">.</span><span class="n">den</span><span class="p">]</span>
+
+<div class="viewcode-block" id="get_useful"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.get_useful">[docs]</a><span class="k">def</span> <span class="nf">get_useful</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+    <span class="n">useful</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">USEFUL_TAGS</span><span class="p">:</span>
+            <span class="n">useful</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag</span>
+
+    <span class="k">return</span> <span class="n">useful</span>
+            
+</div>
+<div class="viewcode-block" id="get_gps_data"><a class="viewcode-back" href="../../../mediagoblin.tools.html#mediagoblin.tools.exif.get_gps_data">[docs]</a><span class="k">def</span> <span class="nf">get_gps_data</span><span class="p">(</span><span class="n">tags</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes EXIF data returned by EXIF.py</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gps_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;Image GPSInfo&#39;</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gps_data</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dms_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;latitude&#39;</span><span class="p">:</span> <span class="n">tags</span><span class="p">[</span><span class="s">&#39;GPS GPSLatitude&#39;</span><span class="p">],</span>
+            <span class="s">&#39;longitude&#39;</span><span class="p">:</span> <span class="n">tags</span><span class="p">[</span><span class="s">&#39;GPS GPSLongitude&#39;</span><span class="p">]}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">dat</span> <span class="ow">in</span> <span class="n">dms_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">gps_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">den</span><span class="p">)</span> \
+                    <span class="o">+</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">den</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span> <span class="p">)</span>\
+                    <span class="o">+</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">den</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">))</span>
+                <span class="p">)(</span><span class="n">dat</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gps_data</span><span class="p">[</span><span class="s">&#39;direction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">den</span><span class="p">)</span>
+            <span class="p">)(</span><span class="n">tags</span><span class="p">[</span><span class="s">&#39;GPS GPSImgDirection&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gps_data</span><span class="p">[</span><span class="s">&#39;altitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">den</span><span class="p">)</span>
+            <span class="p">)(</span><span class="n">tags</span><span class="p">[</span><span class="s">&#39;GPS GPSAltitude&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">gps_data</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">GNU MediaGoblin 3.0-dev documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, See AUTHORS.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
