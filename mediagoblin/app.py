@@ -156,7 +156,9 @@ class MediaGoblinApp(object):
 
         ## Attach utilities to the request object
         # Do we really want to load this via middleware?  Maybe?
-        request.session = request.environ['beaker.session']
+        #
+        # XXX: Breaks under tornado
+        request.session = request.environ.get('beaker.session', {})
         # Attach self as request.app
         # Also attach a few utilities from request.app for convenience?
         request.app = self
@@ -227,7 +229,6 @@ class MediaGoblinApp(object):
     def __call__(self, environ, start_response):
         ## If more errors happen that look like unclean sessions:
         # self.db.check_session_clean()
-
         try:
             return self.call_backend(environ, start_response)
         finally:
