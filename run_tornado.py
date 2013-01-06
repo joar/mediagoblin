@@ -18,7 +18,7 @@ if __name__ == '__main__':
          {'path': 'mediagoblin/static'}),
         ('/theme_static/(.*)', tornado.web.StaticFileHandler,
          {'path': 'user_dev/theme_static'}),
-        ('.*', tornado.web.FallbackHandler, dict(fallback=wsgi_app))])
+        ('.*', tornado.web.FallbackHandler, {'fallback': wsgi_app})])
 
     server = HTTPServer(tornado_app)
     server.listen(8181)
