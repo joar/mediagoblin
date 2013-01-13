@@ -25,8 +25,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import select, insert
 from migrate import changeset
 
-from mediagoblin.db.sql.base import GMGTableBase
-from mediagoblin.db.sql.util import MigrationManager, RegisterMigration
+from mediagoblin.db.base import GMGTableBase
+from mediagoblin.db.migration_tools import MigrationManager, RegisterMigration
 from mediagoblin.tools.common import CollectingPrinter
 
 

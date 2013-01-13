@@ -18,7 +18,7 @@ import logging
 import datetime
 
 from mediagoblin import messages, mg_globals
-from mediagoblin.db.sql.models import (MediaEntry, Collection, CollectionItem,
+from mediagoblin.db.models import (MediaEntry, Collection, CollectionItem,
                                        User)
 from mediagoblin.tools.response import render_to_response, render_404, redirect
 from mediagoblin.tools.translate import pass_to_ugettext as _
@@ -514,7 +514,7 @@ def collection_atom_feed(request):
 
     cursor = CollectionItem.query.filter_by(
                  collection=collection.id) \
-                 .sort(CollectionItem.added.desc()) \
+                 .order_by(CollectionItem.added.desc()) \
                  .limit(ATOM_DEFAULT_NR_OF_UPDATED_ITEMS)
 
     """

@@ -22,24 +22,28 @@ TODO: indexes on foreignkeys, where useful.
 import datetime
 import sys
 
-from sqlalchemy import (
-    Column, Integer, Unicode, UnicodeText, DateTime, Boolean, ForeignKey,
-    UniqueConstraint, PrimaryKeyConstraint, SmallInteger, Float)
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, Unicode, UnicodeText, DateTime, \
+        Boolean, ForeignKey, UniqueConstraint, PrimaryKeyConstraint, \
+        SmallInteger
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.sql.expression import desc
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.util import memoized_property
 
-from mediagoblin.db.sql.extratypes import PathTupleWithSlashes, JSONEncoded
-from mediagoblin.db.sql.base import GMGTableBase
-from mediagoblin.db.sql.base import Session
+from mediagoblin.db.extratypes import PathTupleWithSlashes, JSONEncoded
+from mediagoblin.db.base import Base, DictReadAttrProxy, Session
+from mediagoblin.db.mixin import UserMixin, MediaEntryMixin, MediaCommentMixin, CollectionMixin, CollectionItemMixin
+
+# It's actually kind of annoying how sqlalchemy-migrate does this, if
+# I understand it right, but whatever.  Anyway, don't remove this :P
+#
+# We could do migration calls more manually instead of relying on
+# this import-based meddling...
+from migrate import changeset
 
 
-Base_v0 = declarative_base(cls=GMGTableBase)
-
-
-class User(Base_v0):
+class User(Base, UserMixin):
     """
     TODO: We should consider moving some rarely used fields
     into some sort of "shadow" table.
@@ -53,6 +57,9 @@ class User(Base_v0):
     pw_hash = Column(Unicode, nullable=False)
     email_verified = Column(Boolean, default=False)
     status = Column(Unicode, default=u"needs_email_verification", nullable=False)
+    # Intented to be nullable=False, but migrations would not work for it
+    # set to nullable=True implicitly.
+    wants_comment_notification = Column(Boolean, default=True)
     verification_key = Column(Unicode)
     is_admin = Column(Boolean, default=False, nullable=False)
     url = Column(Unicode)
@@ -63,8 +70,16 @@ class User(Base_v0):
     ## TODO
     # plugin data would be in a separate model
 
+    def __repr__(self):
+        return '<{0} #{1} {2} {3} "{4}">'.format(
+                self.__class__.__name__,
+                self.id,
+                'verified' if self.email_verified else 'non-verified',
+                'admin' if self.is_admin else 'user',
+                self.username)
 
-class MediaEntry(Base_v0):
+
+class MediaEntry(Base, MediaEntryMixin):
     """
     TODO: Consider fetching the media_files using join
     """
@@ -81,9 +96,12 @@ class MediaEntry(Base_v0):
     state = Column(Unicode, default=u'unprocessed', nullable=False)
         # or use sqlalchemy.types.Enum?
     license = Column(Unicode)
+    collected = Column(Integer, default=0)
 
     fail_error = Column(Unicode)
     fail_metadata = Column(JSONEncoded)
+
+    transcoding_progress = Column(SmallInteger)
 
     queued_media_file = Column(PathTupleWithSlashes)
 
@@ -99,15 +117,69 @@ class MediaEntry(Base_v0):
         collection_class=attribute_mapped_collection("name"),
         cascade="all, delete-orphan"
         )
+    media_files = association_proxy('media_files_helper', 'file_path',
+        creator=lambda k, v: MediaFile(name=k, file_path=v)
+        )
 
     attachment_files_helper = relationship("MediaAttachmentFile",
         cascade="all, delete-orphan",
         order_by="MediaAttachmentFile.created"
         )
+    attachment_files = association_proxy("attachment_files_helper", "dict_view",
+        creator=lambda v: MediaAttachmentFile(
+            name=v["name"], filepath=v["filepath"])
+        )
 
     tags_helper = relationship("MediaTag",
         cascade="all, delete-orphan"
         )
+    tags = association_proxy("tags_helper", "dict_view",
+        creator=lambda v: MediaTag(name=v["name"], slug=v["slug"])
+        )
+
+    collections_helper = relationship("CollectionItem",
+        cascade="all, delete-orphan"
+        )
+    collections = association_proxy("collections_helper", "in_collection")
+
+    ## TODO
+    # media_data
+    # fail_error
+
+    def get_comments(self, ascending=False):
+        order_col = MediaComment.created
+        if not ascending:
+            order_col = desc(order_col)
+        return MediaComment.query.filter_by(
+            media_entry=self.id).order_by(order_col)
+
+    def url_to_prev(self, urlgen):
+        """get the next 'newer' entry by this user"""
+        media = MediaEntry.query.filter(
+            (MediaEntry.uploader == self.uploader)
+            & (MediaEntry.state == u'processed')
+            & (MediaEntry.id > self.id)).order_by(MediaEntry.id).first()
+
+        if media is not None:
+            return media.url_for_self(urlgen)
+
+    def url_to_next(self, urlgen):
+        """get the next 'older' entry by this user"""
+        media = MediaEntry.query.filter(
+            (MediaEntry.uploader == self.uploader)
+            & (MediaEntry.state == u'processed')
+            & (MediaEntry.id < self.id)).order_by(desc(MediaEntry.id)).first()
+
+        if media is not None:
+            return media.url_for_self(urlgen)
+
+    #@memoized_property
+    @property
+    def media_data(self):
+        session = Session()
+
+        return session.query(self.media_data_table).filter_by(
+            media_entry=self.id).first()
 
     def media_data_init(self, **kwargs):
         """
@@ -136,8 +208,16 @@ class MediaEntry(Base_v0):
         __import__(models_module)
         return sys.modules[models_module].DATA_MODEL
 
+    def __repr__(self):
+        safe_title = self.title.encode('ascii', 'replace')
 
-class FileKeynames(Base_v0):
+        return '<{classname} {id}: {title}>'.format(
+                classname=self.__class__.__name__,
+                id=self.id,
+                title=safe_title)
+
+
+class FileKeynames(Base):
     """
     keywords for various places.
     currently the MediaFile keys
@@ -157,7 +237,7 @@ class FileKeynames(Base_v0):
         return cls(name=name)
 
 
-class MediaFile(Base_v0):
+class MediaFile(Base):
     """
     TODO: Highly consider moving "name" into a new table.
     TODO: Consider preloading said table in software
@@ -183,7 +263,7 @@ class MediaFile(Base_v0):
         )
 
 
-class MediaAttachmentFile(Base_v0):
+class MediaAttachmentFile(Base):
     __tablename__ = "core__attachment_files"
 
     id = Column(Integer, primary_key=True)
@@ -194,8 +274,13 @@ class MediaAttachmentFile(Base_v0):
     filepath = Column(PathTupleWithSlashes)
     created = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
+    @property
+    def dict_view(self):
+        """A dict like view on this object"""
+        return DictReadAttrProxy(self)
 
-class Tag(Base_v0):
+
+class Tag(Base):
     __tablename__ = "core__tags"
 
     id = Column(Integer, primary_key=True)
@@ -212,7 +297,7 @@ class Tag(Base_v0):
         return cls(slug=slug)
 
 
-class MediaTag(Base_v0):
+class MediaTag(Base):
     __tablename__ = "core__media_tags"
 
     id = Column(Integer, primary_key=True)
@@ -233,14 +318,19 @@ class MediaTag(Base_v0):
         )
 
     def __init__(self, name=None, slug=None):
-        Base_v0.__init__(self)
+        Base.__init__(self)
         if name is not None:
             self.name = name
         if slug is not None:
             self.tag_helper = Tag.find_or_new(slug)
 
+    @property
+    def dict_view(self):
+        """A dict like view on this object"""
+        return DictReadAttrProxy(self)
 
-class MediaComment(Base_v0):
+
+class MediaComment(Base, MediaCommentMixin):
     __tablename__ = "core__media_comments"
 
     id = Column(Integer, primary_key=True)
@@ -253,55 +343,72 @@ class MediaComment(Base_v0):
     get_author = relationship(User)
 
 
-class ImageData(Base_v0):
-    __tablename__ = "image__mediadata"
+class Collection(Base, CollectionMixin):
+    __tablename__ = "core__collections"
 
-    # The primary key *and* reference to the main media_entry
-    media_entry = Column(Integer, ForeignKey('core__media_entries.id'),
-        primary_key=True)
-    get_media_entry = relationship("MediaEntry",
-        backref=backref("image__media_data", cascade="all, delete-orphan"))
+    id = Column(Integer, primary_key=True)
+    title = Column(Unicode, nullable=False)
+    slug = Column(Unicode)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now,
+        index=True)
+    description = Column(UnicodeText)
+    creator = Column(Integer, ForeignKey(User.id), nullable=False)
+    items = Column(Integer, default=0)
 
-    width = Column(Integer)
-    height = Column(Integer)
-    exif_all = Column(JSONEncoded)
-    gps_longitude = Column(Float)
-    gps_latitude = Column(Float)
-    gps_altitude = Column(Float)
-    gps_direction = Column(Float)
+    get_creator = relationship(User)
 
-
-class VideoData(Base_v0):
-    __tablename__ = "video__mediadata"
-
-    # The primary key *and* reference to the main media_entry
-    media_entry = Column(Integer, ForeignKey('core__media_entries.id'),
-        primary_key=True)
-    get_media_entry = relationship("MediaEntry",
-        backref=backref("video__media_data", cascade="all, delete-orphan"))
-
-    width = Column(SmallInteger)
-    height = Column(SmallInteger)
+    def get_collection_items(self, ascending=False):
+        order_col = CollectionItem.position
+        if not ascending:
+            order_col = desc(order_col)
+        return CollectionItem.query.filter_by(
+            collection=self.id).order_by(order_col)
 
 
-class AsciiData(Base_v0):
-    __tablename__ = "ascii__mediadata"
+class CollectionItem(Base, CollectionItemMixin):
+    __tablename__ = "core__collection_items"
 
-    # The primary key *and* reference to the main media_entry
-    media_entry = Column(Integer, ForeignKey('core__media_entries.id'),
-        primary_key=True)
-    get_media_entry = relationship("MediaEntry",
-        backref=backref("ascii__media_data", cascade="all, delete-orphan"))
+    id = Column(Integer, primary_key=True)
+    media_entry = Column(
+        Integer, ForeignKey(MediaEntry.id), nullable=False, index=True)
+    collection = Column(Integer, ForeignKey(Collection.id), nullable=False)
+    note = Column(UnicodeText, nullable=True)
+    added = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    position = Column(Integer)
+    in_collection = relationship("Collection")
+
+    get_media_entry = relationship(MediaEntry)
+
+    __table_args__ = (
+        UniqueConstraint('collection', 'media_entry'),
+        {})
+
+    @property
+    def dict_view(self):
+        """A dict like view on this object"""
+        return DictReadAttrProxy(self)
 
 
-class AudioData(Base_v0):
-    __tablename__ = "audio__mediadata"
+class ProcessingMetaData(Base):
+    __tablename__ = 'core__processing_metadata'
 
-    # The primary key *and* reference to the main media_entry
-    media_entry = Column(Integer, ForeignKey('core__media_entries.id'),
-        primary_key=True)
-    get_media_entry = relationship("MediaEntry",
-        backref=backref("audio__media_data", cascade="all, delete-orphan"))
+    id = Column(Integer, primary_key=True)
+    media_entry_id = Column(Integer, ForeignKey(MediaEntry.id), nullable=False,
+            index=True)
+    media_entry = relationship(MediaEntry,
+            backref=backref('processing_metadata',
+                cascade='all, delete-orphan'))
+    callback_url = Column(Unicode)
+
+    @property
+    def dict_view(self):
+        """A dict like view on this object"""
+        return DictReadAttrProxy(self)
+
+
+MODELS = [
+    User, MediaEntry, Tag, MediaTag, MediaComment, Collection, CollectionItem, MediaFile, FileKeynames,
+    MediaAttachmentFile, ProcessingMetaData]
 
 
 ######################################################
@@ -311,10 +418,29 @@ class AudioData(Base_v0):
 # really migrated, but used for migrations (for now)
 ######################################################
 
-class MigrationData(Base_v0):
+class MigrationData(Base):
     __tablename__ = "core__migrations"
 
     name = Column(Unicode, primary_key=True)
     version = Column(Integer, nullable=False, default=0)
 
 ######################################################
+
+
+def show_table_init(engine_uri):
+    if engine_uri is None:
+        engine_uri = 'sqlite:///:memory:'
+    from sqlalchemy import create_engine
+    engine = create_engine(engine_uri, echo=True)
+
+    Base.metadata.create_all(engine)
+
+
+if __name__ == '__main__':
+    from sys import argv
+    print repr(argv)
+    if len(argv) == 2:
+        uri = argv[1]
+    else:
+        uri = None
+    show_table_init(uri)

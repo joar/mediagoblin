@@ -15,12 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from mediagoblin.db.sql.base import Base
+from mediagoblin.db.base import Base
 
 from sqlalchemy import (
     Column, Integer, Float, ForeignKey)
 from sqlalchemy.orm import relationship, backref
-from mediagoblin.db.sql.extratypes import JSONEncoded
+from mediagoblin.db.extratypes import JSONEncoded
 
 
 BACKREF_NAME = "image__media_data"
