@@ -1,0 +1,80 @@
+{#
+# GNU MediaGoblin -- federated, autonomous media hosting
+# Copyright (C) 2011, 2012 MediaGoblin contributors.  See AUTHORS.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#}
+
+{% from "mediagoblin/utils/pagination.html" import render_pagination %}
+
+{% macro media_grid(request, media_entries, col_number=4) %}
+    {% for row in media_entries|batch(col_number) %}
+<div class="row-fluid">
+  <ul class="thumbnails">
+        {% for entry in row %}
+          {% if col_number == 3 %}
+          <li class="span4">
+          {% elif col_number == 4 %}
+          <li class="span3">
+          {% endif %}
+          {% set entry_url = entry.url_for_self(request.urlgen) %}
+            <div class="thumbnail">
+                <a href="{{ entry_url }}">
+                <img src="{{ entry.thumb_url }}" />
+                </a>
+            {% if entry.title %}
+                <div class="caption">
+                    <a class="thumb_entry_title" href="{{ entry_url }}">{{ entry.title }}</a>
+                </div>
+            {% endif %}
+            </div>
+      </li>
+        {% endfor %}
+  </ul>
+</div>
+    {% endfor %}
+{%- endmacro %}
+
+{#
+  Render a media gallery with pagination.
+
+  Args:
+   - request: Request
+   - media_entries: db cursor of media entries
+   - pagination: Paginator object
+   - pagination_base_url: If you want the pagination to point to a
+     different URL, point it here
+   - col_number: How many columns per row (default 5)
+#}
+{% macro object_gallery(request, media_entries, pagination,
+                        pagination_base_url=None, col_number=4) %}
+  {% if media_entries and media_entries.count() %}
+    {{ media_grid(request, media_entries, col_number=col_number) }}
+    <div class="clear"></div>
+    {% if pagination_base_url %}
+      {# different url, so set that and don't keep the get params #}
+      {{ render_pagination(request, pagination, pagination_base_url, False) }}
+    {% else %}
+      {{ render_pagination(request, pagination) }}
+    {% endif %}
+  {% else %}
+    <p>
+      <em>
+        {%- trans -%}
+          There doesn't seem to be any media here yet...
+        {%- endtrans -%}
+      </em>
+    </p>
+  {% endif %}
+{% endmacro %}
