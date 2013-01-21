@@ -33,7 +33,7 @@
 {% endblock %}
 
 {% block mediagoblin_content -%}
-  <h1>
+  <h1 class="page-header">
     {%- trans username=user.username,
               user_url=request.urlgen(
                          'mediagoblin.user_pages.user_home',

@@ -32,30 +32,31 @@
 
 
 {% block mediagoblin_content %}
-  <form action="{{ request.urlgen('mediagoblin.edit.account') }}?username={{
-                                                     user.username }}"
-        method="POST" enctype="multipart/form-data">
-    <div class="form_box edit_box">
-      <h1>
-        {%- trans username=user.username -%}
-          Changing {{ username }}'s account settings
-        {%- endtrans %}
-      </h1>
-      {{ wtforms_util.render_field_div(form.old_password) }}
-      {{ wtforms_util.render_field_div(form.new_password) }}
-      <div class="form_field_input">
-        <p>{{ form.wants_comment_notification }}
-           {{ form.wants_comment_notification.label }}</p>
+  <h1 class="page-header">
+    {%- trans username=user.username -%}
+      Changing {{ username }}'s account settings
+    {%- endtrans %}
+  </h1>
+  <fieldset>
+    <legend>{% trans %}Change account settings{% endtrans %}</legend>
+    <form action="{{ request.urlgen('mediagoblin.edit.account') }}?username={{
+                                                      user.username }}"
+          method="POST" enctype="multipart/form-data" class="form-horizontal">
+      {{ wtforms_util.render_divs(form)}}
+      <div class="form-actions">
+        <input type="submit" value="{% trans %}Save changes{% endtrans %}" class="btn btn-primary" />
+  {{ csrf_token }}
       </div>
-      <div class="form_submit_buttons">
-        <input type="submit" value="{% trans %}Save changes{% endtrans %}" class="button_form" />
-	{{ csrf_token }}
-      </div>
+    </form>
+  </fieldset>
+  <fieldset>
+    <legend>{% trans %}Delete your account{% endtrans %}</legend>
+    <form class="form-horizontal">
+    <div class="form-actions">
+      <a class="btn btn-danger" href="{{ request.urlgen('mediagoblin.edit.delete_account') }}">
+        {%- trans %}Delete my account{% endtrans -%}
+      </a>
     </div>
-  </form>
-  <div class="delete">
-    <a href="{{ request.urlgen('mediagoblin.edit.delete_account') }}">
-      {%- trans %}Delete my account{% endtrans -%}
-    </a>
-  </div>
+    </form>
+  </fieldset>
 {% endblock %}

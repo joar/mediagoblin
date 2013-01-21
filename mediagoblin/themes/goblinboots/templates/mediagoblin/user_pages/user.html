@@ -85,10 +85,13 @@
 
   {# Active(?) (or at least verified at some point) user, horray! #}
   {% else %}
-    <h1>
+    <h1 class="page-header">
       {%- trans username=user.username %}{{ username }}'s profile{% endtrans -%}
     </h1>
 
+
+  <div class="row">
+    <div class="span4">
     {% if not user.url and not user.bio %}
       {% if request.user and (request.user.id == user.id) %}
         <div class="profile_sidebar empty_space">
@@ -124,8 +127,9 @@
           {%- trans %}Browse collections{% endtrans -%}
         </a>
       </p>
+      </div>
     </div>
-
+    <div class="span8">
     {% if media_entries.count() %}
       <div class="profile_showcase">
         {{ object_gallery(request, media_entries, pagination,
@@ -151,7 +155,7 @@
             This is where your media will appear, but you don't seem to have added anything yet.
             {%- endtrans %}
           </p>
-          <a class="button_action"
+          <a class="btn btn-primary"
              href="{{ request.urlgen('mediagoblin.submit.start') }}">
             {%- trans %}Add media{% endtrans -%}
           </a>
@@ -166,6 +170,6 @@
         </div>
       {% endif %}
     {% endif %}
-    <div class="clear"></div>
+    </div>
   {% endif %}
 {% endblock %}

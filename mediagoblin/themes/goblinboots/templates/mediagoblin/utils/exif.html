@@ -22,7 +22,7 @@
         and media.media_data.exif_all is defined
         and media.media_data.exif_all %}
     <h3>EXIF</h3>
-    <table>
+    <table class="table table-striped">
       {% for key, tag in media.exif_display_iter() %}
         <tr>
           <td>{{ key }}</td>

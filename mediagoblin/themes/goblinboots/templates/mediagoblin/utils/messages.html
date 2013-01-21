@@ -19,10 +19,12 @@
 {# Display any queued messages #}
 {% set messages = fetch_messages(request) %}
 {% if messages %}
-  <ul class="mediagoblin_messages">
     {% for msg in messages %}
-      <li class="message_{{ msg.level }}">{{ msg.text }}</li>
+      <div class="alert alert-{{ msg.level }}">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{ msg.level|title }}!</strong>
+        {{ msg.text }}
+      </div>
     {% endfor %}
-  </ul>
 {% endif %}
 
