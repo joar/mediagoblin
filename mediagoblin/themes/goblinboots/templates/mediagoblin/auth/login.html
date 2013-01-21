@@ -29,29 +29,29 @@
 {%- endblock %}
 
 {% block mediagoblin_content %}
+  <h1 class="page-header">{% trans %}Log in{% endtrans %}</h1>
   <form action="{{ request.urlgen('mediagoblin.auth.login') }}"
-        method="POST" enctype="multipart/form-data">
+        method="POST" enctype="multipart/form-data" class="form-horizontal">
     {{ csrf_token }}
     <div class="form_box">
-      <h1>{% trans %}Log in{% endtrans %}</h1>
       {% if login_failed %}
         <div class="form_field_error">
           {% trans %}Logging in failed!{% endtrans %}
         </div>
       {% endif %}
+      {{ wtforms_util.render_divs(login_form) }}
+        <p class="help-block">
+          <a href="{{ request.urlgen('mediagoblin.auth.forgot_password') }}" id="forgot_password">
+          {% trans %}Forgot your password?{% endtrans %}</a>
+        </p>
       {% if allow_registration %}
-        <p>
+        <p class="help-block">
           {% trans %}Don't have an account yet?{% endtrans %} <a href="{{ request.urlgen('mediagoblin.auth.register') }}">
             {%- trans %}Create one here!{% endtrans %}</a>
         </p>
       {% endif %}
-      {{ wtforms_util.render_divs(login_form) }}
-        <p>
-          <a href="{{ request.urlgen('mediagoblin.auth.forgot_password') }}" id="forgot_password">
-          {% trans %}Forgot your password?{% endtrans %}</a>
-        </p>
-      <div class="form_submit_buttons">
-        <input type="submit" value="{% trans %}Log in{% endtrans %}" class="button_form"/>
+      <div class="form-actions">
+        <input type="submit" value="{% trans %}Log in{% endtrans %}" class="btn btn-primary"/>
       </div>
       {% if next %}
         <input type="hidden" name="next" value="{{ next }}" class="button_form"

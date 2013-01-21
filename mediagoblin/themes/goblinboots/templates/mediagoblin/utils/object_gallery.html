@@ -20,7 +20,7 @@
 
 {% macro media_grid(request, media_entries, col_number=4) %}
     {% for row in media_entries|batch(col_number) %}
-<div class="row-fluid">
+<div class="row-fluid gallery">
   <ul class="thumbnails">
         {% for entry in row %}
           {% if col_number == 3 %}
@@ -29,13 +29,13 @@
           <li class="span3">
           {% endif %}
           {% set entry_url = entry.url_for_self(request.urlgen) %}
-            <div class="thumbnail">
+            <div class="fumbnail">
                 <a href="{{ entry_url }}">
                 <img src="{{ entry.thumb_url }}" />
                 </a>
             {% if entry.title %}
                 <div class="caption">
-                    <a class="thumb_entry_title" href="{{ entry_url }}">{{ entry.title }}</a>
+                    <a href="{{ entry_url }}">{{ entry.title }}</a>
                 </div>
             {% endif %}
             </div>
@@ -61,7 +61,6 @@
                         pagination_base_url=None, col_number=4) %}
   {% if media_entries and media_entries.count() %}
     {{ media_grid(request, media_entries, col_number=col_number) }}
-    <div class="clear"></div>
     {% if pagination_base_url %}
       {# different url, so set that and don't keep the get params #}
       {{ render_pagination(request, pagination, pagination_base_url, False) }}
