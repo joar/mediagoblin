@@ -493,7 +493,7 @@ class CommentSubscription(Base):
     id = Column(Integer, primary_key=True)
 
 
-class NotificationBase(Base, TimestampMixin):
+class Notification(Base, TimestampMixin):
     __tablename__ = 'core__notifications'
     id = Column(Integer, primary_key=True)
     type = Column(Unicode)
@@ -507,9 +507,9 @@ class NotificationBase(Base, TimestampMixin):
     }
 
 
-class CommentNotification(NotificationBase):
+class CommentNotification(Notification):
     __tablename__ = 'core__comment_notifications'
-    id = Column(Integer, ForeignKey(NotificationBase.id), primary_key=True)
+    id = Column(Integer, ForeignKey(Notification.id), primary_key=True)
 
     subject_id = Column(Integer, ForeignKey(MediaComment.id))
     subject = relationship(
@@ -521,10 +521,10 @@ class CommentNotification(NotificationBase):
     }
 
 
-class ProcessingNotification(NotificationBase):
+class ProcessingNotification(Notification):
     __tablename__ = 'core__processing_notifications'
 
-    id = Column(Integer, ForeignKey(NotificationBase.id), primary_key=True)
+    id = Column(Integer, ForeignKey(Notification.id), primary_key=True)
 
     subject_id = Column(Integer, ForeignKey(MediaEntry.id))
     subject = relationship(
@@ -537,14 +537,14 @@ class ProcessingNotification(NotificationBase):
     }
 
 
-Notification = with_polymorphic(
-    NotificationBase,
+with_polymorphic(
+    Notification,
     [ProcessingNotification, CommentNotification])
 
 MODELS = [
     User, MediaEntry, Tag, MediaTag, MediaComment, Collection, CollectionItem,
     MediaFile, FileKeynames, MediaAttachmentFile, ProcessingMetaData,
-    NotificationBase, CommentNotification, ProcessingNotification]
+    Notification, CommentNotification, ProcessingNotification]
 
 
 ######################################################
