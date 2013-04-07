@@ -25,8 +25,9 @@ from mediagoblin.tools.response import render_to_response, render_404, \
 from mediagoblin.tools.translate import pass_to_ugettext as _
 from mediagoblin.tools.pagination import Pagination
 from mediagoblin.user_pages import forms as user_forms
-from mediagoblin.user_pages.lib import (send_comment_email,
-    add_media_to_collection)
+from mediagoblin.user_pages.lib import add_media_to_collection
+from mediagoblin.notifications import trigger_notification, \
+    add_comment_subscription
 
 from mediagoblin.decorators import (uses_pagination, get_user_media_entry,
     get_media_entry_by_id,
@@ -179,11 +180,13 @@ def media_post_comment(request, media):
             request, messages.SUCCESS,
             _('Your comment has been posted!'))
 
+        add_comment_subscription(request.user, media)
+
         media_uploader = media.get_uploader
         #don't send email if you comment on your own post
         if (comment.author != media_uploader and
             media_uploader.wants_comment_notification):
-            send_comment_email(media_uploader, comment, media, request)
+            trigger_notification(comment, media, request)
 
     return redirect_obj(request, media)
 

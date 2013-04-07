@@ -500,6 +500,28 @@ class ProcessingMetaData(Base):
 class CommentSubscription(Base):
     __tablename__ = 'core__comment_subscriptions'
     id = Column(Integer, primary_key=True)
+    media_entry_id = Column(Integer, ForeignKey(MediaEntry.id), nullable=False)
+    media_entry = relationship(MediaEntry,
+                        backref=backref('comment_subscriptions',
+                                        cascade='all, delete-orphan'))
+
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    user = relationship(User,
+                        backref=backref('comment_subscriptions',
+                                        cascade='all, delete-orphan'))
+
+    notify = Column(Boolean, nullable=False)
+    send_email = Column(Boolean, nullable=False)
+
+    def __repr__(self):
+        return ('<{classname} #{id}: {user} {media} notify: '
+                '{notify} email: {email}>').format(
+            id=self.id,
+            classname=self.__class__.__name__,
+            user=self.user,
+            media=self.media_entry,
+            notify=self.notify,
+            email=self.send_email)
 
 
 class Notification(Base, TimestampMixin):
@@ -509,11 +531,21 @@ class Notification(Base, TimestampMixin):
 
     user_id = Column(Integer, ForeignKey('core__users.id'), nullable=False,
                      index=True)
+    user = relationship(
+        User,
+        backref=backref('notifications', cascade='all, delete-orphan'))
 
     __mapper_args__ = {
         'polymorphic_identity': 'notification',
         'polymorphic_on': type
     }
+
+    def __repr__(self):
+        return '<{klass} #{id}: {user}: {subject}>'.format(
+            id=self.id,
+            klass=self.__class__.__name__,
+            user=self.user,
+            subject=getattr(self, 'subject', None))
 
 
 class CommentNotification(Notification):
