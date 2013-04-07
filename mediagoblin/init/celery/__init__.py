@@ -21,7 +21,9 @@ from celery import Celery
 from mediagoblin.tools.pluginapi import hook_runall
 
 
-MANDATORY_CELERY_IMPORTS = ['mediagoblin.processing.task']
+MANDATORY_CELERY_IMPORTS = [
+    'mediagoblin.processing.task',
+    'mediagoblin.notifications.task']
 
 DEFAULT_SETTINGS_MODULE = 'mediagoblin.init.celery.dummy_settings_module'
 
