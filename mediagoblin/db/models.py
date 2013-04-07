@@ -24,15 +24,19 @@ import datetime
 from sqlalchemy import Column, Integer, Unicode, UnicodeText, DateTime, \
         Boolean, ForeignKey, UniqueConstraint, PrimaryKeyConstraint, \
         SmallInteger
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, with_polymorphic
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.util import memoized_property
+
 
 from mediagoblin.db.extratypes import PathTupleWithSlashes, JSONEncoded
 from mediagoblin.db.base import Base, DictReadAttrProxy
-from mediagoblin.db.mixin import UserMixin, MediaEntryMixin, MediaCommentMixin, CollectionMixin, CollectionItemMixin
+from mediagoblin.db.mixin import UserMixin, MediaEntryMixin, \
+        MediaCommentMixin, CollectionMixin, CollectionItemMixin, \
+        TimestampMixin
 from mediagoblin.tools.files import delete_media_files
 from mediagoblin.tools.common import import_component
 
@@ -484,9 +488,63 @@ class ProcessingMetaData(Base):
         return DictReadAttrProxy(self)
 
 
+class CommentSubscription(Base):
+    __tablename__ = 'core__comment_subscriptions'
+    id = Column(Integer, primary_key=True)
+
+
+class NotificationBase(Base, TimestampMixin):
+    __tablename__ = 'core__notifications'
+    id = Column(Integer, primary_key=True)
+    type = Column(Unicode)
+
+    user_id = Column(Integer, ForeignKey('core__users.id'), nullable=False,
+                     index=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'notification',
+        'polymorphic_on': type
+    }
+
+
+class CommentNotification(NotificationBase):
+    __tablename__ = 'core__comment_notifications'
+    id = Column(Integer, ForeignKey(NotificationBase.id), primary_key=True)
+
+    subject_id = Column(Integer, ForeignKey(MediaComment.id))
+    subject = relationship(
+        MediaComment,
+        backref=backref('comment_notifications', cascade='all, delete-orphan'))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'comment_notification'
+    }
+
+
+class ProcessingNotification(NotificationBase):
+    __tablename__ = 'core__processing_notifications'
+
+    id = Column(Integer, ForeignKey(NotificationBase.id), primary_key=True)
+
+    subject_id = Column(Integer, ForeignKey(MediaEntry.id))
+    subject = relationship(
+        MediaEntry,
+        backref=backref('processing_notifications',
+                        cascade='all, delete-orphan'))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'processing_notification'
+    }
+
+
+Notification = with_polymorphic(
+    NotificationBase,
+    [ProcessingNotification, CommentNotification])
+
 MODELS = [
-    User, MediaEntry, Tag, MediaTag, MediaComment, Collection, CollectionItem, MediaFile, FileKeynames,
-    MediaAttachmentFile, ProcessingMetaData]
+    User, MediaEntry, Tag, MediaTag, MediaComment, Collection, CollectionItem,
+    MediaFile, FileKeynames, MediaAttachmentFile, ProcessingMetaData,
+    NotificationBase, CommentNotification, ProcessingNotification]
 
 
 ######################################################

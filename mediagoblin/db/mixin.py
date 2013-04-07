@@ -31,7 +31,11 @@ import uuid
 import re
 import datetime
 
+from datetime import datetime
+
 from werkzeug.utils import cached_property
+
+from sqlalchemy import Column, Integer, ForeignKey, DateTime
 
 from mediagoblin import mg_globals
 from mediagoblin.auth import lib as auth_lib
@@ -340,3 +344,17 @@ class CollectionItemMixin(object):
         Run through Markdown and the HTML cleaner.
         """
         return cleaned_markdown_conversion(self.note)
+
+
+class TimestampMixin(object):
+    '''
+    Adds a
+
+    .. code-block:: python
+
+        created = Column(DateTime, default=datetime.now)
+
+    column to a table
+
+    '''
+    created = Column(DateTime, default=datetime.now)
