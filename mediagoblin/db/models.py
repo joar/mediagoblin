@@ -28,15 +28,13 @@ from sqlalchemy.orm import relationship, backref, with_polymorphic
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.util import memoized_property
 
 
 from mediagoblin.db.extratypes import PathTupleWithSlashes, JSONEncoded
 from mediagoblin.db.base import Base, DictReadAttrProxy
 from mediagoblin.db.mixin import UserMixin, MediaEntryMixin, \
-        MediaCommentMixin, CollectionMixin, CollectionItemMixin, \
-        TimestampMixin
+        MediaCommentMixin, CollectionMixin, CollectionItemMixin
 from mediagoblin.tools.files import delete_media_files
 from mediagoblin.tools.common import import_component
 
@@ -50,7 +48,23 @@ from migrate import changeset
 _log = logging.getLogger(__name__)
 
 
-class User(Base, UserMixin):
+class TimestampMixin(object):
+    '''
+    Adds a
+
+    .. code-block:: python
+
+        created = Column(DateTime, default=datetime.now)
+
+    column to a table
+
+    '''
+    created = Column(DateTime, nullable=False,
+                     default=datetime.datetime.now,
+                     index=True)
+
+
+class User(Base, UserMixin, TimestampMixin):
     """
     TODO: We should consider moving some rarely used fields
     into some sort of "shadow" table.
@@ -64,7 +78,6 @@ class User(Base, UserMixin):
     # the RFC) and because it would be a mess to implement at this
     # point.
     email = Column(Unicode, nullable=False)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
     pw_hash = Column(Unicode, nullable=False)
     email_verified = Column(Boolean, default=False)
     status = Column(Unicode, default=u"needs_email_verification", nullable=False)
@@ -110,7 +123,7 @@ class User(Base, UserMixin):
         _log.info('Deleted user "{0}" account'.format(self.username))
 
 
-class MediaEntry(Base, MediaEntryMixin):
+class MediaEntry(Base, MediaEntryMixin, TimestampMixin):
     """
     TODO: Consider fetching the media_files using join
     """
@@ -120,8 +133,6 @@ class MediaEntry(Base, MediaEntryMixin):
     uploader = Column(Integer, ForeignKey(User.id), nullable=False, index=True)
     title = Column(Unicode, nullable=False)
     slug = Column(Unicode)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.now,
-        index=True)
     description = Column(UnicodeText) # ??
     media_type = Column(Unicode, nullable=False)
     state = Column(Unicode, default=u'unprocessed', nullable=False)
@@ -312,7 +323,7 @@ class MediaFile(Base):
         )
 
 
-class MediaAttachmentFile(Base):
+class MediaAttachmentFile(Base, TimestampMixin):
     __tablename__ = "core__attachment_files"
 
     id = Column(Integer, primary_key=True)
@@ -321,7 +332,6 @@ class MediaAttachmentFile(Base):
         nullable=False)
     name = Column(Unicode, nullable=False)
     filepath = Column(PathTupleWithSlashes)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
     @property
     def dict_view(self):
@@ -379,14 +389,13 @@ class MediaTag(Base):
         return DictReadAttrProxy(self)
 
 
-class MediaComment(Base, MediaCommentMixin):
+class MediaComment(Base, MediaCommentMixin, TimestampMixin):
     __tablename__ = "core__media_comments"
 
     id = Column(Integer, primary_key=True)
     media_entry = Column(
         Integer, ForeignKey(MediaEntry.id), nullable=False, index=True)
     author = Column(Integer, ForeignKey(User.id), nullable=False)
-    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
     content = Column(UnicodeText, nullable=False)
 
     # Cascade: Comments are owned by their creator. So do the full thing.
