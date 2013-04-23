@@ -46,7 +46,7 @@ def sniff_handler(media_file, **kw):
     if kw.get('media') is not None:
         name, ext = os.path.splitext(kw['media'].filename)
         clean_ext = ext[1:].lower()
-    
+
         if clean_ext in SUPPORTED_FILETYPES:
             _log.info('Found file extension in supported filetypes')
             return True
@@ -65,6 +65,7 @@ def blender_render(config):
     Called to prerender a model.
     """
     env = {"RENDER_SETUP" : json.dumps(config), "DISPLAY":":0"}
+    print(env)
     subprocess.call(
         ["blender",
          "-b", BLEND_FILE,

@@ -206,6 +206,13 @@
       </p>
     {%- endif %}
 
+    <h3>Subscription</h3>
+    <ul>
+    <li><a href="{{ request.urlgen('mediagoblin.notifications.subscribe_comments',
+                user=media.get_uploader.username,
+                media=media.slug)}}">Subscribe to comments</a></li>
+                </ul>
+
     {% template_hook("media_sideinfo") %}
 
     {% block mediagoblin_sidebar %}

@@ -531,6 +531,7 @@ class Notification(Base, TimestampMixin):
 
     user_id = Column(Integer, ForeignKey('core__users.id'), nullable=False,
                      index=True)
+    seen = Column(Boolean, default=False, index=True)
     user = relationship(
         User,
         backref=backref('notifications', cascade='all, delete-orphan'))

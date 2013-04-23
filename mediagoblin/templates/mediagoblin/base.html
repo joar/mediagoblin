@@ -86,6 +86,8 @@
                   {%- endtrans %}
                 </span>
                 &middot;
+                <a href="#notifications">{{ request.notifications.get_notification_count(request.user.id) }}</a>
+                &middot;
                 <a href="{{ request.urlgen('mediagoblin.edit.account') }}">{%- trans %}Change account settings{% endtrans -%}</a>
                 &middot;
                 <a href="{{ request.urlgen('mediagoblin.user_pages.processing_panel',

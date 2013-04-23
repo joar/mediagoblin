@@ -16,7 +16,10 @@
 
 import logging
 
-from mediagoblin.db.models import CommentNotification, CommentSubscription
+from functools import wraps
+
+from mediagoblin.db.models import Notification, \
+        CommentNotification, CommentSubscription
 from mediagoblin.notifications.task import send_comment_email
 from mediagoblin.notifications.tools import generate_comment_message
 
@@ -53,16 +56,42 @@ def trigger_notification(comment, media_entry, request):
                 [cn.id, message])
 
 
+def mark_notification_seen(notification):
+    if notification:
+        notification.seen = True
+        notification.save()
+
+
+def mark_comment_notification_seen(comment_id, user):
+    notification = CommentNotification.query.filter_by(
+        user_id=user.id,
+        subject_id=comment_id).first()
+
+    mark_notification_seen(notification)
+
+
 def add_comment_subscription(user, media_entry):
     cn = CommentSubscription.query.filter_by(
         user_id=user.id,
         media_entry_id=media_entry.id).first()
-    if cn:
-        return
 
-    cn = CommentSubscription(
-        user_id=user.id,
-        media_entry_id=media_entry.id)
-    cn.notify = True
-    cn.send_email = True
-    cn.save()
+    if not cn:
+        cn = CommentSubscription(
+            user_id=user.id,
+            media_entry_id=media_entry.id)
+        cn.notify = True
+        cn.send_email = True
+        cn.save()
+
+NOTIFICATION_FETCH_LIMIT = 100
+
+def get_notifications(user_id):
+    notifications = Notification.query.filter_by(user_id=user_id).limit(
+        NOTIFICATION_FETCH_LIMIT).all()
+
+    return notifications
+
+def get_notification_count(user_id):
+    count = Notification.query.filter_by(user_id=user_id).count()
+
+    return count
