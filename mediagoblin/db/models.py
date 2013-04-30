@@ -405,6 +405,10 @@ class MediaComment(Base, MediaCommentMixin, TimestampMixin):
                               backref=backref("posted_comments",
                                               lazy="dynamic",
                                               cascade="all, delete-orphan"))
+    get_entry = relationship(MediaEntry,
+                             backref=backref("comments",
+                                             lazy="dynamic",
+                                             cascade="all, delete-orphan"))
 
     # Cascade: Comments are somewhat owned by their MediaEntry.
     #     So do the full thing.
@@ -531,7 +535,7 @@ class Notification(Base, TimestampMixin):
 
     user_id = Column(Integer, ForeignKey('core__users.id'), nullable=False,
                      index=True)
-    seen = Column(Boolean, default=False, index=True)
+    seen = Column(Boolean, default=lambda: False, index=True)
     user = relationship(
         User,
         backref=backref('notifications', cascade='all, delete-orphan'))
@@ -542,11 +546,12 @@ class Notification(Base, TimestampMixin):
     }
 
     def __repr__(self):
-        return '<{klass} #{id}: {user}: {subject}>'.format(
+        return '<{klass} #{id}: {user}: {subject} ({seen})>'.format(
             id=self.id,
             klass=self.__class__.__name__,
             user=self.user,
-            subject=getattr(self, 'subject', None))
+            subject=getattr(self, 'subject', None),
+            seen='unseen' if not self.seen else 'seen')
 
 
 class CommentNotification(Notification):

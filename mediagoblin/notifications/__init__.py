@@ -20,7 +20,7 @@ from functools import wraps
 
 from mediagoblin.db.models import Notification, \
         CommentNotification, CommentSubscription
-from mediagoblin.notifications.task import send_comment_email
+from mediagoblin.notifications.task import email_notification_task
 from mediagoblin.notifications.tools import generate_comment_message
 
 _log = logging.getLogger(__name__)
@@ -52,8 +52,7 @@ def trigger_notification(comment, media_entry, request):
                 media_entry,
                 request)
 
-            send_comment_email.apply_async(
-                [cn.id, message])
+            email_notification_task.apply_async([cn.id, message])
 
 
 def mark_notification_seen(notification):
@@ -66,6 +65,8 @@ def mark_comment_notification_seen(comment_id, user):
     notification = CommentNotification.query.filter_by(
         user_id=user.id,
         subject_id=comment_id).first()
+
+    _log.debug('Marking {0} as seen.'.format(notification))
 
     mark_notification_seen(notification)
 
@@ -85,13 +86,23 @@ def add_comment_subscription(user, media_entry):
 
 NOTIFICATION_FETCH_LIMIT = 100
 
-def get_notifications(user_id):
-    notifications = Notification.query.filter_by(user_id=user_id).limit(
+def get_notifications(user_id, only_unseen=True):
+    query = Notification.query.filter_by(user_id=user_id)
+
+    if only_unseen:
+        query = query.filter_by(seen=False)
+
+    notifications = query.limit(
         NOTIFICATION_FETCH_LIMIT).all()
 
     return notifications
 
-def get_notification_count(user_id):
-    count = Notification.query.filter_by(user_id=user_id).count()
+def get_notification_count(user_id, only_unseen=True):
+    query = Notification.query.filter_by(user_id=user_id)
+
+    if only_unseen:
+        query = query.filter_by(seen=False)
+
+    count = query.count()
 
     return count

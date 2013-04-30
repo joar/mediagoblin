@@ -27,7 +27,7 @@ from mediagoblin.tools.pagination import Pagination
 from mediagoblin.user_pages import forms as user_forms
 from mediagoblin.user_pages.lib import add_media_to_collection
 from mediagoblin.notifications import trigger_notification, \
-    add_comment_subscription
+    add_comment_subscription, mark_comment_notification_seen
 
 from mediagoblin.decorators import (uses_pagination, get_user_media_entry,
     get_media_entry_by_id,

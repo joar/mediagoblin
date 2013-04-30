@@ -65,7 +65,6 @@ def blender_render(config):
     Called to prerender a model.
     """
     env = {"RENDER_SETUP" : json.dumps(config), "DISPLAY":":0"}
-    print(env)
     subprocess.call(
         ["blender",
          "-b", BLEND_FILE,

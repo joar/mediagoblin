@@ -42,4 +42,4 @@ class EmailNotificationTask(task.Task):
             message['subject'],
             message['body'])
 
-send_comment_email = registry.tasks[EmailNotificationTask.name]
+email_notification_task = registry.tasks[EmailNotificationTask.name]

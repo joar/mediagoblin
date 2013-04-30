@@ -298,6 +298,13 @@ class MediaCommentMixin(object):
         """
         return cleaned_markdown_conversion(self.content)
 
+    def __repr__(self):
+        return '<{klass} #{id} {author} "{comment}">'.format(
+            klass=self.__class__.__name__,
+            id=self.id,
+            author=self.get_author,
+            comment=self.content)
+
 
 class CollectionMixin(GenerateSlugMixin):
     def check_slug_used(self, slug):
