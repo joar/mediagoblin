@@ -384,6 +384,11 @@ a.comment_whenlink:hover {
   margin-top: 8px;
 }
 
+.comment_active {
+  background-color: #378566;
+  color: #f7f7f7;
+}
+
 textarea#comment_content {
   resize: vertical;
   width: 100%;
