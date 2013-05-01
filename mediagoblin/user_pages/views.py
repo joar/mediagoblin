@@ -123,7 +123,9 @@ def media_home(request, media, page, **kwargs):
     """
     comment_id = request.matchdict.get('comment', None)
     if comment_id:
-        mark_comment_notification_seen(comment_id, request.user)
+        if request.user:
+            mark_comment_notification_seen(comment_id, request.user)
+
         pagination = Pagination(
             page, media.get_comments(
                 mg_globals.app_config['comments_ascending']),

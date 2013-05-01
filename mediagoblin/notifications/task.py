@@ -16,7 +16,8 @@
 
 import logging
 
-from celery import registry, task
+from celery import registry
+from celery.task import Task
 
 from mediagoblin.tools.mail import send_email
 from mediagoblin.db.models import CommentNotification
@@ -25,7 +26,7 @@ from mediagoblin.db.models import CommentNotification
 _log = logging.getLogger(__name__)
 
 
-class EmailNotificationTask(task.Task):
+class EmailNotificationTask(Task):
     '''
     Celery notification task.
 
