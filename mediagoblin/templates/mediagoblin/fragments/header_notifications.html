@@ -1,0 +1,14 @@
+{% set notifications = request.notifications.get_notifications(request.user.id) %}
+{% if notifications %}
+    <div class="header_notifications">
+    <ul>
+        {% for notification in  notifications %}
+        <li><a href="{{ request.urlgen('mediagoblin.user_pages.media_home.view_comment',
+            comment=notification.subject.id,
+            user=notification.subject.get_entry.get_uploader.username,
+            media=notification.subject.get_entry.slug_or_id)
+        }}#comment">{{ notification.subject }}</a></li>
+        {% endfor %}
+    </ul>
+    </div>
+{% endif %}

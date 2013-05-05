@@ -48,23 +48,7 @@ from migrate import changeset
 _log = logging.getLogger(__name__)
 
 
-class TimestampMixin(object):
-    '''
-    Adds a
-
-    .. code-block:: python
-
-        created = Column(DateTime, default=datetime.now)
-
-    column to a table
-
-    '''
-    created = Column(DateTime, nullable=False,
-                     default=datetime.datetime.now,
-                     index=True)
-
-
-class User(Base, UserMixin, TimestampMixin):
+class User(Base, UserMixin):
     """
     TODO: We should consider moving some rarely used fields
     into some sort of "shadow" table.
@@ -80,6 +64,7 @@ class User(Base, UserMixin, TimestampMixin):
     email = Column(Unicode, nullable=False)
     pw_hash = Column(Unicode, nullable=False)
     email_verified = Column(Boolean, default=False)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
     status = Column(Unicode, default=u"needs_email_verification", nullable=False)
     # Intented to be nullable=False, but migrations would not work for it
     # set to nullable=True implicitly.
@@ -123,7 +108,7 @@ class User(Base, UserMixin, TimestampMixin):
         _log.info('Deleted user "{0}" account'.format(self.username))
 
 
-class MediaEntry(Base, MediaEntryMixin, TimestampMixin):
+class MediaEntry(Base, MediaEntryMixin):
     """
     TODO: Consider fetching the media_files using join
     """
@@ -133,6 +118,8 @@ class MediaEntry(Base, MediaEntryMixin, TimestampMixin):
     uploader = Column(Integer, ForeignKey(User.id), nullable=False, index=True)
     title = Column(Unicode, nullable=False)
     slug = Column(Unicode)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now,
+        index=True)
     description = Column(UnicodeText) # ??
     media_type = Column(Unicode, nullable=False)
     state = Column(Unicode, default=u'unprocessed', nullable=False)
@@ -323,7 +310,7 @@ class MediaFile(Base):
         )
 
 
-class MediaAttachmentFile(Base, TimestampMixin):
+class MediaAttachmentFile(Base):
     __tablename__ = "core__attachment_files"
 
     id = Column(Integer, primary_key=True)
@@ -332,6 +319,7 @@ class MediaAttachmentFile(Base, TimestampMixin):
         nullable=False)
     name = Column(Unicode, nullable=False)
     filepath = Column(PathTupleWithSlashes)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
     @property
     def dict_view(self):
@@ -389,13 +377,14 @@ class MediaTag(Base):
         return DictReadAttrProxy(self)
 
 
-class MediaComment(Base, MediaCommentMixin, TimestampMixin):
+class MediaComment(Base, MediaCommentMixin):
     __tablename__ = "core__media_comments"
 
     id = Column(Integer, primary_key=True)
     media_entry = Column(
         Integer, ForeignKey(MediaEntry.id), nullable=False, index=True)
     author = Column(Integer, ForeignKey(User.id), nullable=False)
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
     content = Column(UnicodeText, nullable=False)
 
     # Cascade: Comments are owned by their creator. So do the full thing.
@@ -504,6 +493,9 @@ class ProcessingMetaData(Base):
 class CommentSubscription(Base):
     __tablename__ = 'core__comment_subscriptions'
     id = Column(Integer, primary_key=True)
+
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
+
     media_entry_id = Column(Integer, ForeignKey(MediaEntry.id), nullable=False)
     media_entry = relationship(MediaEntry,
                         backref=backref('comment_subscriptions',
@@ -514,8 +506,8 @@ class CommentSubscription(Base):
                         backref=backref('comment_subscriptions',
                                         cascade='all, delete-orphan'))
 
-    notify = Column(Boolean, nullable=False)
-    send_email = Column(Boolean, nullable=False)
+    notify = Column(Boolean, nullable=False, default=True)
+    send_email = Column(Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return ('<{classname} #{id}: {user} {media} notify: '
@@ -528,10 +520,12 @@ class CommentSubscription(Base):
             email=self.send_email)
 
 
-class Notification(Base, TimestampMixin):
+class Notification(Base):
     __tablename__ = 'core__notifications'
     id = Column(Integer, primary_key=True)
     type = Column(Unicode)
+
+    created = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
     user_id = Column(Integer, ForeignKey('core__users.id'), nullable=False,
                      index=True)

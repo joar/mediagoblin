@@ -16,8 +16,6 @@
 
 import logging
 
-from functools import wraps
-
 from mediagoblin.db.models import Notification, \
         CommentNotification, CommentSubscription
 from mediagoblin.notifications.task import email_notification_task
@@ -71,20 +69,42 @@ def mark_comment_notification_seen(comment_id, user):
     mark_notification_seen(notification)
 
 
+def get_comment_subscription(user_id, media_entry_id):
+    return CommentSubscription.query.filter_by(
+        user_id=user_id,
+        media_entry_id=media_entry_id).first()
+
 def add_comment_subscription(user, media_entry):
-    cn = CommentSubscription.query.filter_by(
-        user_id=user.id,
-        media_entry_id=media_entry.id).first()
+    '''
+    Create a comment subscription for a User on a MediaEntry.
+
+    Uses the User's wants_comment_notification to set email notifications for
+    the subscription to enabled/disabled.
+    '''
+    cn = get_comment_subscription(user.id, media_entry.id)
 
     if not cn:
         cn = CommentSubscription(
             user_id=user.id,
             media_entry_id=media_entry.id)
+
         cn.notify = True
-        cn.send_email = True
+
+        if not user.wants_comment_notification:
+            cn.send_email = False
+
         cn.save()
 
+
+def remove_comment_subscription(user, media_entry):
+    cn = get_comment_subscription(user.id, media_entry.id)
+
+    if cn:
+        cn.delete()
+
+
 NOTIFICATION_FETCH_LIMIT = 100
+
 
 def get_notifications(user_id, only_unseen=True):
     query = Notification.query.filter_by(user_id=user_id)

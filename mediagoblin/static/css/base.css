@@ -385,7 +385,8 @@ a.comment_whenlink:hover {
 }
 
 .comment_active {
-  background-color: #378566;
+  box-shadow: 0px 0px 15px 15px #378566;
+  background: #378566;
   color: #f7f7f7;
 }
 

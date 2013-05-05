@@ -112,6 +112,7 @@ def user_gallery(request, page, url_user=None):
          'media_entries': media_entries,
          'pagination': pagination})
 
+
 MEDIA_COMMENTS_PER_PAGE = 50
 
 
