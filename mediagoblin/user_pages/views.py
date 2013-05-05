@@ -35,7 +35,7 @@ from mediagoblin.decorators import (uses_pagination, get_user_media_entry,
     get_user_collection, get_user_collection_item, active_user_from_url)
 
 from werkzeug.contrib.atom import AtomFeed
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import MethodNotAllowed
 
 
 _log = logging.getLogger(__name__)
@@ -161,7 +161,7 @@ def media_post_comment(request, media):
     recieves POST from a MediaEntry() comment form, saves the comment.
     """
     if not request.method == 'POST':
-        raise BadRequest()
+        raise MethodNotAllowed()
 
     comment = request.db.MediaComment()
     comment.media_entry = media.id
