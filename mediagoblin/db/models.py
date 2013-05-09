@@ -585,7 +585,8 @@ with_polymorphic(
 MODELS = [
     User, MediaEntry, Tag, MediaTag, MediaComment, Collection, CollectionItem,
     MediaFile, FileKeynames, MediaAttachmentFile, ProcessingMetaData,
-    Notification, CommentNotification, ProcessingNotification]
+    Notification, CommentNotification, ProcessingNotification,
+    CommentSubscription]
 
 
 ######################################################
