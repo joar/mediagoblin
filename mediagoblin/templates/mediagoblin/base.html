@@ -60,9 +60,8 @@
             {%- if request.user %}
               {% if request.user and request.user.status == 'active' %}
 
-                <a href="#notifications" class="button_action" title="Notifications">
+                <a href="#notifications" class="notification-gem button_action" title="Notifications">
                 {{ request.notifications.get_notification_count(request.user.id) }}</a>
-
                 <div class="button_action header_dropdown_down">&#9660;</div>
                 <div class="button_action header_dropdown_up">&#9650;</div>
               {% elif request.user and request.user.status == "needs_email_verification" %}

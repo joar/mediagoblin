@@ -88,11 +88,24 @@ def add_comment_subscription(user, media_entry):
             user_id=user.id,
             media_entry_id=media_entry.id)
 
-        cn.notify = True
+    cn.notify = True
 
-        if not user.wants_comment_notification:
-            cn.send_email = False
+    if not user.wants_comment_notification:
+        cn.send_email = False
 
+    cn.save()
+
+
+def silence_comment_subscription(user, media_entry):
+    '''
+    Silence a subscription so that the user is never notified in any way about
+    new comments on an entry
+    '''
+    cn = get_comment_subscription(user.id, media_entry.id)
+
+    if cn:
+        cn.notify = False
+        cn.send_email = False
         cn.save()
 
 

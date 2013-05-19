@@ -178,6 +178,8 @@
 
     {% include "mediagoblin/utils/exif.html" %}
 
+    {% include "mediagoblin/utils/comment-subscription.html" %}
+
     {%- if media.attachment_files|count %}
       <h3>{% trans %}Attachments{% endtrans %}</h3>
       <ul>
@@ -205,13 +207,6 @@
         </a>
       </p>
     {%- endif %}
-
-    <h3>Subscription</h3>
-    <ul>
-    <li><a href="{{ request.urlgen('mediagoblin.notifications.subscribe_comments',
-                user=media.get_uploader.username,
-                media=media.slug)}}">Subscribe to comments</a></li>
-                </ul>
 
     {% template_hook("media_sideinfo") %}
 
