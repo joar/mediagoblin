@@ -15,18 +15,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import sys
 import os
 import pkg_resources
 import shutil
 
-from functools import wraps
 
 from paste.deploy import loadapp
 from webtest import TestApp
 
 from mediagoblin import mg_globals
-from mediagoblin.db.models import User, MediaEntry, Collection
+from mediagoblin.db.models import User, MediaEntry, Collection, MediaComment
 from mediagoblin.tools import testing
 from mediagoblin.init.config import read_mediagoblin_config
 from mediagoblin.db.base import Session
@@ -205,8 +203,13 @@ def fixture_media_entry(title=u"Some title", slug=None,
 
     if gen_slug:
         entry.generate_slug()
+
     if save:
         entry.save()
+
+    entry = MediaEntry.query.filter_by(id=entry.id).first()
+
+    Session.expunge(entry)
 
     return entry
 
@@ -230,4 +233,26 @@ def fixture_add_collection(name=u"My first Collection", user=None):
     Session.expunge(coll)
 
     return coll
+
+def fixture_add_comment(author=None, media_entry=None, comment=None):
+    if author is None:
+        author = fixture_add_user().id
+
+    if media_entry is None:
+        media_entry = fixture_media_entry().id
+
+    if comment is None:
+        comment = \
+            'Auto-generated test comment by user #{0} on media #{0}'.format(
+                author, media_entry)
+
+    comment = MediaComment(author=author,
+                      media_entry=media_entry,
+                      content=comment)
+
+    comment.save()
+
+    Session.expunge(comment)
+
+    return comment
 
