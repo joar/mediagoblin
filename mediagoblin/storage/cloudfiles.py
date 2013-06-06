@@ -22,11 +22,15 @@ http://docs.python.org/whatsnew/2.5.html#pep-328-absolute-and-relative-imports
 '''
 from __future__ import absolute_import
 
+from mediagoblin import mg_globals
+
 from mediagoblin.storage import StorageInterface, clean_listy_filepath
 
-import cloudfiles
 import mimetypes
 import logging
+
+#import cloudfiles
+import pyrax
 
 _log = logging.getLogger(__name__)
 
@@ -39,43 +43,56 @@ class CloudFilesStorage(StorageInterface):
     local_storage = False
 
     def __init__(self, **kwargs):
-        self.param_container = kwargs.get('cloudfiles_container')
-        self.param_user = kwargs.get('cloudfiles_user')
-        self.param_api_key = kwargs.get('cloudfiles_api_key')
-        self.param_host = kwargs.get('cloudfiles_host')
-        self.param_use_servicenet = kwargs.get('cloudfiles_use_servicenet')
+        config = mg_globals.global_config.get('cloudfiles')
 
-        # the Mime Type webm doesn't exists, let's add it
-        mimetypes.add_type("video/webm", "webm")
+        if not config:
+            _log.error('No cloudfiles section in config')
+
+        self.param_container = config.get('container')
+        self.param_user = config.get('user')
+        self.param_api_key = config.get('api_key')
+        self.param_host = config.get('host')
+        self.param_use_servicenet = config.get('use_servicenet')
+
+        if not self.param_user or not self.param_api_key:
+            _log.error('User or API key missing!')
 
         if not self.param_host:
             _log.info('No CloudFiles host URL specified, '
                   'defaulting to Rackspace US')
 
-        self.connection = cloudfiles.get_connection(
-            username=self.param_user,
-            api_key=self.param_api_key,
-            servicenet=True if self.param_use_servicenet == 'true' or \
-                self.param_use_servicenet == True else False)
+        self.authenticate()
+
+    def authenticate(self):
+        # This is needed so that pyrax needs how it should log in
+        pyrax.set_setting('identity_type', 'rackspace')
+
+        pyrax.set_credentials(self.param_user, self.param_api_key)
+
+        _log.debug('Authenticated as {0}'.format(pyrax.identity.list_users()))
+
+        self.connection = pyrax.connect_to_cloudfiles(
+            public=not self.param_use_servicenet)
 
         _log.debug('Connected to {0} (auth: {1})'.format(
-            self.connection.connection.host,
-            self.connection.auth.host))
+            self.connection.connection.url,
+            self.connection.connection.authurl))
 
-        if not self.param_container == \
-                self.connection.get_container(self.param_container):
+        self.container = self.connection.get_container(self.param_container)
+
+        if not self.container:
             self.container = self.connection.create_container(
                 self.param_container)
             self.container.make_public(
                 ttl=60 * 60 * 2)
-        else:
-            self.container = self.connection.get_container(
-                self.param_container)
 
         _log.debug('Container: {0}'.format(
             self.container.name))
 
-        self.container_uri = self.container.public_uri()
+        self.container_uri = self.container.cdn_ssl_uri
+
+        # the Mime Type webm doesn't exists, let's add it
+        mimetypes.add_type("video/webm", "webm")
 
     def _resolve_filepath(self, filepath):
         return '/'.join(
@@ -85,7 +102,7 @@ class CloudFilesStorage(StorageInterface):
         try:
             self.container.get_object(self._resolve_filepath(filepath))
             return True
-        except cloudfiles.errors.NoSuchObject:
+        except pyrax.exceptions.NoSuchObject:
             return False
 
     def get_file(self, filepath, *args, **kwargs):
@@ -95,9 +112,9 @@ class CloudFilesStorage(StorageInterface):
         try:
             obj = self.container.get_object(
                 self._resolve_filepath(filepath))
-        except cloudfiles.errors.NoSuchObject:
-            obj = self.container.create_object(
-                self._resolve_filepath(filepath))
+        except pyrax.exceptions.NoSuchObject:
+            obj = self.container.store_object(
+                self._resolve_filepath(filepath), '')
 
             # Detect the mimetype ourselves, since some extensions (webm)
             # may not be universally accepted as video/webm
@@ -115,15 +132,8 @@ class CloudFilesStorage(StorageInterface):
         return CloudFilesStorageObjectWrapper(obj, *args, **kwargs)
 
     def delete_file(self, filepath):
-        # TODO: Also delete unused directories if empty (safely, with
-        # checks to avoid race conditions).
-        try:
-            self.container.delete_object(
-                self._resolve_filepath(filepath))
-        except cloudfiles.container.ResponseError:
-            pass
-        finally:
-            pass
+        self.container.delete_object(
+            self._resolve_filepath(filepath))
 
     def file_url(self, filepath):
         return '/'.join([
