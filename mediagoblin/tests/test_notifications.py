@@ -16,12 +16,18 @@
 
 import pytest
 
-from mediagoblin.db.models import Notification, CommentNotification, \
-    MediaComment
+import urlparse
+
+from mediagoblin.tools import template, mail
+
+from mediagoblin.db.models import Notification, CommentNotification
 from mediagoblin.db.base import Session
 
-from mediagoblin.tests.tools import fixture_add_collection, \
-    fixture_add_comment, fixture_media_entry, fixture_add_user
+from mediagoblin.notifications import mark_comment_notification_seen
+
+from mediagoblin.tests.tools import fixture_add_comment, \
+    fixture_media_entry, fixture_add_user, \
+    fixture_comment_subscription
 
 
 class TestNotifications:
@@ -33,25 +39,58 @@ class TestNotifications:
         # @as_authenticated_user('chris')
         self.test_user = fixture_add_user()
 
+        self.current_user = None
+
         self.login()
 
-    def login(self):
-        self.test_app.post(
+    def login(self, username=u'chris', password=u'toast'):
+        response = self.test_app.post(
             '/auth/login/', {
-                'username': u'chris',
-                'password': 'toast'})
+                'username': username,
+                'password': password})
 
-    def test_notification(self):
-        user = fixture_add_user('otherperson')
+        response.follow()
 
-        media_entry = fixture_media_entry(uploader=user.id)
+        assert urlparse.urlsplit(response.location)[2] == '/'
+        assert 'mediagoblin/root.html' in template.TEMPLATE_TEST_CONTEXT
 
-        self.test_app.get('/u/{0}/'.format(self.test_user.username))
-        self.test_app.get('/u/{0}/'.format(user.username))
+        ctx = template.TEMPLATE_TEST_CONTEXT['mediagoblin/root.html']
+
+        assert Session.merge(ctx['request'].user).username == username
+
+        self.current_user = ctx['request'].user
+
+    def logout(self):
+        self.test_app.get('/auth/logout/')
+        self.current_user = None
+
+    def test_comment_email_subscription(self):
+        pass
+
+    def test_comment_unsubscription(self):
+        pass
+
+    def test_comment_notification(self):
+        '''
+        Test
+        - if a notification is created when posting a comment on
+          another users media entry.
+        - that the comment data is consistent and exists.
+
+        '''
+        user = fixture_add_user('otherperson', password='nosreprehto')
+
+        media_entry = fixture_media_entry(uploader=user.id, state=u'processed')
+
+        subscription = fixture_comment_subscription(media_entry)
+
+        media_uri_id = '/u/{0}/m/{1}/'.format(user.username,
+                                              media_entry.id)
+        media_uri_slug = '/u/{0}/m/{1}/'.format(user.username,
+                                                media_entry.slug)
 
         self.test_app.post(
-            '/u/{0}/m/{1}/comment/add/'.format(
-                user.username, media_entry.id),
+            media_uri_id + 'comment/add/',
             {
                 'comment_content': u'Test comment #42'
             }
@@ -60,4 +99,25 @@ class TestNotifications:
         notifications = Notification.query.filter_by(
             user_id=user.id).all()
 
-        assert False
+        assert len(notifications) == 1
+
+        notification = notifications[0]
+
+        assert type(notification) == CommentNotification
+        assert notification.seen == False
+        assert notification.user_id == user.id
+        assert notification.subject.get_author.id == self.test_user.id
+        assert notification.subject.content == u'Test comment #42'
+
+        # Save the ids temporarily because of DetachedInstanceError
+        notification_id = notification.id
+        comment_id = notification.subject.id
+
+        self.logout()
+        self.login('otherperson', 'nosreprehto')
+
+        self.test_app.get(media_uri_slug + '/c/{0}/'.format(comment_id))
+
+        notification = Notification.query.filter_by(id=notification_id).first()
+
+        assert notification.seen == True

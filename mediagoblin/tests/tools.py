@@ -24,7 +24,8 @@ from paste.deploy import loadapp
 from webtest import TestApp
 
 from mediagoblin import mg_globals
-from mediagoblin.db.models import User, MediaEntry, Collection, MediaComment
+from mediagoblin.db.models import User, MediaEntry, Collection, MediaComment, \
+    CommentSubscription
 from mediagoblin.tools import testing
 from mediagoblin.init.config import read_mediagoblin_config
 from mediagoblin.db.base import Session
@@ -193,13 +194,40 @@ def fixture_add_user(username=u'chris', password=u'toast',
     return test_user
 
 
+def fixture_comment_subscription(entry, notify=True, send_email=True):
+    cs = CommentSubscription(
+        media_entry_id=entry.id,
+        user_id=entry.uploader,
+        notify=notify,
+        send_email=send_email)
+
+    cs.save()
+
+    cs = CommentSubscription.query.filter_by(id=cs.id).first()
+
+    Session.expunge(cs)
+
+    return cs
+
+
 def fixture_media_entry(title=u"Some title", slug=None,
-                        uploader=None, save=True, gen_slug=True):
+                        uploader=None, save=True, gen_slug=True,
+                        state=u'unprocessed', fake_upload=True):
+    if not uploader:
+        uploader = fixture_add_user().id
+
     entry = MediaEntry()
     entry.title = title
     entry.slug = slug
-    entry.uploader = uploader or fixture_add_user().id
+    entry.uploader = uploader
     entry.media_type = u'image'
+    entry.state = state
+
+    if fake_upload:
+        entry.media_files = {'thumb': ['a', 'b', 'c.jpg'],
+                             'medium': ['d', 'e', 'f.png'],
+                             'original': ['g', 'h', 'i.png']}
+        entry.media_type = u'mediagoblin.media_types.image'
 
     if gen_slug:
         entry.generate_slug()
@@ -251,6 +279,8 @@ def fixture_add_comment(author=None, media_entry=None, comment=None):
                       content=comment)
 
     comment.save()
+
+
 
     Session.expunge(comment)
 
