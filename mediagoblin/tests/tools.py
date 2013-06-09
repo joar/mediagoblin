@@ -25,7 +25,7 @@ from webtest import TestApp
 
 from mediagoblin import mg_globals
 from mediagoblin.db.models import User, MediaEntry, Collection, MediaComment, \
-    CommentSubscription
+    CommentSubscription, CommentNotification
 from mediagoblin.tools import testing
 from mediagoblin.init.config import read_mediagoblin_config
 from mediagoblin.db.base import Session
@@ -170,7 +170,7 @@ def assert_db_meets_expected(db, expected):
 
 
 def fixture_add_user(username=u'chris', password=u'toast',
-                     active_user=True):
+                     active_user=True, wants_comment_notification=True):
     # Reuse existing user or create a new one
     test_user = User.query.filter_by(username=username).first()
     if test_user is None:
@@ -183,6 +183,8 @@ def fixture_add_user(username=u'chris', password=u'toast',
         test_user.email_verified = True
         test_user.status = u'active'
 
+    test_user.wants_comment_notification = wants_comment_notification
+
     test_user.save()
 
     # Reload
@@ -194,7 +196,11 @@ def fixture_add_user(username=u'chris', password=u'toast',
     return test_user
 
 
-def fixture_comment_subscription(entry, notify=True, send_email=True):
+def fixture_comment_subscription(entry, notify=True, send_email=None):
+    if send_email is None:
+        uploader = User.query.filter_by(id=entry.uploader).first()
+        send_email = uploader.wants_comment_notification
+
     cs = CommentSubscription(
         media_entry_id=entry.id,
         user_id=entry.uploader,
@@ -210,10 +216,25 @@ def fixture_comment_subscription(entry, notify=True, send_email=True):
     return cs
 
 
+def fixture_add_comment_notification(entry_id, subject_id, user_id,
+                                     seen=False):
+    cn = CommentNotification(user_id=user_id,
+                             seen=seen,
+                             subject_id=subject_id)
+    cn.save()
+
+    cn = CommentNotification.query.filter_by(id=cn.id).first()
+
+    Session.expunge(cn)
+
+    return cn
+
+
 def fixture_media_entry(title=u"Some title", slug=None,
                         uploader=None, save=True, gen_slug=True,
-                        state=u'unprocessed', fake_upload=True):
-    if not uploader:
+                        state=u'unprocessed', fake_upload=True,
+                        expunge=True):
+    if uploader is None:
         uploader = fixture_add_user().id
 
     entry = MediaEntry()
@@ -235,9 +256,10 @@ def fixture_media_entry(title=u"Some title", slug=None,
     if save:
         entry.save()
 
-    entry = MediaEntry.query.filter_by(id=entry.id).first()
+    if expunge:
+        entry = MediaEntry.query.filter_by(id=entry.id).first()
 
-    Session.expunge(entry)
+        Session.expunge(entry)
 
     return entry
 
@@ -279,8 +301,6 @@ def fixture_add_comment(author=None, media_entry=None, comment=None):
                       content=comment)
 
     comment.save()
-
-
 
     Session.expunge(comment)
 

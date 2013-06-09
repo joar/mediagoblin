@@ -20,7 +20,8 @@ import urlparse
 
 from mediagoblin.tools import template, mail
 
-from mediagoblin.db.models import Notification, CommentNotification
+from mediagoblin.db.models import Notification, CommentNotification, \
+        CommentSubscription
 from mediagoblin.db.base import Session
 
 from mediagoblin.notifications import mark_comment_notification_seen
@@ -64,13 +65,8 @@ class TestNotifications:
         self.test_app.get('/auth/logout/')
         self.current_user = None
 
-    def test_comment_email_subscription(self):
-        pass
-
-    def test_comment_unsubscription(self):
-        pass
-
-    def test_comment_notification(self):
+    @pytest.mark.parametrize('wants_email', [True, False])
+    def test_comment_notification(self, wants_email):
         '''
         Test
         - if a notification is created when posting a comment on
@@ -78,11 +74,18 @@ class TestNotifications:
         - that the comment data is consistent and exists.
 
         '''
-        user = fixture_add_user('otherperson', password='nosreprehto')
+        user = fixture_add_user('otherperson', password='nosreprehto',
+                                wants_comment_notification=wants_email)
+
+        user_id = user.id
 
         media_entry = fixture_media_entry(uploader=user.id, state=u'processed')
 
+        media_entry_id = media_entry.id
+
         subscription = fixture_comment_subscription(media_entry)
+
+        subscription_id = subscription.id
 
         media_uri_id = '/u/{0}/m/{1}/'.format(user.username,
                                               media_entry.id)
@@ -109,6 +112,18 @@ class TestNotifications:
         assert notification.subject.get_author.id == self.test_user.id
         assert notification.subject.content == u'Test comment #42'
 
+        if wants_email == True:
+            assert mail.EMAIL_TEST_MBOX_INBOX == [
+                {'from': 'notice@mediagoblin.example.org',
+                'message': 'Content-Type: text/plain; \
+charset="utf-8"\nMIME-Version: 1.0\nContent-Transfer-Encoding: \
+base64\nSubject: GNU MediaGoblin - chris commented on your \
+post\nFrom: notice@mediagoblin.example.org\nTo: \
+otherperson@example.com\n\nSGkgb3RoZXJwZXJzb24sCmNocmlzIGNvbW1lbnRlZCBvbiB5b3VyIHBvc3QgKGh0dHA6Ly9sb2Nh\nbGhvc3Q6ODAvdS9vdGhlcnBlcnNvbi9tL3NvbWUtdGl0bGUvYy8xLyNjb21tZW50KSBhdCBHTlUg\nTWVkaWFHb2JsaW4KClRlc3QgY29tbWVudCAjNDIKCkdOVSBNZWRpYUdvYmxpbg==\n',
+                'to': [u'otherperson@example.com']}]
+        else:
+            assert mail.EMAIL_TEST_MBOX_INBOX == []
+
         # Save the ids temporarily because of DetachedInstanceError
         notification_id = notification.id
         comment_id = notification.subject.id
@@ -121,3 +136,16 @@ class TestNotifications:
         notification = Notification.query.filter_by(id=notification_id).first()
 
         assert notification.seen == True
+
+        self.test_app.get(media_uri_slug + '/notifications/silence/')
+
+        subscription = CommentSubscription.query.filter_by(id=subscription_id)\
+                .first()
+
+        assert subscription.notify == False
+
+        notifications = Notification.query.filter_by(
+            user_id=user_id).all()
+
+        # User should not have been notified
+        assert len(notifications) == 1
