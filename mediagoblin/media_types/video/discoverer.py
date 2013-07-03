@@ -96,6 +96,11 @@ class Discoverer(object):
                 tags=dict(stream.get_tags())
             )
 
+            if _d.get('nick') == 'video':
+                _d.update(dict(
+                    width=stream.get_width(),
+                    height=stream.get_height()))
+
             for i in range(0, 64):
                 if not _d.get('nick'):
                     break
