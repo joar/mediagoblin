@@ -21,10 +21,8 @@ import logging
 from datetime import timedelta
 
 
-logging.basicConfig()
-
 _log = logging.getLogger(__name__)
-_log.setLevel(logging.DEBUG)
+
 
 class Discoverer(object):
     def __init__(self, timeout=5):
@@ -115,11 +113,11 @@ class Discoverer(object):
 if __name__ == '__main__':
     d = Discoverer()
     #d.discover('file:///home/joar/test-video.webm')
-    import pprint
+    import pprint, sys
     pp = pprint.PrettyPrinter(indent=4)
 
-    result = d.discover(
-        'http://docs.gstreamer.com/media/sintel_trailer-480p.webm')
+    result = d.discover(sys.argv[1])
 
+    print '------------- RESULT --------------'
     pp.pprint(result)
 
