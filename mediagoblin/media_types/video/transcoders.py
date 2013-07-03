@@ -22,7 +22,10 @@ import logging
 import urllib
 import multiprocessing
 import gobject
+import struct
 
+# Keep our arguments from pygst and gst as one of them intercepts any arguments
+# (e.g. -h) and takes them for themselves
 old_argv = sys.argv
 sys.argv = []
 
@@ -30,8 +33,10 @@ import pygst
 pygst.require('0.10')
 import gst
 
+# Now, once pygst and gst have been imported we can set our args back to the
+# old args
 sys.argv = old_argv
-import struct
+
 try:
     from PIL import Image
 except ImportError:
