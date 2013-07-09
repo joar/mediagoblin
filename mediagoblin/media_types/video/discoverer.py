@@ -42,8 +42,12 @@ class Discoverer(object):
         self.discoverer.discover_uri_async(uri)
 
         self.result = {}
+        self.errors = []
 
         self.loop.run()
+
+        if len(self.errors):
+            raise Exception('Errors occured during discovery: {0}'.format(self.errors))
 
         # Once the loop is done, return the collected data
         return self.result
@@ -63,18 +67,16 @@ class Discoverer(object):
         uri = info.get_uri()
         result = info.get_result()
 
-        errors = []
-
         if result == gst.pbutils.DISCOVERER_URI_INVALID:
-            errors.append('Invalid URI: {0}'.format(uri))
+            self.errors.append('Invalid URI: {0}'.format(uri))
         elif result == gst.pbutils.DISCOVERER_ERROR:
-            errors.append('Discoverer error: {0}'.format(error.message))
+            self.errors.append('Discoverer error: {0}'.format(error.message))
         elif result == gst.pbutils.DISCOVERER_TIMEOUT:
-            errors.append('Timeout')
+            self.errors.append('Timeout')
         elif result == gst.pbutils.DISCOVERER_BUSY:
-            errors.append('Discoverer busy')
+            self.errors.append('Discoverer busy')
         elif result == gst.pbutils.DISCOVERER_MISSING_PLUGINS:
-            errors.append('Missing plugins: {0}'.format(
+            self.errors.append('Missing plugins: {0}'.format(
                 info.get_misc().to_string()))
         elif result == gst.pbutils.DISCOVERER_OK:
             self.result.update(dict(
